@@ -1,0 +1,3 @@
+(fp_lib_table
+  (lib (name Luminometer_OPT101_Footprints)(type KiCad)(uri ${KIPRJMOD}/Luminometer_OPT101_Footprints.pretty)(options "")(descr ""))
+)

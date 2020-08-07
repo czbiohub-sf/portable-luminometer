@@ -1,0 +1,3 @@
+(fp_lib_table
+  (lib (name Luminometer_OPT101_Footprints)(type KiCad)(uri /Users/robert.puccinelli/github/ulc-tube-reader/Luminometer_OPT101/Luminometer_OPT101_Footprints.pretty)(options "")(descr ""))
+)

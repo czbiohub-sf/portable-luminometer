@@ -1,0 +1,11 @@
+EESchema-DOCLIB  Version 2.0
+#
+$CMP OPA862
+F https://www.ti.com/lit/ds/symlink/opa862.pdf?HQS=TI-null-null-digikeymode-df-pf-null-wwe&ts=1596238612437
+$ENDCMP
+#
+$CMP OPT101
+F https://www.ti.com/lit/ds/symlink/opt101.pdf?HQS=TI-null-null-alldatasheets-df-pf-SEP-wwe
+$ENDCMP
+#
+#End Doc Library

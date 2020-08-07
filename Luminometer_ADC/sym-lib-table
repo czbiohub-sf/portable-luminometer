@@ -1,0 +1,4 @@
+(sym_lib_table
+  (lib (name ADS131M08)(type Legacy)(uri ${KIPRJMOD}/libs/ADS131M08.lib)(options "")(descr ""))
+  (lib (name LuminometerCustomPartLib)(type Legacy)(uri /Users/robert.puccinelli/github/ulc-tube-reader/Luminometer_OPT101/LuminometerCustomPartLib.lib)(options "")(descr ""))
+)
