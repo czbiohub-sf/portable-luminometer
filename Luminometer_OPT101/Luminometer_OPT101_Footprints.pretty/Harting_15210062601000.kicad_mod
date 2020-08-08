@@ -1,8 +1,8 @@
-(module Harting_15220062601000 (layer F.Cu) (tedit 5F2CD4B4)
+(module Harting_15210062601000 (layer F.Cu) (tedit 5F2E082F)
   (fp_text reference REF** (at 0 -6.35) (layer F.SilkS)
     (effects (font (size 1 1) (thickness 0.15)))
   )
-  (fp_text value 15220062601000 (at 0 6.35) (layer F.Fab)
+  (fp_text value 15210062601000 (at 0 6.35) (layer F.Fab)
     (effects (font (size 1 1) (thickness 0.15)))
   )
   (fp_line (start 5.08 5.08) (end 5.08 -5.08) (layer F.CrtYd) (width 0.12))
@@ -21,9 +21,9 @@
   (pad 2 connect rect (at -3.78 2.55) (size 1.2 2.5) (layers F.Cu F.Mask))
   (pad 1 connect rect (at 3.78 2.55) (size 1.2 2.5) (layers F.Cu F.Mask))
   (pad "" np_thru_hole circle (at -3.48 0) (size 1.6 1.6) (drill 1.6) (layers *.Cu *.Mask))
-  (model /Users/robert.puccinelli/github/ulc-tube-reader/Luminometer_OPT101/Luminometer_OPT101_Footprints.pretty/1522006X601XXX_100210473MOD000C.STP
-    (offset (xyz 0 -37 -8))
+  (model /Users/robert.puccinelli/github/ulc-tube-reader/Luminometer_OPT101/Luminometer_OPT101_Footprints.pretty/1521006X601XXX_100210412MOD000C.STP
+    (offset (xyz -4.2 -27 -8))
     (scale (xyz 1 1 1))
-    (rotate (xyz -90 0 -180))
+    (rotate (xyz -90 0 180))
   )
 )
