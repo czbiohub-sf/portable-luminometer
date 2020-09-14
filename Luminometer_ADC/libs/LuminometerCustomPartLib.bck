@@ -1,0 +1,48 @@
+EESchema-DOCLIB  Version 2.0
+#
+$CMP +34V
+D Power symbol creates a global label with name "+34V"
+K power-flag
+$ENDCMP
+#
+$CMP LT1363
+D 70MHz, 1000V/µs Operational Amplifier, DIP-8/SOIC-8
+K single opamp
+F https://www.analog.com/media/en/technical-documentation/data-sheets/1363fa.pdf
+$ENDCMP
+#
+$CMP MICROFC−60035−SMT
+F https://www.onsemi.com/pub/Collateral/MICROC-SERIES-D.PDF
+$ENDCMP
+#
+$CMP OP77
+D Next Generation OP07 Ultralow Offset Voltage Operational Amplifier, DIP-8/TO-99-8
+K single opamp
+F https://www.analog.com/media/en/technical-documentation/data-sheets/OP77.pdf
+$ENDCMP
+#
+$CMP OPA134
+D Single SoundPlus High Performance Audio Operational Amplifiers, DIP-8/SOIC-8
+K single opamp
+F http://www.ti.com/lit/ds/symlink/opa134.pdf
+$ENDCMP
+#
+$CMP OPA192
+D Single Ultra-Low Offset Voltage Operational Amplifier, DIP-8/SOIC-8
+K single opamp
+F https://www.analog.com/media/en/technical-documentation/data-sheets/OP07.pdf
+$ENDCMP
+#
+$CMP OPA4192IDR
+F https://www.ti.com/lit/ds/symlink/opa192.pdf?HQS=TI-null-null-digikeymode-df-pf-null-wwe&ts=1599772125820
+$ENDCMP
+#
+$CMP OPA862
+F https://www.ti.com/lit/ds/symlink/opa862.pdf?HQS=TI-null-null-digikeymode-df-pf-null-wwe&ts=1596238612437
+$ENDCMP
+#
+$CMP OPT101
+F https://www.ti.com/lit/ds/symlink/opt101.pdf?HQS=TI-null-null-alldatasheets-df-pf-SEP-wwe
+$ENDCMP
+#
+#End Doc Library

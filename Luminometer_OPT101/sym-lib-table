@@ -1,3 +1,0 @@
-(sym_lib_table
-  (lib (name LuminometerCustomPartLib)(type Legacy)(uri ${KIPRJMOD}/LuminometerCustomPartLib.lib)(options "")(descr ""))
-)
