@@ -1447,12 +1447,12 @@ Wire Wire Line
 $Comp
 L Device:R R?
 U 1 1 607C15EE
-P 1850 2650
-F 0 "R?" V 1735 2650 50  0000 C CNN
-F 1 "9.6k" V 1644 2650 50  0000 C CNN
-F 2 "Resistor_SMD:R_0603_1608Metric" V 1780 2650 50  0001 C CNN
-F 3 "~" H 1850 2650 50  0001 C CNN
-	1    1850 2650
+P 1850 2700
+F 0 "R?" V 1735 2700 50  0000 C CNN
+F 1 "9.6k" V 1644 2700 50  0000 C CNN
+F 2 "Resistor_SMD:R_0603_1608Metric" V 1780 2700 50  0001 C CNN
+F 3 "~" H 1850 2700 50  0001 C CNN
+	1    1850 2700
 	0    -1   -1   0   
 $EndComp
 $Comp
@@ -1498,19 +1498,19 @@ F 3 "https://www.analog.com/media/en/technical-documentation/data-sheets/OP07.pd
 $EndComp
 Connection ~ 2150 2100
 Wire Wire Line
-	1550 2200 1550 2650
+	1550 2200 1550 2700
 Wire Wire Line
-	2150 2100 2150 2650
+	2150 2100 2150 2700
 Wire Wire Line
-	1550 2650 1700 2650
-Connection ~ 1550 2650
+	1550 2700 1700 2700
+Connection ~ 1550 2700
 Wire Wire Line
-	1550 2650 1550 2775
+	1550 2700 1550 2775
 Wire Wire Line
-	2000 2650 2150 2650
-Connection ~ 2150 2650
+	2000 2700 2150 2700
+Connection ~ 2150 2700
 Wire Wire Line
-	2150 2650 2150 3075
+	2150 2700 2150 3075
 $Comp
 L LuminometerCustomPartLib:+34V #PWR?
 U 1 1 60999667

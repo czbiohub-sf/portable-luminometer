@@ -855,7 +855,7 @@ F 3 "~" H 4700 3475 50  0001 C CNN
 	0    -1   -1   0   
 $EndComp
 Text Label 4000 3750 3    50   ~ 0
-VBias
+BIAS
 $Comp
 L Device:R R?
 U 1 1 5FBDF378
