@@ -176,41 +176,6 @@ X ~ 2 0 -150 50 U 50 50 1 1 P
 ENDDRAW
 ENDDEF
 #
-# Device_Resonator_Small
-#
-DEF Device_Resonator_Small Y 0 40 Y N 1 F N
-F0 "Y" 125 75 50 H V L CNN
-F1 "Device_Resonator_Small" 125 0 50 H V L CNN
-F2 "" -25 0 50 H I C CNN
-F3 "" -25 0 50 H I C CNN
-$FPLIST
- Filter*
- Resonator*
-$ENDFPLIST
-DRAW
-C -100 0 10 0 1 0 F
-C 0 -150 10 0 1 0 F
-C 100 0 10 0 1 0 F
-S -140 -100 -60 -110 0 1 0 F
-S -140 -70 -60 -80 0 1 0 F
-S -25 75 25 -75 0 1 12 N
-S 60 -100 140 -110 0 1 0 F
-S 60 -70 140 -80 0 1 0 F
-P 2 0 1 0 -100 -70 -100 0 N
-P 2 0 1 0 -100 0 -55 0 N
-P 2 0 1 0 -100 50 -100 0 N
-P 2 0 1 15 -50 -50 -50 50 N
-P 2 0 1 15 50 -50 50 50 N
-P 2 0 1 0 50 0 100 0 N
-P 2 0 1 0 100 0 100 -70 N
-P 2 0 1 0 100 50 100 0 N
-P 4 0 1 0 95 -110 95 -150 -95 -150 -95 -105 N
-X 1 1 -100 100 50 D 50 50 1 1 P
-X 2 2 0 -200 50 U 50 50 1 1 P
-X 3 3 100 100 50 D 50 50 1 1 P
-ENDDRAW
-ENDDEF
-#
 # Jumper_SolderJumper_2_Bridged
 #
 DEF Jumper_SolderJumper_2_Bridged JP 0 0 Y N 1 F N
@@ -234,18 +199,18 @@ X B 2 150 0 100 L 50 50 1 1 P
 ENDDRAW
 ENDDEF
 #
-# LuminometerCustomPartLib_+34V
+# LuminometerCustomPartLib_+32V
 #
-DEF LuminometerCustomPartLib_+34V #PWR 0 0 Y Y 1 F P
+DEF LuminometerCustomPartLib_+32V #PWR 0 0 Y Y 1 F P
 F0 "#PWR" -200 -200 50 H I C CNN
-F1 "LuminometerCustomPartLib_+34V" 0 140 50 H V C CNN
+F1 "LuminometerCustomPartLib_+32V" 0 140 50 H V C CNN
 F2 "" 0 0 50 H I C CNN
 F3 "" 0 0 50 H I C CNN
 DRAW
 P 2 0 1 0 -30 50 0 100 N
 P 2 0 1 0 0 0 0 100 N
 P 2 0 1 0 0 100 30 50 N
-X +34V 1 0 0 0 U 50 50 1 1 W N
+X +32V 1 0 0 0 U 50 50 1 1 W N
 ENDDRAW
 ENDDEF
 #
