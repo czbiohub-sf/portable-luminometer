@@ -13,8 +13,10 @@ import RPi.GPIO as GPIO
 
 from adc_reader import ADCReader
 
+
 # Set gpio pin numbering to the gpio pin numbers on the raspberry pi
 GPIO.setmode(GPIO.BOARD)
+
 
 # Commands (ADS131M08 datasheet 8.5.1.10)
 WREG_OPCODE    = 0b0110000000000000
@@ -32,23 +34,23 @@ ID_ADDR = 0x00
 STATUS_ADDR = 0x01
 MODE_ADDR = 0x02
 CLOCK_ADDR = 0x03
+CFG_ADDR = 0x06
 
 
 # Register Payloads
-
 # clock register
 ALL_CH_DISABLE_MASK   = 0b0000000000000000
 ALL_CH_ENABLE_MASK    = 0b1111111100000000
 OSR_16256_MASK        = 0b0000000000011100
 XTAL_OSC_DISABLE_MASK = 0b0000000010000000
-EXTERNAL_REF_MASK     = 0b0000000001000000
+EXTERNAL_REF_MASK     = 0b0000000000000000
 PWR_HIGH_RES_MASK     = 0b0000000000000011
-
 # mode register
 RESET_MASK = 1 << 10
 WLEN_24_MASK = 1 << 8
 SPI_TIMEOUT_MASK = 1 << 4
-
+# cgf register
+GLOBAL_CHOP_EN = 1 << 8
 
 
 class ADS131M09Reader(ADCReader):
@@ -71,12 +73,14 @@ class ADS131M09Reader(ADCReader):
 
         # ADS131M09 Settings
         self.spi.mode = 0b01
-        self.spi.max_speed_hz  = 1000000
+        self.spi.max_speed_hz  = 8192000
         self.spi.no_cs = True  # We tied the ~CS to GND
 
     def read(self):
         if self._first_read:
-            self.spi.writebytes([0b0] * self.num_frame_words * self.bytes_per_word)
+            res = self.spi.xfer([0b0] * self.ads_num_frame_words * self.bytes_per_word)
+            self._first_read = False
+        return self.spi.xfer([0b0] * self.ads_num_frame_words * self.bytes_per_word)
 
     def adc_register_write(self, register_addr: bytes, data: bytes):
         """
@@ -102,25 +106,17 @@ class ADS131M09Reader(ADCReader):
 
 if __name__ == '__main__':
     adc_reader = ADS131M09Reader()
-    # currently using SPI1 pins
-    # adc_reader.setup_adc(0, 1)
-
+    
     # wait for DRDY to go high, indicating the ADC has started up
     while not GPIO.input(adc_reader._DRDY):
         print('not ready')
     print('ready')
+
     adc_reader.adc_register_write(CLOCK_ADDR, ALL_CH_DISABLE_MASK | OSR_16256_MASK | PWR_HIGH_RES_MASK)
-    adc_reader.adc_register_write(MODE_ADDR,  RESET_MASK | WLEN_24_MASK | SPI_TIMEOUT_MASK)
-#    adc_reader.adc_register_write(GAIN1_ADDR, PGAGAIN3_32_MASK | PGAGAIN1_32_MASK)
-#    adc_reader.adc_register_write(THRSHLD_LSB_ADDR, 0x09)
-    adc_reader.adc_register_write(MODE_ADDR, WLENGTH_32_SIGN_EXTEND_MASK | DRDY_FMT_PULSE_MASK | SPI_TIMEOUT_MASK)
-    adc_reader.adc_register_write(CLOCK_ADDR, ALL_CH_ENABLE_MASK | OSR_16256_MASK | PWR_HIGH_RES_MASK)
+    CH_2_3_MASK = ALL_CH_DISABLE_MASK | 1 << (8 + 2) | 1 << (8 + 3)
+    adc_reader.adc_register_write(CLOCK_ADDR, CH_2_3_MASK | OSR_16256_MASK | PWR_HIGH_RES_MASK)
+    adc_reader.adc_register_write(CFG_ADDR, GLOBAL_CHOP_EN)
     
-    try:
-        while True: pass
-    except KeyboardInterrupt:
-        pass
-
-    
-
+    while True:
+        print(adc_reader.read())
 
