@@ -1,15 +1,15 @@
-from abc import ABC
+import abc
 
 
-class ADCReader(ABC):
-    @abstractmethod
+class ADCReader(abc.ABC):
+    @abc.abstractmethod
     def __init__():
         pass
 
-    @abstractmethod
+    @abc.abstractmethod
     def setup_adc(self, *args, **kwargs):
         pass
 
-    @abstractmethod
+    @abc.abstractmethod
     def read(self):
         pass
