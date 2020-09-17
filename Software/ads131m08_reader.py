@@ -65,7 +65,6 @@ class ADS131M09Reader(ADCReader):
         self._first_read: bool = True
 
         GPIO.setup(self._DRDY, GPIO.IN)
-        self.setup_adc(0, 1)
 
     def setup_adc(self, bus, device):
         self.spi.open(bus, device)
@@ -102,21 +101,25 @@ class ADS131M09Reader(ADCReader):
         self.spi.writebytes(cmd_payload)
         self.spi.writebytes(shifted_data_payload)
 
+    def data_ready(self):
+        return not GPIO.input(adc_reader._DRDY)
+
 
 if __name__ == "__main__":
     adc_reader = ADS131M09Reader()
+    adc_reader.setup_adc(0, 1)
 
     # wait for DRDY to go high, indicating the ADC has started up
     while not GPIO.input(adc_reader._DRDY):
         print("not ready")
     print("ready")
 
-    adc_reader.adc_register_write(CLOCK_ADDR, ALL_CH_DISABLE_MASK | OSR_16256_MASK | PWR_HIGH_RES_MASK)
     CH_2_3_MASK = ALL_CH_DISABLE_MASK | 1 << (8 + 2) | 1 << (8 + 3)
+    adc_reader.adc_register_write(CLOCK_ADDR, ALL_CH_DISABLE_MASK | OSR_16256_MASK | PWR_HIGH_RES_MASK)
     adc_reader.adc_register_write(CLOCK_ADDR, CH_2_3_MASK | OSR_16256_MASK | PWR_HIGH_RES_MASK)
     adc_reader.adc_register_write(CFG_ADDR, GLOBAL_CHOP_EN)
 
     while True:
-        while GPIO.input(adc_reader._DRDY):
+        while adc_reader.data_ready():
             pass
         print(adc_reader.read())
