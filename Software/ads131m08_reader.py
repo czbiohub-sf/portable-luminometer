@@ -19,14 +19,14 @@ GPIO.setmode(GPIO.BOARD)
 
 
 # Commands (ADS131M08 datasheet 8.5.1.10)
-WREG_OPCODE    = 0b0110000000000000
-RREG_OPCODE    = 0b1010000000000000
-UNLOCK_OPCODE  = 0b0000011001010101
-LOCK_OPCODE    = 0b0000010101010101
-WAKEUP_OPCODE  = 0b0000000000110011
+WREG_OPCODE = 0b0110000000000000
+RREG_OPCODE = 0b1010000000000000
+UNLOCK_OPCODE = 0b0000011001010101
+LOCK_OPCODE = 0b0000010101010101
+WAKEUP_OPCODE = 0b0000000000110011
 STANDBY_OPCODE = 0b0000000000100010
-RESET_OPCODE   = 0b0000000000010001
-NULL_OPCODE    = 0b0000000000000000
+RESET_OPCODE = 0b0000000000010001
+NULL_OPCODE = 0b0000000000000000
 
 
 # Register adresses
@@ -39,12 +39,12 @@ CFG_ADDR = 0x06
 
 # Register Payloads
 # clock register
-ALL_CH_DISABLE_MASK   = 0b0000000000000000
-ALL_CH_ENABLE_MASK    = 0b1111111100000000
-OSR_16256_MASK        = 0b0000000000011100
+ALL_CH_DISABLE_MASK = 0b0000000000000000
+ALL_CH_ENABLE_MASK = 0b1111111100000000
+OSR_16256_MASK = 0b0000000000011100
 XTAL_OSC_DISABLE_MASK = 0b0000000010000000
-EXTERNAL_REF_MASK     = 0b0000000000000000
-PWR_HIGH_RES_MASK     = 0b0000000000000011
+EXTERNAL_REF_MASK = 0b0000000000000000
+PWR_HIGH_RES_MASK = 0b0000000000000011
 # mode register
 RESET_MASK = 1 << 10
 WLEN_24_MASK = 1 << 8
@@ -54,12 +54,11 @@ GLOBAL_CHOP_EN = 1 << 8
 
 
 class ADS131M09Reader(ADCReader):
-
     def __init__(self):
         self.spi = spidev.SpiDev()
         self.ads_num_frame_words: int = 10  # Num. words in full ADS131 frame
         self.ads_bits_per_word: int = 24  # default word length on ADS
-        self.rpi_bits_per_word: int = 8   # only available word length on RPi
+        self.rpi_bits_per_word: int = 8  # only available word length on RPi
         self.bytes_per_word: int = int(self.ads_bits_per_word / self.rpi_bits_per_word)
 
         self._DRDY: int = 37  # drdy pin is 37
@@ -73,7 +72,7 @@ class ADS131M09Reader(ADCReader):
 
         # ADS131M09 Settings
         self.spi.mode = 0b01
-        self.spi.max_speed_hz  = 8192000
+        self.spi.max_speed_hz = 8192000
         self.spi.no_cs = True  # We tied the ~CS to GND
 
     def read(self):
@@ -88,35 +87,36 @@ class ADS131M09Reader(ADCReader):
                 register_addr:     16-bit register address mask
                 data:              data to write
 
-        The ADS write command is 0b011a aaaa annn nnnn, where a aaaa a is the 
+        The ADS write command is 0b011a aaaa annn nnnn, where a aaaa a is the
         address of the register, and nnn nnnn is the number of consecutive registers
         to write to, minus 1.
         Therefore, we shift the register address left by 7
         """
         shift_value = self.ads_bits_per_word - 16
         register_shift = 7
- 
-        shifted_data_payload = [*(data << shift_value).to_bytes(self.bytes_per_word, 'big')]
+
+        shifted_data_payload = [*(data << shift_value).to_bytes(self.bytes_per_word, "big")]
         cmd = (WREG_OPCODE | register_addr << register_shift | len(shifted_data_payload)) << shift_value
-        cmd_payload = [*cmd.to_bytes(self.bytes_per_word, 'big')]
+        cmd_payload = [*cmd.to_bytes(self.bytes_per_word, "big")]
 
         self.spi.writebytes(cmd_payload)
         self.spi.writebytes(shifted_data_payload)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     adc_reader = ADS131M09Reader()
-    
+
     # wait for DRDY to go high, indicating the ADC has started up
     while not GPIO.input(adc_reader._DRDY):
-        print('not ready')
-    print('ready')
+        print("not ready")
+    print("ready")
 
     adc_reader.adc_register_write(CLOCK_ADDR, ALL_CH_DISABLE_MASK | OSR_16256_MASK | PWR_HIGH_RES_MASK)
     CH_2_3_MASK = ALL_CH_DISABLE_MASK | 1 << (8 + 2) | 1 << (8 + 3)
     adc_reader.adc_register_write(CLOCK_ADDR, CH_2_3_MASK | OSR_16256_MASK | PWR_HIGH_RES_MASK)
     adc_reader.adc_register_write(CFG_ADDR, GLOBAL_CHOP_EN)
-    
-    while True:
-        print(adc_reader.read())
 
+    while True:
+        while GPIO.input(adc_reader._DRDY):
+            pass
+        print(adc_reader.read())
