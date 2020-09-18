@@ -39,7 +39,7 @@ CFG_ADDR = 0x06
 
 # Register Payloads
 # clock register
-ALL_CH_DISABLE_MASK = 0b0
+ALL_CH_DISABLE_MASK = 0b00000000 << 8
 ALL_CH_ENABLE_MASK = 0b11111111 << 8
 OSR_16256_MASK = 0b111 << 2
 # The datasheet is a little confusing with regards to the chrystal oscillator
@@ -55,7 +55,7 @@ RESET_MASK = 0b0 << 10
 WLEN_24_MASK = 0b01 << 8
 SPI_TIMEOUT_MASK = 0b1 << 4
 DRDY_FMT_PULSE_MASK = 0b1
-DRDY_FMT_LOW_MASK = 0b1
+DRDY_FMT_LOW_MASK = 0b0
 # cgf register
 GLOBAL_CHOP_EN_MASK = 0b1 << 8
 DEFAULT_CHOP_DELAY_MASK = 0b0011 << 9
@@ -72,7 +72,7 @@ class ADS131M09Reader(ADCReader):
         self._DRDY: int = 37  # drdy pin is 37
         self._first_read: bool = True
 
-        GPIO.setup(self._DRDY, GPIO.IN)
+        GPIO.setup(self._DRDY, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
 
     def setup_adc(self, bus, device):
         self.spi.open(bus, device)
@@ -84,13 +84,13 @@ class ADS131M09Reader(ADCReader):
 
     def read(self):
         if self._first_read:
-            res = self.spi.xfer([0b0] * self.ads_num_frame_words * self.bytes_per_word)
+            self.spi.xfer([0b0] * self.ads_num_frame_words * self.bytes_per_word)
             self._first_read = False
         res = self.spi.xfer([0b0] * self.ads_num_frame_words * self.bytes_per_word)
         # Combine the bytes back into words before returning
         return [self._combine_bytes(*res[i:i + self.bytes_per_word]) for i in range(0, len(res), self.bytes_per_word)]
 
-    def adc_register_write(self, register_addr: bytes, data: bytes):
+    def adc_register_write(self, register_addr: int, data: int):
         """
         params
                 register_addr:     16-bit register address mask
@@ -104,15 +104,15 @@ class ADS131M09Reader(ADCReader):
         shift_value = self.ads_bits_per_word - 16
         register_shift = 7
 
-        shifted_data_payload = [*(data << shift_value).to_bytes(self.bytes_per_word, "big")]
-        cmd = (WREG_OPCODE | register_addr << register_shift | len(shifted_data_payload)) << shift_value
-        cmd_payload = [*cmd.to_bytes(self.bytes_per_word, "big")]
+        shifted_data_payload = [*(data << shift_value).to_bytes(self.bytes_per_word, "little")]
+        cmd = (WREG_OPCODE | (register_addr << register_shift) | (int(len(shifted_data_payload) / self.bytes_per_word) - 1)) << shift_value
+        cmd_payload = [*cmd.to_bytes(self.bytes_per_word, "little")]
 
-        self.spi.writebytes(cmd_payload)
-        self.spi.writebytes(shifted_data_payload)
+        print(bits(self._combine_bytes(*cmd_payload)))
+        print("RES", bits(self._combine_bytes(*self.spi.xfer(cmd_payload + shifted_data_payload))))
 
     def data_ready(self):
-        return GPIO.input(adc_reader._DRDY)
+        return not GPIO.input(adc_reader._DRDY)
 
     def _combine_bytes(self, *byte_args):
         """
@@ -127,6 +127,12 @@ class ADS131M09Reader(ADCReader):
         for i in range(num_bytes):
             out |= byte_args[num_bytes - i - 1] << (8 * (num_bytes - i - 1))
         return out
+
+def bits(v):
+    bs = '{0:b}'.format(v)
+    bs = '0' * (4 - len(bs) % 4) + bs
+    return ' '.join([bs[i:i+4] for i in range(0, len(bs), 4)])
+
 
 if __name__ == "__main__":
     adc_reader = ADS131M09Reader()
@@ -144,16 +150,18 @@ if __name__ == "__main__":
     # print('CLOCK WRITE', '{0:b}'.format(ALL_CH_DISABLE_MASK | OSR_16256_MASK | PWR_HIGH_RES_MASK | XTAL_OSC_DISABLE_MASK))
 
     # Clear reset flag, mmake DRDY active low, use 24 bit word length, & use a SPI Timeout
-    adc_reader.adc_register_write(MODE_ADDR, RESET_MASK | DRDY_FMT_LOW_MASK | WLEN_24_MASK | SPI_TIMEOUT_MASK)
+    #adc_reader.adc_register_write(MODE_ADDR, RESET_MASK | DRDY_FMT_LOW_MASK | WLEN_24_MASK | SPI_TIMEOUT_MASK)
     # print('MODE WRITE', '{0:b}'.format(RESET_MASK | DRDY_FMT_PULSE_MASK | WLEN_24_MASK | SPI_TIMEOUT_MASK))
 
     # Enable Global Chop Mode, and rewrite default chop delay
-    adc_reader.adc_register_write(CFG_ADDR, GLOBAL_CHOP_EN_MASK | DEFAULT_CHOP_DELAY_MASK)
+    #adc_reader.adc_register_write(CFG_ADDR, GLOBAL_CHOP_EN_MASK | DEFAULT_CHOP_DELAY_MASK)
     # print('CFG WRITE', '{0:b}'.format(GLOBAL_CHOP_EN_MASK | DEFAULT_CHOP_DELAY_MASK))
 
     # Enable channels 2 and 3, and rewrite other desired settings
-    adc_reader.adc_register_write(CLOCK_ADDR, CH_2_3_MASK | OSR_16256_MASK | PWR_HIGH_RES_MASK | XTAL_OSC_DISABLE_MASK)
+    #adc_reader.adc_register_write(CLOCK_ADDR, CH_2_3_MASK | OSR_16256_MASK | PWR_HIGH_RES_MASK | XTAL_OSC_DISABLE_MASK)
     # print('CLOCK WRITE', '{0:b}'.format(CH_2_3_MASK | OSR_16256_MASK | PWR_HIGH_RES_MASK | XTAL_OSC_DISABLE_MASK))
 
-    while 1:
-        adc_reader.read()
+    while True:
+        while not adc_reader.data_ready():
+            pass
+        print(adc_reader.read())
