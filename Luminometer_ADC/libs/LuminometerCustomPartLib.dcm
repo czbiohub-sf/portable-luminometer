@@ -10,7 +10,23 @@ D Power symbol creates a global label with name "+34V"
 K power-flag
 $ENDCMP
 #
+$CMP ADA4522-1
+D Single Ultra-Low Offset Voltage Operational Amplifier, DIP-8/SOIC-8
+K single opamp
+F https://www.analog.com/media/en/technical-documentation/data-sheets/ADA4522-1_4522-2_4522-4.pdf
+$ENDCMP
+#
+$CMP ADA4522-4
+F https://www.analog.com/media/en/technical-documentation/data-sheets/ADA4522-1_4522-2_4522-4.pdf
+$ENDCMP
+#
 $CMP LT1363
+D 70MHz, 1000V/µs Operational Amplifier, DIP-8/SOIC-8
+K single opamp
+F https://www.analog.com/media/en/technical-documentation/data-sheets/1363fa.pdf
+$ENDCMP
+#
+$CMP LT1363_copy
 D 70MHz, 1000V/µs Operational Amplifier, DIP-8/SOIC-8
 K single opamp
 F https://www.analog.com/media/en/technical-documentation/data-sheets/1363fa.pdf
@@ -26,7 +42,19 @@ K single opamp
 F https://www.analog.com/media/en/technical-documentation/data-sheets/OP77.pdf
 $ENDCMP
 #
+$CMP OP77_copy
+D Next Generation OP07 Ultralow Offset Voltage Operational Amplifier, DIP-8/TO-99-8
+K single opamp
+F https://www.analog.com/media/en/technical-documentation/data-sheets/OP77.pdf
+$ENDCMP
+#
 $CMP OPA134
+D Single SoundPlus High Performance Audio Operational Amplifiers, DIP-8/SOIC-8
+K single opamp
+F http://www.ti.com/lit/ds/symlink/opa134.pdf
+$ENDCMP
+#
+$CMP OPA134_copy
 D Single SoundPlus High Performance Audio Operational Amplifiers, DIP-8/SOIC-8
 K single opamp
 F http://www.ti.com/lit/ds/symlink/opa134.pdf
