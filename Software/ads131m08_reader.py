@@ -1,7 +1,6 @@
 #! /usr/bin/env python3
 """
 Application Notes:
-
     1. The ADS has can take a bits-per-word length of 16, 24, or 32.
        Raspberry Pis are only configured tor 8 bits per word. Therefore, we
        just send each byte in every word individually.
@@ -88,9 +87,12 @@ class ADS131M09Reader(ADCReader):
             self._first_read = False
         res = self.spi.xfer([0b0] * self.ads_num_frame_words * self.bytes_per_word)
         # Combine the bytes back into words before returning
-        return [self._combine_bytes(*res[i:i + self.bytes_per_word]) for i in range(0, len(res), self.bytes_per_word)]
+        for i in range(1, 9):
+            res[i] = twos_complement(res[i], 24)
+        data = [bits(self._combine_bytes(*res[i:i + self.bytes_per_word])) for i in range(0, len(res), self.bytes_per_word)]
+        return data
 
-    def adc_register_write(self, register_addr: int, data: int):
+    def write_register(self, register_addr: int, data: int):
         """
         params
                 register_addr:     16-bit register address mask
@@ -107,9 +109,28 @@ class ADS131M09Reader(ADCReader):
         shifted_data_payload = [*(data << shift_value).to_bytes(self.bytes_per_word, "little")]
         cmd = (WREG_OPCODE | (register_addr << register_shift) | (int(len(shifted_data_payload) / self.bytes_per_word) - 1)) << shift_value
         cmd_payload = [*cmd.to_bytes(self.bytes_per_word, "little")]
+        total_payload = cmd_payload + shifted_data_payload
+        cmd_frame = total_payload + [0] * self.bytes_per_word * (10 - int(len(total_payload) / self.bytes_per_word))
+        return self.spi.xfer(cmd_frame)
 
-        print(bits(self._combine_bytes(*cmd_payload)))
-        print("RES", bits(self._combine_bytes(*self.spi.xfer(cmd_payload + shifted_data_payload))))
+    def read_register(self, register_addr: int, num_registers: int = 1):
+        """
+        params
+                register_addr:     16-bit register address mask
+                num_registers:     number of consecutive registers to read
+
+        Read from register given at the register address
+        """
+        if num_registers < 1:
+            return False
+
+        shift_value = self.ads_bits_per_word - 16
+        register_shift = 7
+
+        cmd = (RREG_OPCODE | (register_addr << register_shift) | (num_registers - 1)) << shift_value
+        cmd_payload = [*cmd.to_bytes(self.bytes_per_word, "little")]
+        cmd_frame = cmd_payload #+ [0] * self.bytes_per_word * (10 - int(len(cmd_payload) / self.bytes_per_word))
+        return self.spi.xfer(cmd_frame)
 
     def data_ready(self):
         return not GPIO.input(adc_reader._DRDY)
@@ -133,6 +154,10 @@ def bits(v):
     bs = '0' * (4 - len(bs) % 4) + bs
     return ' '.join([bs[i:i+4] for i in range(0, len(bs), 4)])
 
+def twos_complement(input_value: int, num_bits: int) -> int:
+    """Calculates a two's complement integer from the given input value's bits."""
+    mask = 2 ** (num_bits - 1)
+    return -(input_value & mask) + (input_value & ~mask)
 
 if __name__ == "__main__":
     adc_reader = ADS131M09Reader()
@@ -144,24 +169,25 @@ if __name__ == "__main__":
     print("ready")
 
     CH_2_3_MASK = ALL_CH_DISABLE_MASK | 1 << (8 + 2) | 1 << (8 + 3)
-
     # Disable all channels so short frames can be written during config phase
-    adc_reader.adc_register_write(CLOCK_ADDR, ALL_CH_DISABLE_MASK | OSR_16256_MASK | PWR_HIGH_RES_MASK | XTAL_OSC_DISABLE_MASK)
+    adc_reader.write_register(CLOCK_ADDR, ALL_CH_DISABLE_MASK | OSR_16256_MASK | PWR_HIGH_RES_MASK | XTAL_OSC_DISABLE_MASK)
     # print('CLOCK WRITE', '{0:b}'.format(ALL_CH_DISABLE_MASK | OSR_16256_MASK | PWR_HIGH_RES_MASK | XTAL_OSC_DISABLE_MASK))
 
     # Clear reset flag, mmake DRDY active low, use 24 bit word length, & use a SPI Timeout
-    #adc_reader.adc_register_write(MODE_ADDR, RESET_MASK | DRDY_FMT_LOW_MASK | WLEN_24_MASK | SPI_TIMEOUT_MASK)
+    adc_reader.write_register(MODE_ADDR, RESET_MASK | DRDY_FMT_LOW_MASK | WLEN_24_MASK | SPI_TIMEOUT_MASK)
     # print('MODE WRITE', '{0:b}'.format(RESET_MASK | DRDY_FMT_PULSE_MASK | WLEN_24_MASK | SPI_TIMEOUT_MASK))
 
     # Enable Global Chop Mode, and rewrite default chop delay
-    #adc_reader.adc_register_write(CFG_ADDR, GLOBAL_CHOP_EN_MASK | DEFAULT_CHOP_DELAY_MASK)
+    adc_reader.write_register(CFG_ADDR, GLOBAL_CHOP_EN_MASK | DEFAULT_CHOP_DELAY_MASK)
     # print('CFG WRITE', '{0:b}'.format(GLOBAL_CHOP_EN_MASK | DEFAULT_CHOP_DELAY_MASK))
 
     # Enable channels 2 and 3, and rewrite other desired settings
-    #adc_reader.adc_register_write(CLOCK_ADDR, CH_2_3_MASK | OSR_16256_MASK | PWR_HIGH_RES_MASK | XTAL_OSC_DISABLE_MASK)
+    adc_reader.write_register(CLOCK_ADDR, CH_2_3_MASK | OSR_16256_MASK | PWR_HIGH_RES_MASK | XTAL_OSC_DISABLE_MASK)
     # print('CLOCK WRITE', '{0:b}'.format(CH_2_3_MASK | OSR_16256_MASK | PWR_HIGH_RES_MASK | XTAL_OSC_DISABLE_MASK))
+
+    print(adc_reader.read_register(ID_ADDR))
 
     while True:
         while not adc_reader.data_ready():
             pass
-        print(adc_reader.read())
+        #print(adc_reader.read())
