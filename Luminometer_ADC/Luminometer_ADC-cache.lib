@@ -50,52 +50,20 @@ X AIN6P 9 -850 -2000 300 R 59 59 1 1 I
 ENDDRAW
 ENDDEF
 #
-# Connector_Generic_Conn_01x08
+# Connector_TestPoint
 #
-DEF Connector_Generic_Conn_01x08 J 0 40 Y N 1 F N
-F0 "J" 0 400 50 H V C CNN
-F1 "Connector_Generic_Conn_01x08" 0 -500 50 H V C CNN
-F2 "" 0 0 50 H I C CNN
-F3 "" 0 0 50 H I C CNN
+DEF Connector_TestPoint TP 0 30 N N 1 F N
+F0 "TP" 0 270 50 H V C CNN
+F1 "Connector_TestPoint" 0 200 50 H V C CNN
+F2 "" 200 0 50 H I C CNN
+F3 "" 200 0 50 H I C CNN
 $FPLIST
- Connector*:*_1x??_*
+ Pin*
+ Test*
 $ENDFPLIST
 DRAW
-S -50 -395 0 -405 1 1 6 N
-S -50 -295 0 -305 1 1 6 N
-S -50 -195 0 -205 1 1 6 N
-S -50 -95 0 -105 1 1 6 N
-S -50 5 0 -5 1 1 6 N
-S -50 105 0 95 1 1 6 N
-S -50 205 0 195 1 1 6 N
-S -50 305 0 295 1 1 6 N
-S -50 350 50 -450 1 1 10 f
-X Pin_1 1 -200 300 150 R 50 50 1 1 P
-X Pin_2 2 -200 200 150 R 50 50 1 1 P
-X Pin_3 3 -200 100 150 R 50 50 1 1 P
-X Pin_4 4 -200 0 150 R 50 50 1 1 P
-X Pin_5 5 -200 -100 150 R 50 50 1 1 P
-X Pin_6 6 -200 -200 150 R 50 50 1 1 P
-X Pin_7 7 -200 -300 150 R 50 50 1 1 P
-X Pin_8 8 -200 -400 150 R 50 50 1 1 P
-ENDDRAW
-ENDDEF
-#
-# Device_C
-#
-DEF Device_C C 0 10 N Y 1 F N
-F0 "C" 25 100 50 H V L CNN
-F1 "Device_C" 25 -100 50 H V L CNN
-F2 "" 38 -150 50 H I C CNN
-F3 "" 0 0 50 H I C CNN
-$FPLIST
- C_*
-$ENDFPLIST
-DRAW
-P 2 0 1 20 -80 -30 80 -30 N
-P 2 0 1 20 -80 30 80 30 N
-X ~ 1 0 150 110 D 50 50 1 1 P
-X ~ 2 0 -150 110 U 50 50 1 1 P
+C 0 130 30 0 1 0 N
+X 1 1 0 0 100 U 50 50 1 1 P
 ENDDRAW
 ENDDEF
 #
@@ -117,48 +85,6 @@ X ~ 2 0 -100 80 U 50 50 1 1 P
 ENDDRAW
 ENDDEF
 #
-# Device_Jumper_NC_Small
-#
-DEF Device_Jumper_NC_Small JP 0 30 N N 1 F N
-F0 "JP" 0 80 50 H V C CNN
-F1 "Device_Jumper_NC_Small" 10 -60 50 H V C CNN
-F2 "" 0 0 50 H I C CNN
-F3 "" 0 0 50 H I C CNN
-$FPLIST
- SolderJumper*Bridged*
-$ENDFPLIST
-DRAW
-A 0 -10 57 450 1350 0 1 0 N 40 30 -40 30
-C -40 0 20 0 1 0 N
-C 40 0 20 0 1 0 N
-X 1 1 -100 0 40 R 50 50 0 1 P
-X 2 2 100 0 40 L 50 50 0 1 P
-ENDDRAW
-ENDDEF
-#
-# Device_L
-#
-DEF Device_L L 0 40 N N 1 F N
-F0 "L" -50 0 50 V V C CNN
-F1 "Device_L" 75 0 50 V V C CNN
-F2 "" 0 0 50 H I C CNN
-F3 "" 0 0 50 H I C CNN
-$FPLIST
- Choke_*
- *Coil*
- Inductor_*
- L_*
-$ENDFPLIST
-DRAW
-A 0 -75 25 -899 899 0 1 0 N 0 -100 0 -50
-A 0 -25 25 -899 899 0 1 0 N 0 -50 0 0
-A 0 25 25 -899 899 0 1 0 N 0 0 0 50
-A 0 75 25 -899 899 0 1 0 N 0 50 0 100
-X 1 1 0 150 50 D 50 50 1 1 P
-X 2 2 0 -150 50 U 50 50 1 1 P
-ENDDRAW
-ENDDEF
-#
 # Device_R
 #
 DEF Device_R R 0 0 N Y 1 F N
@@ -176,41 +102,42 @@ X ~ 2 0 -150 50 U 50 50 1 1 P
 ENDDRAW
 ENDDEF
 #
-# Jumper_SolderJumper_2_Bridged
+# LuminometerCustomPartLib_+34V
 #
-DEF Jumper_SolderJumper_2_Bridged JP 0 0 Y N 1 F N
-F0 "JP" 0 80 50 H V C CNN
-F1 "Jumper_SolderJumper_2_Bridged" 0 -100 50 H V C CNN
-F2 "" 0 0 50 H I C CNN
-F3 "" 0 0 50 H I C CNN
-$FPLIST
- SolderJumper*Bridged*
-$ENDFPLIST
-DRAW
-A -10 0 40 901 -901 0 1 0 N -10 40 -10 -40
-A -10 0 40 901 -901 0 1 0 F -10 40 -10 -40
-A 10 0 40 -899 899 0 1 0 N 10 -40 10 40
-A 10 0 40 -899 899 0 1 0 F 10 -40 10 40
-S -20 20 20 -20 0 1 0 F
-P 2 0 1 0 -10 40 -10 -40 N
-P 2 0 1 0 10 40 10 -40 N
-X A 1 -150 0 100 R 50 50 1 1 P
-X B 2 150 0 100 L 50 50 1 1 P
-ENDDRAW
-ENDDEF
-#
-# LuminometerCustomPartLib_+32V
-#
-DEF LuminometerCustomPartLib_+32V #PWR 0 0 Y Y 1 F P
+DEF LuminometerCustomPartLib_+34V #PWR 0 0 Y Y 1 F P
 F0 "#PWR" -200 -200 50 H I C CNN
-F1 "LuminometerCustomPartLib_+32V" 0 140 50 H V C CNN
+F1 "LuminometerCustomPartLib_+34V" 0 140 50 H V C CNN
 F2 "" 0 0 50 H I C CNN
 F3 "" 0 0 50 H I C CNN
 DRAW
 P 2 0 1 0 -30 50 0 100 N
 P 2 0 1 0 0 0 0 100 N
 P 2 0 1 0 0 100 30 50 N
-X +32V 1 0 0 0 U 50 50 1 1 W N
+X +34V 1 0 0 0 U 50 50 1 1 W N
+ENDDRAW
+ENDDEF
+#
+# LuminometerCustomPartLib_732-4872-1-ND
+#
+DEF LuminometerCustomPartLib_732-4872-1-ND L 0 40 N N 1 F N
+F0 "L" -50 0 50 V V C CNN
+F1 "LuminometerCustomPartLib_732-4872-1-ND" 75 0 50 V V C CNN
+F2 "Luminometer_OPT101_Footprints:L_1212_3030Metric" 0 0 50 H I C CNN
+F3 "" 0 0 50 H I C CNN
+$FPLIST
+ Choke_*
+ *Coil*
+ Inductor_*
+ L_*
+$ENDFPLIST
+DRAW
+A 0 -75 25 -899 899 0 1 0 N 0 -100 0 -50
+A 0 -25 25 -899 899 0 1 0 N 0 -50 0 0
+A 0 25 25 -899 899 0 1 0 N 0 0 0 50
+A 0 75 25 -899 899 0 1 0 N 0 50 0 100
+T 900 150 0 50 0 0 0 47uH Normal 0 C C
+X 1 1 0 150 50 D 50 50 1 1 P
+X 2 2 0 -150 50 U 50 50 1 1 P
 ENDDRAW
 ENDDEF
 #
@@ -308,6 +235,45 @@ X -IN_C 9-UD 400 -200 100 L 50 50 4 1 I
 ENDDRAW
 ENDDEF
 #
+# LuminometerCustomPartLib_Harting__15210122401000
+#
+DEF LuminometerCustomPartLib_Harting__15210122401000 J 0 40 Y N 1 F N
+F0 "J" 350 0 50 V V C CNN
+F1 "LuminometerCustomPartLib_Harting__15210122401000" -350 0 50 V V C CNN
+F2 "Luminometer_OPT101_Footprints:Harting_15210122401000" 50 50 50 V I C CNN
+F3 "" 50 50 50 V I C CNN
+$FPLIST
+ Connector*:*_2x??_*
+$ENDFPLIST
+DRAW
+S -245 -100 -255 -50 1 1 6 N
+S -245 100 -255 50 1 1 6 N
+S -145 -100 -155 -50 1 1 6 N
+S -145 100 -155 50 1 1 6 N
+S -45 -100 -55 -50 1 1 6 N
+S -45 100 -55 50 1 1 6 N
+S 55 -100 45 -50 1 1 6 N
+S 55 100 45 50 1 1 6 N
+S 155 -100 145 -50 1 1 6 N
+S 155 100 145 50 1 1 6 N
+S 255 -100 245 -50 1 1 6 N
+S 255 100 245 50 1 1 6 N
+S 300 100 -300 -100 1 1 10 f
+X Pin_a1 a1 250 250 150 D 50 50 1 1 P
+X Pin_a2 a2 150 250 150 D 50 50 1 1 P
+X Pin_a3 a3 50 250 150 D 50 50 1 1 P
+X Pin_a4 a4 -50 250 150 D 50 50 1 1 P
+X Pin_a5 a5 -150 250 150 D 50 50 1 1 P
+X Pin_a6 a6 -250 250 150 D 50 50 1 1 P
+X Pin_b1 b1 250 -250 150 U 50 50 1 1 P
+X Pin_b2 b2 150 -250 150 U 50 50 1 1 P
+X Pin_b3 b3 50 -250 150 U 50 50 1 1 P
+X Pin_b4 b4 -50 -250 150 U 50 50 1 1 P
+X Pin_b5 b5 -150 -250 150 U 50 50 1 1 P
+X Pin_b6 b6 -250 -250 150 U 50 50 1 1 P
+ENDDRAW
+ENDDEF
+#
 # LuminometerCustomPartLib_LT3464
 #
 DEF LuminometerCustomPartLib_LT3464 U 0 40 Y Y 1 F N
@@ -324,7 +290,7 @@ X GND 4 0 -600 100 U 50 50 1 1 W
 X CAP 5 350 0 100 L 50 50 1 1 B
 X SW 6 150 650 100 D 50 50 1 1 B
 X VIN 7 -150 650 100 D 50 50 1 1 W
-X ~SHDN 8 -350 -200 100 R 50 50 1 1 B
+X ~SHDN 8 -350 -200 100 R 50 50 1 1 I
 ENDDRAW
 ENDDEF
 #

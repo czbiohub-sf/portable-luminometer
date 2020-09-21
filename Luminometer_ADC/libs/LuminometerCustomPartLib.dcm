@@ -10,6 +10,12 @@ D Power symbol creates a global label with name "+34V"
 K power-flag
 $ENDCMP
 #
+$CMP 732-4872-1-ND
+D Inductor
+K inductor choke coil reactor magnetic
+F https://www.we-online.de/katalog/datasheet/74438335470.pdf
+$ENDCMP
+#
 $CMP ADA4522-1
 D Single Ultra-Low Offset Voltage Operational Amplifier, DIP-8/SOIC-8
 K single opamp
@@ -18,6 +24,12 @@ $ENDCMP
 #
 $CMP ADA4522-4
 F https://www.analog.com/media/en/technical-documentation/data-sheets/ADA4522-1_4522-2_4522-4.pdf
+$ENDCMP
+#
+$CMP Harting__15210122401000
+D Generic connector, double row, 02x06, counter clockwise pin numbering scheme (similar to DIP packge numbering), script generated (kicad-library-utils/schlib/autogen/connector/)
+K connector
+F ~
 $ENDCMP
 #
 $CMP LT1363
