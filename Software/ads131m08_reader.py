@@ -23,8 +23,12 @@ additional words of zeros.
 
 Simultaneously on DOUT, the device outputs the response from the previous frame command, eight words of ADC data representing
 the eight ADC channels, and a CRC word.
-=====
 
+8.5.1.8 SPI Communication Words
+The device defaults to a 24-bit word size. Commands, responses, CRC, and registers always contain 16 bits of actual data.
+These words are always most significant bit (MSB) aligned, and therefore the least significant bits (LSBs) are zero-padded
+to accommodate 24- or 32-bit word sizes.
+=====
 """
 
 import spidev
@@ -175,12 +179,7 @@ class ADS131M09Reader(ADCReader):
 
 
 def bits(v, word_len=24):
-    bs = '{0:b}'.format(v)
-    if len(bs) % word_len == 0:
-        leading_zeros = 0
-    else:
-        leading_zeros = word_len - len(bs) % word_len
-    bs = '0' * leading_zeros + bs
+    bs = '{0:024b}'.format(v)
     return ' '.join([bs[i:i+4] for i in range(0, len(bs), 4)])
 
 def twos_complement(input_value: int, num_bits: int) -> int:
@@ -201,19 +200,19 @@ if __name__ == "__main__":
     CH_2_3_MASK = ALL_CH_DISABLE_MASK | 1 << (8 + 2) | 1 << (8 + 3)
     # Disable all channels so short frames can be written during config phase
     adc_reader.write_register(CLOCK_ADDR, ALL_CH_DISABLE_MASK | OSR_16256_MASK | PWR_HIGH_RES_MASK | XTAL_OSC_DISABLE_MASK)
-    print('CLOCK WRITE', '{0:b}'.format(ALL_CH_DISABLE_MASK | OSR_16256_MASK | PWR_HIGH_RES_MASK | XTAL_OSC_DISABLE_MASK))
+    print('CLOCK WRITE', bits(ALL_CH_DISABLE_MASK | OSR_16256_MASK | PWR_HIGH_RES_MASK | XTAL_OSC_DISABLE_MASK))
 
     # Clear reset flag, mmake DRDY active low, use 24 bit word length, & use a SPI Timeout
-    adc_reader.write_register(MODE_ADDR, RESET_MASK | DRDY_FMT_PULSE_MASK | DRDY_HIZ_OPEN_COLLECT | WLEN_24_MASK | SPI_TIMEOUT_MASK)
-    print('MODE WRITE', '{0:b}'.format(RESET_MASK | DRDY_FMT_PULSE_MASK | WLEN_24_MASK | SPI_TIMEOUT_MASK))
+    adc_reader.write_register(MODE_ADDR, RESET_MASK | DRDY_FMT_LOW_MASK | DRDY_HIZ_OPEN_COLLECT | WLEN_24_MASK | SPI_TIMEOUT_MASK)
+    print('MODE WRITE', bits(RESET_MASK | DRDY_FMT_LOW_MASK | DRDY_HIZ_OPEN_COLLECT | WLEN_24_MASK | SPI_TIMEOUT_MASK))
 
     # Enable Global Chop Mode, and rewrite default chop delay
     adc_reader.write_register(CFG_ADDR, GLOBAL_CHOP_EN_MASK | DEFAULT_CHOP_DELAY_MASK)
-    print('CFG WRITE', '{0:b}'.format(GLOBAL_CHOP_EN_MASK | DEFAULT_CHOP_DELAY_MASK))
+    print('CFG WRITE', bits(GLOBAL_CHOP_EN_MASK | DEFAULT_CHOP_DELAY_MASK))
 
     # Enable channels 2 and 3, and rewrite other desired settings
     adc_reader.write_register(CLOCK_ADDR, CH_2_3_MASK | OSR_16256_MASK | PWR_HIGH_RES_MASK | XTAL_OSC_DISABLE_MASK)
-    print('CLOCK WRITE', '{0:b}'.format(CH_2_3_MASK | OSR_16256_MASK | PWR_HIGH_RES_MASK | XTAL_OSC_DISABLE_MASK))
+    print('CLOCK WRITE', bits(CH_2_3_MASK | OSR_16256_MASK | PWR_HIGH_RES_MASK | XTAL_OSC_DISABLE_MASK))
 
     print('ID')
     d = adc_reader.read_register(ID_ADDR)
