@@ -1,8 +1,7 @@
 #! /usr/bin/env python3
 """
 Application Notes:
-    1. The ADS has can take a bits-per-word length of 16, 24, or 32.
-       Raspberry Pis are only configured tor 8 bits per word. Therefore, we
+    1. The ADS has can take a bits-per-word length of 16, 24, or 32.  Raspberry Pis are only configured tor 8 bits per word. Therefore, we
        just send each byte in every word individually.
     2. Reading data after a pause: see 8.5.1.9.1
 
@@ -62,10 +61,10 @@ CFG_ADDR = 0x06
 ALL_CH_DISABLE_MASK = 0b00000000 << 8
 ALL_CH_ENABLE_MASK = 0b11111111 << 8
 OSR_16256_MASK = 0b111 << 2
-# The datasheet is a little confusing with regards to the chrystal oscillator
+# The datasheet is a big confusing with regards to the chrystal oscillator
 # For the luminometer design, we give the ADC the SCLK from the master SPI.
 # Therefore, we enable the XTAL_OSC_DISABLE bit of the clock register
-# I found this a little unclear, see the link from the chip developer below
+# I found this a big unclear, see the link from the chip developer below
 # https://e2e.ti.com/support/data-converters/f/73/t/905809
 XTAL_OSC_DISABLE_MASK = 0b1 << 7
 EXTERNAL_REF_MASK = 0b0
@@ -202,25 +201,38 @@ if __name__ == "__main__":
     CH_2_3_MASK = ALL_CH_DISABLE_MASK | 1 << (8 + 2) | 1 << (8 + 3)
     # Disable all channels so short frames can be written during config phase
     adc_reader.write_register(CLOCK_ADDR, ALL_CH_DISABLE_MASK | OSR_16256_MASK | PWR_HIGH_RES_MASK | XTAL_OSC_DISABLE_MASK)
-    # print('CLOCK WRITE', '{0:b}'.format(ALL_CH_DISABLE_MASK | OSR_16256_MASK | PWR_HIGH_RES_MASK | XTAL_OSC_DISABLE_MASK))
+    print('CLOCK WRITE', '{0:b}'.format(ALL_CH_DISABLE_MASK | OSR_16256_MASK | PWR_HIGH_RES_MASK | XTAL_OSC_DISABLE_MASK))
 
     # Clear reset flag, mmake DRDY active low, use 24 bit word length, & use a SPI Timeout
     adc_reader.write_register(MODE_ADDR, RESET_MASK | DRDY_FMT_PULSE_MASK | DRDY_HIZ_OPEN_COLLECT | WLEN_24_MASK | SPI_TIMEOUT_MASK)
-    # print('MODE WRITE', '{0:b}'.format(RESET_MASK | DRDY_FMT_PULSE_MASK | WLEN_24_MASK | SPI_TIMEOUT_MASK))
+    print('MODE WRITE', '{0:b}'.format(RESET_MASK | DRDY_FMT_PULSE_MASK | WLEN_24_MASK | SPI_TIMEOUT_MASK))
 
     # Enable Global Chop Mode, and rewrite default chop delay
     adc_reader.write_register(CFG_ADDR, GLOBAL_CHOP_EN_MASK | DEFAULT_CHOP_DELAY_MASK)
-    # print('CFG WRITE', '{0:b}'.format(GLOBAL_CHOP_EN_MASK | DEFAULT_CHOP_DELAY_MASK))
+    print('CFG WRITE', '{0:b}'.format(GLOBAL_CHOP_EN_MASK | DEFAULT_CHOP_DELAY_MASK))
 
     # Enable channels 2 and 3, and rewrite other desired settings
     adc_reader.write_register(CLOCK_ADDR, CH_2_3_MASK | OSR_16256_MASK | PWR_HIGH_RES_MASK | XTAL_OSC_DISABLE_MASK)
-    # print('CLOCK WRITE', '{0:b}'.format(CH_2_3_MASK | OSR_16256_MASK | PWR_HIGH_RES_MASK | XTAL_OSC_DISABLE_MASK))
+    print('CLOCK WRITE', '{0:b}'.format(CH_2_3_MASK | OSR_16256_MASK | PWR_HIGH_RES_MASK | XTAL_OSC_DISABLE_MASK))
 
     print('ID')
     d = adc_reader.read_register(ID_ADDR)
     print(adc_reader.bytes_to_readable(d))
+
     print('STATUS')
     d = adc_reader.read_register(STATUS_ADDR)
+    print(adc_reader.bytes_to_readable(d))
+
+    print('MODE')
+    d = adc_reader.read_register(MODE_ADDR)
+    print(adc_reader.bytes_to_readable(d))
+
+    print('CLOCK')
+    d = adc_reader.read_register(CLOCK_ADDR)
+    print(adc_reader.bytes_to_readable(d))
+
+    print('CFG')
+    d = adc_reader.read_register(CFG_ADDR)
     print(adc_reader.bytes_to_readable(d))
 
     while True:
