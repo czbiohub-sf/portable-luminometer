@@ -1,4 +1,4 @@
-(module OnSemi_CASE512 (layer F.Cu) (tedit 5F5EA5D9)
+(module OnSemi_CASE512 (layer F.Cu) (tedit 5F69826D)
   (fp_text reference SiPM?? (at 0 5) (layer F.SilkS)
     (effects (font (size 1 1) (thickness 0.15)))
   )
@@ -9,7 +9,11 @@
   (fp_line (start 3.5 -3.5) (end 3.5 3.5) (layer F.CrtYd) (width 0.12))
   (fp_line (start 3.5 3.5) (end -3.5 3.5) (layer F.CrtYd) (width 0.12))
   (fp_line (start -3.5 3.5) (end -3.5 -3.5) (layer F.CrtYd) (width 0.12))
-  (pad 5 smd custom (at 0 0) (size 2.9 2.9) (layers *.Mask F.Cu)
+  (fp_line (start -3.429 2.286) (end -2.921 2.286) (layer F.SilkS) (width 0.12))
+  (fp_line (start -2.921 2.286) (end -2.921 1.905) (layer F.SilkS) (width 0.12))
+  (fp_line (start -2.921 1.905) (end -3.429 1.905) (layer F.SilkS) (width 0.12))
+  (fp_line (start -3.429 1.905) (end -3.429 2.286) (layer F.SilkS) (width 0.12))
+  (pad 5 smd custom (at 0 0) (size 2.9 2.9) (layers F.SilkS)
     (solder_mask_margin 0.1) (zone_connect 0)
     (options (clearance outline) (anchor rect))
     (primitives

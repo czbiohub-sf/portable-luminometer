@@ -303,7 +303,7 @@ F 3 "" H 8350 5950 50  0001 C CNN
 $EndComp
 Text Notes 4375 1300 0    100  ~ 20
 Silicon Photomultipliers
-Text Notes 8475 850  0    100  ~ 20
+Text Notes 8525 1000 0    100  ~ 20
 24b ADC
 Text Notes 7325 4700 0    100  ~ 20
 MCU Interface
@@ -326,21 +326,6 @@ Wire Wire Line
 	10375 3050 10575 3050
 Wire Wire Line
 	10575 3550 9825 3550
-$Comp
-L Jumper:SolderJumper_2_Bridged JP2
-U 1 1 5F3E929F
-P 10575 3300
-F 0 "JP2" V 10575 3368 50  0000 L CNN
-F 1 "Bridge" V 10620 3368 50  0001 L CNN
-F 2 "Jumper:SolderJumper-2_P1.3mm_Bridged_RoundedPad1.0x1.5mm" H 10575 3300 50  0001 C CNN
-F 3 "~" H 10575 3300 50  0001 C CNN
-	1    10575 3300
-	0    1    1    0   
-$EndComp
-Wire Wire Line
-	10575 3450 10575 3550
-Wire Wire Line
-	10575 3150 10575 3050
 $Comp
 L Device:R R14
 U 1 1 5F482985
@@ -435,54 +420,12 @@ Connection ~ 10575 3050
 $Comp
 L Mechanical:MountingHole_Pad H1
 U 1 1 5F30D92E
-P 9700 5100
-F 0 "H1" H 9800 5103 50  0000 L CNN
-F 1 "MountingHole_Pad" H 9800 5058 50  0001 L CNN
-F 2 "MountingHole:MountingHole_3.2mm_M3_Pad" H 9700 5100 50  0001 C CNN
-F 3 "~" H 9700 5100 50  0001 C CNN
-	1    9700 5100
-	1    0    0    -1  
-$EndComp
-$Comp
-L Mechanical:MountingHole_Pad H2
-U 1 1 5F30DD18
-P 10050 5100
-F 0 "H2" H 10150 5103 50  0000 L CNN
-F 1 "MountingHole_Pad" H 10150 5058 50  0001 L CNN
-F 2 "MountingHole:MountingHole_3.2mm_M3_Pad" H 10050 5100 50  0001 C CNN
-F 3 "~" H 10050 5100 50  0001 C CNN
-	1    10050 5100
-	1    0    0    -1  
-$EndComp
-$Comp
-L Mechanical:MountingHole_Pad H3
-U 1 1 5F30E0C1
-P 10350 5100
-F 0 "H3" H 10450 5103 50  0000 L CNN
-F 1 "MountingHole_Pad" H 10450 5058 50  0001 L CNN
-F 2 "MountingHole:MountingHole_3.2mm_M3_Pad" H 10350 5100 50  0001 C CNN
-F 3 "~" H 10350 5100 50  0001 C CNN
-	1    10350 5100
-	1    0    0    -1  
-$EndComp
-Wire Wire Line
-	10350 5200 10350 5300
-Wire Wire Line
-	9700 5300 9700 5200
-Wire Wire Line
-	10050 5200 10050 5300
-Connection ~ 10050 5300
-Wire Wire Line
-	10050 5300 9700 5300
-$Comp
-L power:GNDA #PWR021
-U 1 1 5F347488
-P 10050 5425
-F 0 "#PWR021" H 10050 5175 50  0001 C CNN
-F 1 "GNDA" H 10055 5252 50  0000 C CNN
-F 2 "" H 10050 5425 50  0001 C CNN
-F 3 "" H 10050 5425 50  0001 C CNN
-	1    10050 5425
+P 9850 5075
+F 0 "H1" H 9950 5078 50  0000 L CNN
+F 1 "MountingHole_Pad" H 9950 5033 50  0001 L CNN
+F 2 "MountingHole:MountingHole_3.2mm_M3_Pad" H 9850 5075 50  0001 C CNN
+F 3 "~" H 9850 5075 50  0001 C CNN
+	1    9850 5075
 	1    0    0    -1  
 $EndComp
 $Comp
@@ -607,8 +550,8 @@ $Comp
 L LuminometerCustomPartLib:MICROFC−60035−SMT SiPM2
 U 1 1 5FBDF36A
 P 4000 3375
-F 0 "SiPM2" H 3756 3413 39  0000 R CNN
-F 1 "MICROFC−60035−SMT" H 3756 3338 39  0000 R CNN
+F 0 "SiPM2" H 3925 3575 39  0000 R CNN
+F 1 "MICROFC−60035−SMT" H 3950 3500 39  0000 R CNN
 F 2 "Luminometer_OPT101_Footprints:OnSemi_CASE512" H 4000 2825 39  0001 C CNN
 F 3 "https://www.onsemi.com/pub/Collateral/MICROC-SERIES-D.PDF" H 4000 3375 100 0001 C CNN
 	1    4000 3375
@@ -871,13 +814,13 @@ Wire Wire Line
 	4825 2650 4900 2650
 Text Notes 1000 4700 0    100  ~ 20
 34V Boost converter
-Text Notes 9625 4700 0    100  ~ 20
+Text Notes 9450 4700 0    100  ~ 20
 Mounting holes
 Wire Wire Line
 	4000 3750 4000 3625
-Text Notes 3325 1875 0    39   ~ 0
+Text Notes 3950 2175 0    39   ~ 0
 (600-1000) nA + \n(0.1nA-10uA)
-Text Notes 3200 3625 0    39   ~ 0
+Text Notes 3925 3125 0    39   ~ 0
 (600-1000) nA + \n(0.1nA-10uA)
 $Comp
 L LuminometerCustomPartLib:LT3464 U1
@@ -1557,10 +1500,6 @@ F 3 "~" V 8150 5650 50  0001 C CNN
 	0    -1   -1   0   
 $EndComp
 Wire Wire Line
-	10050 5300 10350 5300
-Wire Wire Line
-	10050 5425 10050 5300
-Wire Wire Line
 	8350 5350 8450 5350
 Wire Wire Line
 	8450 5350 8450 5275
@@ -1613,4 +1552,125 @@ Wire Wire Line
 	8350 5850 8350 5950
 Wire Wire Line
 	9675 2050 9975 2050
+Wire Wire Line
+	10575 3050 10575 3300
+$Comp
+L power:GNDA #PWR021
+U 1 1 615AD359
+P 3800 1900
+F 0 "#PWR021" H 3800 1650 50  0001 C CNN
+F 1 "GNDA" H 3805 1727 50  0000 C CNN
+F 2 "" H 3800 1900 50  0001 C CNN
+F 3 "" H 3800 1900 50  0001 C CNN
+	1    3800 1900
+	-1   0    0    -1  
+$EndComp
+Wire Wire Line
+	3800 1825 3800 1900
+$Comp
+L power:GNDA #PWR022
+U 1 1 615BCDEE
+P 3800 3375
+F 0 "#PWR022" H 3800 3125 50  0001 C CNN
+F 1 "GNDA" H 3805 3202 50  0000 C CNN
+F 2 "" H 3800 3375 50  0001 C CNN
+F 3 "" H 3800 3375 50  0001 C CNN
+	1    3800 3375
+	-1   0    0    -1  
+$EndComp
+Wire Wire Line
+	3800 3325 3800 3375
+$Comp
+L Mechanical:MountingHole_Pad H2
+U 1 1 6163C291
+P 10175 5075
+F 0 "H2" H 10275 5078 50  0000 L CNN
+F 1 "MountingHole_Pad" H 10275 5033 50  0001 L CNN
+F 2 "MountingHole:MountingHole_3.2mm_M3_Pad" H 10175 5075 50  0001 C CNN
+F 3 "~" H 10175 5075 50  0001 C CNN
+	1    10175 5075
+	1    0    0    -1  
+$EndComp
+$Comp
+L Mechanical:MountingHole_Pad H3
+U 1 1 6163C601
+P 10500 5075
+F 0 "H3" H 10600 5078 50  0000 L CNN
+F 1 "MountingHole_Pad" H 10600 5033 50  0001 L CNN
+F 2 "MountingHole:MountingHole_3.2mm_M3_Pad" H 10500 5075 50  0001 C CNN
+F 3 "~" H 10500 5075 50  0001 C CNN
+	1    10500 5075
+	1    0    0    -1  
+$EndComp
+NoConn ~ 10500 5175
+NoConn ~ 10175 5175
+NoConn ~ 9850 5175
+Text Notes 5675 1900 0    39   ~ 0
+Precision
+Text Notes 5675 3300 0    39   ~ 0
+Precision
+NoConn ~ 6100 1675
+$Comp
+L Connector:TestPoint TP11
+U 1 1 616E4924
+P 10575 3300
+F 0 "TP11" H 10750 3475 50  0000 R CNN
+F 1 "TestPoint" H 10675 3500 50  0001 R CNN
+F 2 "TestPoint:TestPoint_Pad_D1.5mm" H 10775 3300 50  0001 C CNN
+F 3 "~" H 10775 3300 50  0001 C CNN
+	1    10575 3300
+	0    1    1    0   
+$EndComp
+Connection ~ 10575 3300
+Wire Wire Line
+	10575 3300 10575 3550
+$Comp
+L Connector:TestPoint TP12
+U 1 1 616EA733
+P 10575 3550
+F 0 "TP12" H 10750 3725 50  0000 R CNN
+F 1 "TestPoint" H 10675 3750 50  0001 R CNN
+F 2 "TestPoint:TestPoint_Pad_D1.5mm" H 10775 3550 50  0001 C CNN
+F 3 "~" H 10775 3550 50  0001 C CNN
+	1    10575 3550
+	0    1    1    0   
+$EndComp
+Connection ~ 10575 3550
+$Comp
+L Mechanical:MountingHole_Pad H4
+U 1 1 616FF489
+P 9850 5525
+F 0 "H4" H 9950 5528 50  0000 L CNN
+F 1 "MountingHole_Pad" H 9950 5483 50  0001 L CNN
+F 2 "MountingHole:MountingHole_2.5mm" H 9850 5525 50  0001 C CNN
+F 3 "~" H 9850 5525 50  0001 C CNN
+	1    9850 5525
+	1    0    0    -1  
+$EndComp
+Text Notes 9625 5100 2    50   ~ 0
+PCB
+Text Notes 9625 5525 2    50   ~ 0
+Tube holder
+$Comp
+L Mechanical:MountingHole_Pad H?
+U 1 1 61761F5F
+P 10175 5525
+F 0 "H?" H 10275 5528 50  0000 L CNN
+F 1 "MountingHole_Pad" H 10275 5483 50  0001 L CNN
+F 2 "MountingHole:MountingHole_2.5mm" H 10175 5525 50  0001 C CNN
+F 3 "~" H 10175 5525 50  0001 C CNN
+	1    10175 5525
+	1    0    0    -1  
+$EndComp
+$Comp
+L Mechanical:MountingHole_Pad H?
+U 1 1 617622BC
+P 10500 5525
+F 0 "H?" H 10600 5528 50  0000 L CNN
+F 1 "MountingHole_Pad" H 10600 5483 50  0001 L CNN
+F 2 "MountingHole:MountingHole_2.5mm" H 10500 5525 50  0001 C CNN
+F 3 "~" H 10500 5525 50  0001 C CNN
+	1    10500 5525
+	1    0    0    -1  
+$EndComp
 $EndSCHEMATC
