@@ -61,6 +61,7 @@ STATUS_ADDR = 0x01
 MODE_ADDR = 0x02
 CLOCK_ADDR = 0x03
 CFG_ADDR = 0x06
+REGMAP_CRC_ADDR = 0x3E
 
 
 # Register Payloads
@@ -77,7 +78,7 @@ XTAL_OSC_DISABLE_MASK = 0b1 << 7
 EXTERNAL_REF_MASK = 0b0
 PWR_HIGH_RES_MASK = 0b11
 # mode register
-CRC_REG_EN_MASK = 0b1 << 13
+REG_CRC_EN_MASK = 0b1 << 13
 CRC_IN_EN_MASK = 0b1 << 12
 RESET_MASK = 0b1 << 10
 CLEAR_RESET_MASK = 0b0 << 10
@@ -122,7 +123,7 @@ class ADS131M09Reader(ADCReader):
 
         res = self.spi.readbytes(len(cmd_frame)) 
         if not self.crc_check(res):
-            print(f'CRC CHECK FAILED ON {ret_data}')
+            print(f'CRC CHECK FAILED ON read()')
 
         # Combine the bytes back into words before returning
         for i in range(1, 9):
@@ -153,7 +154,7 @@ class ADS131M09Reader(ADCReader):
 
         ret_data = self.spi.readbytes(len(cmd_frame)) 
         if not self.crc_check(ret_data):
-            print(f'CRC CHECK FAILED ON {ret_data}')
+            print(f'CRC CHECK FAILED ON write_register({register_addr}, {data})')
         return ret_data
 
     def write(self, cmd):
@@ -174,7 +175,7 @@ class ADS131M09Reader(ADCReader):
         Read from register given at the register address
         """
         if num_registers < 1:
-            return False
+            return
 
         shift_value = self.ads_bits_per_word - 16
         register_shift = 7
@@ -184,9 +185,17 @@ class ADS131M09Reader(ADCReader):
         cmd_frame = cmd_payload + [0] * self.bytes_per_word * (10 - int(len(cmd_payload) / self.bytes_per_word))
         self.spi.writebytes2(cmd_frame)
 
-        ret_data = self.spi.readbytes(len(cmd_frame))
+        # if one register is being read, the expected frame back is 10 words long
+        # else, it is the number of requested registers, plus the confimation, plus the crc.
+        # hence, 2 + num_registers words are expected back
+        if num_registers == 1:
+            bytes_to_read = self.bytes_per_word * 10
+        else:
+            bytes_to_read = self.bytes_per_word * (2 + num_registers)
+
+        ret_data = self.spi.readbytes(bytes_to_read)
         if not self.crc_check(ret_data):
-            print(f'CRC CHECK FAILED ON {ret_data}')
+            print(f'CRC CHECK FAILED ON read_register({register_addr}, {num_registers})')
         return ret_data
 
     def data_ready(self):
@@ -226,6 +235,22 @@ if __name__ == "__main__":
     while not GPIO.input(adc_reader._DRDY):
         print("not ready")
     print("ready")
+
+    print('STATUS register')
+    d = adc_reader.read_register(STATUS_ADDR)
+    print(adc_reader.bytes_to_readable(d))
+    print()
+
+    # Clear reset flag, mmake DRDY active low, use 24 bit word length, & use a SPI Timeout
+    mode_contents = REG_CRC_EN_MASK | CLEAR_RESET_MASK | DRDY_FMT_PULSE_MASK | DRDY_HIZ_OPEN_COLLECT | WLEN_24_MASK
+    adc_reader.write_register(MODE_ADDR, mode_contents)
+    print('MODE WRITE', bits(mode_contents))
+
+    d = adc_reader.read_register(0x02, 0x30 - 0x02)
+    reg_crc = adc_reader.read_register(REGMAP_CRC_ADDR)
+    print(crcb(*d[:-3]))
+    print(d, reg_crc)
+    assert crcb(*d) == combine_bytes(*reg_crc[:2])
 
     print('RESET - should get 1111 1111 0010 1000')
     d = adc_reader.write(RESET_OPCODE)
@@ -277,7 +302,7 @@ if __name__ == "__main__":
     print(adc_reader.bytes_to_readable(d))
 
     # Clear reset flag, mmake DRDY active low, use 24 bit word length, & use a SPI Timeout
-    mode_contents = CRC_REG_EN_MASK | CLEAR_RESET_MASK | DRDY_FMT_PULSE_MASK | DRDY_HIZ_OPEN_COLLECT | WLEN_24_MASK
+    mode_contents = REG_CRC_EN_MASK | CLEAR_RESET_MASK | DRDY_FMT_PULSE_MASK | DRDY_HIZ_OPEN_COLLECT | WLEN_24_MASK
     adc_reader.write_register(MODE_ADDR, mode_contents)
     print('MODE WRITE', bits(mode_contents))
 
