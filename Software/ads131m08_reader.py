@@ -30,10 +30,13 @@ to accommodate 24- or 32-bit word sizes.
 =====
 """
 
-import spidev
 import time
+import spidev
 import RPi.GPIO as GPIO
 
+from typing import List
+
+from crc import crcb
 from adc_reader import ADCReader
 
 
@@ -111,15 +114,20 @@ class ADS131M09Reader(ADCReader):
 
     def read(self):
         if self._first_read:
-            self.spi.writebytes([0b0] * self.ads_num_frame_words * self.bytes_per_word)
+            self.spi.writebytes2([0b0] * self.ads_num_frame_words * self.bytes_per_word)
             self._first_read = False
         command = [0b0] * self.ads_num_frame_words * self.bytes_per_word
-        self.spi.writebytes(command)
+        self.spi.writebytes2(command)
         res = self.spi.readbytes(len(command))
+
+        res = self.spi.readbytes(len(cmd_frame)) 
+        if not self.crc_check(res):
+            print(f'CRC CHECK FAILED ON {ret_data}')
+
         # Combine the bytes back into words before returning
         for i in range(1, 9):
             res[i] = twos_complement(res[i], 24)
-        data = [bits(self._combine_bytes(*res[i:i + self.bytes_per_word])) for i in range(0, len(res), self.bytes_per_word)]
+        data = [bits(combine_bytes(*res[i:i + self.bytes_per_word])) for i in range(0, len(res), self.bytes_per_word)]
         return data
 
     def write_register(self, register_addr: int, data: int):
@@ -141,15 +149,19 @@ class ADS131M09Reader(ADCReader):
         cmd_payload = [*cmd.to_bytes(self.bytes_per_word, "big")]
         total_payload = cmd_payload + shifted_data_payload
         cmd_frame = total_payload + [0] * self.bytes_per_word * (10 - int(len(total_payload) / self.bytes_per_word))
-        self.spi.writebytes(cmd_frame)
-        return self.spi.readbytes(len(cmd_frame))
+        self.spi.writebytes2(cmd_frame)
+
+        ret_data = self.spi.readbytes(len(cmd_frame)) 
+        if not self.crc_check(ret_data):
+            print(f'CRC CHECK FAILED ON {ret_data}')
+        return ret_data
 
     def write(self, cmd):
         shift_value = self.ads_bits_per_word - 16
         shifted_cmd = [*(cmd << shift_value).to_bytes(self.bytes_per_word, "big")]
         cmd_frame = shifted_cmd + [0] * self.bytes_per_word * (10 - int(len(shifted_cmd) / self.bytes_per_word))
 
-        self.spi.writebytes(cmd_frame)
+        self.spi.writebytes2(cmd_frame)
         time.sleep(10e-6)
         return self.spi.readbytes(len(cmd_frame))
 
@@ -170,25 +182,26 @@ class ADS131M09Reader(ADCReader):
         cmd = (RREG_OPCODE | (register_addr << register_shift) | (num_registers - 1)) << shift_value
         cmd_payload = [*cmd.to_bytes(self.bytes_per_word, "big")]
         cmd_frame = cmd_payload + [0] * self.bytes_per_word * (10 - int(len(cmd_payload) / self.bytes_per_word))
-        self.spi.writebytes(cmd_frame)
-        return self.spi.readbytes(len(cmd_frame))
+        self.spi.writebytes2(cmd_frame)
+
+        ret_data = self.spi.readbytes(len(cmd_frame))
+        if not self.crc_check(ret_data):
+            print(f'CRC CHECK FAILED ON {ret_data}')
+        return ret_data
 
     def data_ready(self):
         return not GPIO.input(adc_reader._DRDY)
 
-    def _combine_bytes(self, *byte_args):
-        """
-        takes some sequence of bytes, does the appropriate
-        bit shifts and returns the combined int
-
-        >>> _combine_bytes(0b01, 0b01)
-        0000000100000001    
-        """
-        return int.from_bytes(byte_args, byteorder='big')
-
     def bytes_to_readable(self, res):
-        return [bits(self._combine_bytes(*res[i:i + self.bytes_per_word])) for i in range(0, len(res), self.bytes_per_word)]
+        return [bits(combine_bytes(*res[i:i + self.bytes_per_word])) for i in range(0, len(res), self.bytes_per_word)]
 
+    def crc_check(self, d: List[int]) -> bool:
+        # The last 24-bit word of d is the 16-bit CRC, with 8 bits of 0 padding
+        # on the LSB. The CRC is on the first 9 words of the communication frame
+        return crcb(*d[:-3]) == combine_bytes(*d[-3:-1])
+
+def combine_bytes(*byte_args):
+    return int.from_bytes(byte_args, byteorder='big')
 
 def bits(v, word_len=24):
     bs = '{0:b}'.format(v)
