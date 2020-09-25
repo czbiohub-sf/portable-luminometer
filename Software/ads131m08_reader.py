@@ -70,10 +70,10 @@ ALL_CH_DISABLE_MASK = 0b00000000 << 8
 ALL_CH_ENABLE_MASK  = 0b11111111 << 8
 CH_2_3_ENABLE_MASK  = 0b00001100 << 8
 OSR_16256_MASK = 0b111 << 2
-# The datasheet is a bit confusing with regards to the chrystal oscillator
+# The datasheet is a bit confusing with regards to the chrystal oscillator.
 # For the luminometer design, we give the ADC the SCLK from the master SPI.
 # Therefore, we enable the XTAL_OSC_DISABLE bit of the clock register
-# I found this a big unclear, see the link from the chip developer below
+# I found this a bit unclear, see the link from the chip developer below
 # https://e2e.ti.com/support/data-converters/f/73/t/905809
 XTAL_OSC_DISABLE_MASK = 0b1 << 7
 EXTERNAL_REF_MASK = 0b0 << 6
@@ -247,7 +247,7 @@ if __name__ == "__main__":
     adc_reader.write_register(CLOCK_ADDR, ALL_CH_DISABLE_MASK | OSR_16256_MASK | PWR_HIGH_RES_MASK | XTAL_OSC_DISABLE_MASK)
     adc_reader.write_register(MODE_ADDR, CLEAR_RESET_MASK | DRDY_FMT_PULSE_MASK | WLEN_24_MASK | SPI_TIMEOUT_MASK | DRDY_HIZ_OPEN_COLLECT)
     adc_reader.write_register(CFG_ADDR, GLOBAL_CHOP_EN_MASK | DEFAULT_CHOP_DELAY_MASK)
-    adc_reader.write_register(CLOCK_ADDR, ALL_CH_ENABLE_MASK | OSR_16256_MASK | PWR_HIGH_RES_MASK) # | XTAL_OSC_DISABLE_MASK
+    adc_reader.write_register(CLOCK_ADDR, ALL_CH_ENABLE_MASK | OSR_16256_MASK | PWR_HIGH_RES_MASK| XTAL_OSC_DISABLE_MASK)
 
     print('ID')
     d = adc_reader.read_register(ID_ADDR)
@@ -275,6 +275,6 @@ if __name__ == "__main__":
     print()
 
     while True:
-        # while not adc_reader.data_ready():
+        # while not adc_reader.data_ready(): pass
         print(adc_reader.read())
 
