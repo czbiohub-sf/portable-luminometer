@@ -30,10 +30,13 @@ to accommodate 24- or 32-bit word sizes.
 =====
 """
 
-import spidev
 import time
+import spidev
 import RPi.GPIO as GPIO
 
+from typing import List
+
+from crc import crcb
 from adc_reader import ADCReader
 
 
@@ -58,23 +61,26 @@ STATUS_ADDR = 0x01
 MODE_ADDR = 0x02
 CLOCK_ADDR = 0x03
 CFG_ADDR = 0x06
+REGMAP_CRC_ADDR = 0x3E
 
 
 # Register Payloads
 # clock register
 ALL_CH_DISABLE_MASK = 0b00000000 << 8
-ALL_CH_ENABLE_MASK = 0b11111111 << 8
+ALL_CH_ENABLE_MASK  = 0b11111111 << 8
+CH_2_3_ENABLE_MASK  = 0b00001100 << 8
 OSR_16256_MASK = 0b111 << 2
-# The datasheet is a big confusing with regards to the chrystal oscillator
+# The datasheet is a bit confusing with regards to the chrystal oscillator.
 # For the luminometer design, we give the ADC the SCLK from the master SPI.
 # Therefore, we enable the XTAL_OSC_DISABLE bit of the clock register
-# I found this a big unclear, see the link from the chip developer below
+# I found this a bit unclear, see the link from the chip developer below
 # https://e2e.ti.com/support/data-converters/f/73/t/905809
 XTAL_OSC_DISABLE_MASK = 0b1 << 7
-EXTERNAL_REF_MASK = 0b0
+EXTERNAL_REF_MASK = 0b0 << 6
 PWR_HIGH_RES_MASK = 0b11
+
 # mode register
-CRC_REG_EN_MASK = 0b1 << 13
+REG_CRC_EN_MASK = 0b1 << 13
 CRC_IN_EN_MASK = 0b1 << 12
 RESET_MASK = 0b1 << 10
 CLEAR_RESET_MASK = 0b0 << 10
@@ -83,6 +89,7 @@ SPI_TIMEOUT_MASK = 0b1 << 4
 DRDY_HIZ_OPEN_COLLECT = 0b1 << 1
 DRDY_FMT_PULSE_MASK = 0b1
 DRDY_FMT_LOW_MASK = 0b0
+
 # cgf register
 GLOBAL_CHOP_EN_MASK = 0b1 << 8
 DEFAULT_CHOP_DELAY_MASK = 0b0011 << 9
@@ -96,8 +103,8 @@ class ADS131M09Reader(ADCReader):
         self.rpi_bits_per_word: int = 8  # only available word length on RPi
         self.bytes_per_word: int = int(self.ads_bits_per_word / self.rpi_bits_per_word)
 
-        self._DRDY: int = 31  # drdy pin is 37
-        self._first_read: bool = True
+        self._DRDY: int = 11  # drdy pin is 37
+        self._first_read: bool = False
 
         GPIO.setup(self._DRDY, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 
@@ -111,15 +118,20 @@ class ADS131M09Reader(ADCReader):
 
     def read(self):
         if self._first_read:
-            self.spi.writebytes([0b0] * self.ads_num_frame_words * self.bytes_per_word)
-            self._first_read = False
-        command = [0b0] * self.ads_num_frame_words * self.bytes_per_word
-        self.spi.writebytes(command)
-        res = self.spi.readbytes(len(command))
+            self.spi.writebytes2([0b0] * self.ads_num_frame_words * self.bytes_per_word)
+            self._first_read = True
+        cmd_frame = [0b0] * self.ads_num_frame_words * self.bytes_per_word
+        self.spi.writebytes2(cmd_frame)
+        res = self.spi.readbytes(len(cmd_frame))
+
+        res = self.spi.readbytes(len(cmd_frame)) 
+        if not self.crc_check(res):
+            print(f'CRC CHECK FAILED ON read()')
+
         # Combine the bytes back into words before returning
-        for i in range(1, 9):
+        for i in range(1, 10):
             res[i] = twos_complement(res[i], 24)
-        data = [bits(self._combine_bytes(*res[i:i + self.bytes_per_word])) for i in range(0, len(res), self.bytes_per_word)]
+        data = [combine_bytes(*res[i:i + self.bytes_per_word]) for i in range(0, len(res), self.bytes_per_word)]
         return data
 
     def write_register(self, register_addr: int, data: int):
@@ -136,20 +148,28 @@ class ADS131M09Reader(ADCReader):
         shift_value = self.ads_bits_per_word - 16
         register_shift = 7
 
-        shifted_data_payload = [*(data << shift_value).to_bytes(self.bytes_per_word, "big")]
+        data = data << shift_value
+        shifted_data_payload = [*(data).to_bytes(self.bytes_per_word, "big")]
+
         cmd = (WREG_OPCODE | (register_addr << register_shift) | (int(len(shifted_data_payload) / self.bytes_per_word) - 1)) << shift_value
         cmd_payload = [*cmd.to_bytes(self.bytes_per_word, "big")]
+
         total_payload = cmd_payload + shifted_data_payload
         cmd_frame = total_payload + [0] * self.bytes_per_word * (10 - int(len(total_payload) / self.bytes_per_word))
-        self.spi.writebytes(cmd_frame)
-        return self.spi.readbytes(len(cmd_frame))
+        self.spi.writebytes2(cmd_frame)
+
+        print(f'write_register: {register_addr}', self.bytes_to_readable(total_payload))
+        ret_data = self.spi.readbytes(len(cmd_frame)) 
+        if not self.crc_check(ret_data):
+            print(f'CRC CHECK FAILED ON write_register({register_addr}, {data})')
+        return ret_data
 
     def write(self, cmd):
         shift_value = self.ads_bits_per_word - 16
         shifted_cmd = [*(cmd << shift_value).to_bytes(self.bytes_per_word, "big")]
         cmd_frame = shifted_cmd + [0] * self.bytes_per_word * (10 - int(len(shifted_cmd) / self.bytes_per_word))
 
-        self.spi.writebytes(cmd_frame)
+        self.spi.writebytes2(cmd_frame)
         time.sleep(10e-6)
         return self.spi.readbytes(len(cmd_frame))
 
@@ -162,7 +182,7 @@ class ADS131M09Reader(ADCReader):
         Read from register given at the register address
         """
         if num_registers < 1:
-            return False
+            return
 
         shift_value = self.ads_bits_per_word - 16
         register_shift = 7
@@ -170,34 +190,44 @@ class ADS131M09Reader(ADCReader):
         cmd = (RREG_OPCODE | (register_addr << register_shift) | (num_registers - 1)) << shift_value
         cmd_payload = [*cmd.to_bytes(self.bytes_per_word, "big")]
         cmd_frame = cmd_payload + [0] * self.bytes_per_word * (10 - int(len(cmd_payload) / self.bytes_per_word))
-        self.spi.writebytes(cmd_frame)
-        return self.spi.readbytes(len(cmd_frame))
+        self.spi.writebytes2(cmd_frame)
+
+        # if one register is being read, the expected frame back is 10 words long
+        # else, it is the number of requested registers, plus the confimation, plus the crc.
+        # hence, 2 + num_registers words are expected back
+        if num_registers == 1:
+            bytes_to_read = self.bytes_per_word * 10
+        else:
+            bytes_to_read = self.bytes_per_word * (2 + num_registers)
+
+        ret_data = self.spi.readbytes(bytes_to_read)
+        if not self.crc_check(ret_data):
+            print(f'CRC CHECK FAILED ON read_register({register_addr}, {num_registers})')
+        return ret_data
 
     def data_ready(self):
         return not GPIO.input(adc_reader._DRDY)
 
-    def _combine_bytes(self, *byte_args):
-        """
-        takes some sequence of bytes, does the appropriate
-        bit shifts and returns the combined int
-
-        >>> _combine_bytes(0b01, 0b01)
-        0000000100000001    
-        """
-        return int.from_bytes(byte_args, byteorder='big')
-
     def bytes_to_readable(self, res):
-        return [bits(self._combine_bytes(*res[i:i + self.bytes_per_word])) for i in range(0, len(res), self.bytes_per_word)]
+        return [bits(res[i:i + self.bytes_per_word]) for i in range(0, len(res), self.bytes_per_word)]
 
+    def crc_check(self, d: List[int]) -> bool:
+        # The last 24-bit word of d is the 16-bit CRC, with 8 bits of 0 padding
+        # on the LSB. The CRC is on the first 9 words of the communication frame
+        return crcb(*d[:-3]) == combine_bytes(*d[-3:-1])
 
-def bits(v, word_len=24):
-    bs = '{0:b}'.format(v)
-    if len(bs) % word_len == 0:
-        zero_pads = 0
-    else:
-        zero_pads = word_len - len(bs) % word_len
-    bs = bs + '0' * zero_pads
-    return ' '.join([bs[i:i+4] for i in range(0, len(bs), 4)])
+def combine_bytes(*byte_args):
+    return int.from_bytes(byte_args, byteorder='big')
+
+def bits(vs: List[int]):
+    """
+    vs is a list of bytes (i.e. integers in the range [0, 255])
+    """
+    bit_string = ''
+    for v in vs:
+        bs = '{0:b}'.format(v)
+        bit_string += '0' * (8 - len(bs)) + bs 
+    return ' '.join([bit_string[i:i+4] for i in range(0, len(bit_string), 4)])
 
 def twos_complement(input_value: int, num_bits: int) -> int:
     """Calculates a two's complement integer from the given input value's bits."""
@@ -214,102 +244,37 @@ if __name__ == "__main__":
         print("not ready")
     print("ready")
 
-    print('RESET - should get 1111 1111 0010 1000')
-    d = adc_reader.write(RESET_OPCODE)
-    print(adc_reader.bytes_to_readable(d))
+    adc_reader.write_register(CLOCK_ADDR, ALL_CH_DISABLE_MASK | OSR_16256_MASK | PWR_HIGH_RES_MASK | XTAL_OSC_DISABLE_MASK)
+    adc_reader.write_register(MODE_ADDR, CLEAR_RESET_MASK |  WLEN_24_MASK | SPI_TIMEOUT_MASK | DRDY_HIZ_OPEN_COLLECT) # DRDY_FMT_PULSE_MASK |
+    adc_reader.write_register(CFG_ADDR, GLOBAL_CHOP_EN_MASK | DEFAULT_CHOP_DELAY_MASK)
+    adc_reader.write_register(CLOCK_ADDR, CH_2_3_ENABLE_MASK | OSR_16256_MASK | PWR_HIGH_RES_MASK| XTAL_OSC_DISABLE_MASK)
 
-    print('initial STATUS register')
-    d = adc_reader.read_register(STATUS_ADDR)
-    print(adc_reader.bytes_to_readable(d))
-    print()
-
-    print('UNLOCK_OPCODE')
-    d = adc_reader.write(UNLOCK_OPCODE)
-    print(adc_reader.bytes_to_readable(d))
-    print()
-
-    print('STATUS register')
-    d = adc_reader.read_register(STATUS_ADDR)
-    print(adc_reader.bytes_to_readable(d))
-    print()
-
-    print('RESET opcode: expecting 1111 1111 0010 1000')
-    d = adc_reader.write(RESET_OPCODE)
-    print(adc_reader.bytes_to_readable(d))
-    print()
-
-    print('STATUS register')
-    d = adc_reader.read_register(STATUS_ADDR)
-    print(adc_reader.bytes_to_readable(d))
-    print()
-
-    print('UNLOCK opcode: expecting 0000 0110 0101 0101')
-    print(adc_reader.bytes_to_readable(adc_reader.write(UNLOCK_OPCODE)))
-    print()
-
-    print('STATUS register - first bit should be 0')
-    d = adc_reader.read_register(STATUS_ADDR)
-    print(adc_reader.bytes_to_readable(d))
-    print()
-
-    #CH_2_3_MASK = ALL_CH_DISABLE_MASK | 1 << (8 + 2) | 1 << (8 + 3)
-    # Disable all channels so short frames can be written during config phase
-    #clock_contents = ALL_CH_DISABLE_MASK | OSR_16256_MASK | PWR_HIGH_RES_MASK | XTAL_OSC_DISABLE_MASK
-    #adc_reader.write_register(CLOCK_ADDR, clock_contents)
-    #print('CLOCK WRITE', bits(clock_contents))
-    #print(adc_reader.bytes_to_readable(adc_reader.read_register(CLOCK_ADDR)))
-
-    print('MODE')
-    d = adc_reader.read_register(MODE_ADDR)
-    print(adc_reader.bytes_to_readable(d))
-
-    # Clear reset flag, mmake DRDY active low, use 24 bit word length, & use a SPI Timeout
-    mode_contents = CRC_REG_EN_MASK | CLEAR_RESET_MASK | DRDY_FMT_PULSE_MASK | DRDY_HIZ_OPEN_COLLECT | WLEN_24_MASK
-    adc_reader.write_register(MODE_ADDR, mode_contents)
-    print('MODE WRITE', bits(mode_contents))
-
-    print('MODE')
-    d = adc_reader.read_register(MODE_ADDR)
-    print(adc_reader.bytes_to_readable(d))
-    print()
-
-
-    print('CFG')
-    d = adc_reader.read_register(CFG_ADDR)
-    print(adc_reader.bytes_to_readable(d))
-
-    # Enable Global Chop Mode, and rewrite default chop delay
-    cfg_contents = GLOBAL_CHOP_EN_MASK | DEFAULT_CHOP_DELAY_MASK
-    adc_reader.write_register(CFG_ADDR, cfg_contents)
-    print('CFG WRITE', bits(cfg_contents))
-
-    print('CFG')
-    d = adc_reader.read_register(CFG_ADDR)
-    print(adc_reader.bytes_to_readable(d))
-    print()
-
-    print('CLOCK')
-    d = adc_reader.read_register(CLOCK_ADDR)
-    print(adc_reader.bytes_to_readable(d))
-    # Enable channels 2 and 3, and rewrite other desired settings
-    clock_contents = ALL_CH_ENABLE_MASK | OSR_16256_MASK | PWR_HIGH_RES_MASK | XTAL_OSC_DISABLE_MASK
-    adc_reader.write_register(CLOCK_ADDR, clock_contents)
-    print('CLOCK WRITE', bits(clock_contents))
-
-    print('CLOCK')
-    d = adc_reader.read_register(CLOCK_ADDR)
-    print(adc_reader.bytes_to_readable(d))
-    print()
-
-    print('ID - should be 0010 1000 xxxx xxxx')
+    print('ID')
     d = adc_reader.read_register(ID_ADDR)
-    print(adc_reader.bytes_to_readable(d))
+    print(adc_reader.bytes_to_readable(d)[0])
+    print()
 
-    print('STATUS - should be ')
+    print('MODE')
+    d = adc_reader.read_register(MODE_ADDR)
+    print(adc_reader.bytes_to_readable(d)[0])
+    print()
+
+    print('CLOCK')
+    d = adc_reader.read_register(CLOCK_ADDR)
+    print(adc_reader.bytes_to_readable(d)[0])
+    print()
+
+    print('CFG')
+    d = adc_reader.read_register(CFG_ADDR)
+    print(adc_reader.bytes_to_readable(d)[0])
+    print()
+
+    print('STATUS register')
     d = adc_reader.read_register(STATUS_ADDR)
-    print(adc_reader.bytes_to_readable(d))
+    print(adc_reader.bytes_to_readable(d)[0])
+    print()
 
     while True:
-        while not adc_reader.data_ready():
-            pass
-        print(adc_reader.read())
+        data = adc_reader.read()
+        print(1.2 * data[3] / (2**23), 1.2 * data[4] / (2**23))
+
