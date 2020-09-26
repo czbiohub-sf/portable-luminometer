@@ -1,4 +1,4 @@
-Clock configured by Device Tree Blob
+# Clock configured by Device Tree Blob
 
 - https://www.raspberrypi.org/documentation/configuration/pin-configuration.md
 - https://www.tablix.org/~avian/blog/archives/2018/02/notes\_on\_the\_general\_purpose\_clocki\_on\_bcm2835/
