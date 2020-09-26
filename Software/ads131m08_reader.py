@@ -103,8 +103,8 @@ class ADS131M09Reader(ADCReader):
         self.rpi_bits_per_word: int = 8  # only available word length on RPi
         self.bytes_per_word: int = int(self.ads_bits_per_word / self.rpi_bits_per_word)
 
-        self._DRDY: int = 37  # drdy pin is 37
-        self._first_read: bool = True
+        self._DRDY: int = 11  # drdy pin is 37
+        self._first_read: bool = False
 
         GPIO.setup(self._DRDY, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 
@@ -119,7 +119,7 @@ class ADS131M09Reader(ADCReader):
     def read(self):
         if self._first_read:
             self.spi.writebytes2([0b0] * self.ads_num_frame_words * self.bytes_per_word)
-            self._first_read = False
+            self._first_read = True
         cmd_frame = [0b0] * self.ads_num_frame_words * self.bytes_per_word
         self.spi.writebytes2(cmd_frame)
         res = self.spi.readbytes(len(cmd_frame))
@@ -245,9 +245,9 @@ if __name__ == "__main__":
     print("ready")
 
     adc_reader.write_register(CLOCK_ADDR, ALL_CH_DISABLE_MASK | OSR_16256_MASK | PWR_HIGH_RES_MASK | XTAL_OSC_DISABLE_MASK)
-    adc_reader.write_register(MODE_ADDR, CLEAR_RESET_MASK | DRDY_FMT_PULSE_MASK | WLEN_24_MASK | SPI_TIMEOUT_MASK | DRDY_HIZ_OPEN_COLLECT)
+    adc_reader.write_register(MODE_ADDR, CLEAR_RESET_MASK |  WLEN_24_MASK | SPI_TIMEOUT_MASK | DRDY_HIZ_OPEN_COLLECT) # DRDY_FMT_PULSE_MASK |
     adc_reader.write_register(CFG_ADDR, GLOBAL_CHOP_EN_MASK | DEFAULT_CHOP_DELAY_MASK)
-    adc_reader.write_register(CLOCK_ADDR, ALL_CH_ENABLE_MASK | OSR_16256_MASK | PWR_HIGH_RES_MASK| XTAL_OSC_DISABLE_MASK)
+    adc_reader.write_register(CLOCK_ADDR, CH_2_3_ENABLE_MASK | OSR_16256_MASK | PWR_HIGH_RES_MASK| XTAL_OSC_DISABLE_MASK)
 
     print('ID')
     d = adc_reader.read_register(ID_ADDR)
@@ -275,6 +275,6 @@ if __name__ == "__main__":
     print()
 
     while True:
-        # while not adc_reader.data_ready(): pass
-        print(adc_reader.read())
+        data = adc_reader.read()
+        print(1.2 * data[3] / (2**23), 1.2 * data[4] / (2**23))
 
