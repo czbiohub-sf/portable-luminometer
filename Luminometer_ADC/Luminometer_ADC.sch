@@ -1606,7 +1606,6 @@ Text Notes 5675 1900 0    39   ~ 0
 Precision
 Text Notes 5675 3300 0    39   ~ 0
 Precision
-NoConn ~ 6100 1675
 $Comp
 L Connector:TestPoint TP11
 U 1 1 616E4924

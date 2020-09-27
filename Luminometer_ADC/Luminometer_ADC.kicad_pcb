@@ -172,7 +172,7 @@
   )
 
   (module Luminometer_OPT101_Footprints:pcrTube (layer B.Cu) (tedit 0) (tstamp 5F70D509)
-    (at 166.308 104.13 180)
+    (at 166.43 104.37 180)
     (fp_text reference G*** (at 0 0) (layer B.SilkS) hide
       (effects (font (size 1.524 1.524) (thickness 0.3)) (justify mirror))
     )
@@ -2606,11 +2606,11 @@
     )
   )
 
-  (gr_line (start 172.4 109.5) (end 168.9 111) (layer B.SilkS) (width 0.2) (tstamp 5F6CF35F))
-  (gr_line (start 166.9 113.9) (end 166.9 117.4) (layer B.SilkS) (width 0.2) (tstamp 5F6CF34F))
-  (gr_line (start 168.6 112.9) (end 171.5 115.5) (layer B.SilkS) (width 0.2) (tstamp 5F6CF33F))
-  (gr_line (start 165.1 113) (end 162.3 115.5) (layer B.SilkS) (width 0.2) (tstamp 5F6CF33C))
-  (gr_line (start 164.8 110.9) (end 161.3 109.4) (layer B.SilkS) (width 0.2))
+  (gr_line (start 161.15 109.81) (end 164.84 111.2) (layer B.SilkS) (width 0.2) (tstamp 5F70E33F))
+  (gr_line (start 172.31 109.62) (end 168.81 111.12) (layer B.SilkS) (width 0.2) (tstamp 5F6CF35F))
+  (gr_line (start 166.9 113.9) (end 166.95 117.52) (layer B.SilkS) (width 0.2) (tstamp 5F6CF34F))
+  (gr_line (start 168.56 112.99) (end 171.65 115.1) (layer B.SilkS) (width 0.2) (tstamp 5F6CF33F))
+  (gr_line (start 165.1 113) (end 162.05 115.16) (layer B.SilkS) (width 0.2) (tstamp 5F6CF33C))
   (gr_line (start 154.5 95.5) (end 148.5 95.5) (layer Dwgs.User) (width 0.15) (tstamp 5F6BBDCF))
   (gr_line (start 148.5 106) (end 149.559409 114.483844) (layer Dwgs.User) (width 0.15) (tstamp 5F6BBDCE))
   (gr_arc (start 151.5 114) (end 151.5 116) (angle 76) (layer Dwgs.User) (width 0.15) (tstamp 5F6BBDCD))

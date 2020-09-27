@@ -577,7 +577,7 @@
     )
   )
 
-  (module MountingHole:MountingHole_2.5mm (layer F.Cu) (tedit 56D1B4CB) (tstamp 5F70C8F9)
+  (module MountingHole:MountingHole_2.5mm (layer F.Cu) (tedit 56D1B4CB) (tstamp 5F70DF59)
     (at 133.5 85)
     (descr "Mounting Hole 2.5mm, no annular")
     (tags "mounting hole 2.5mm no annular")
@@ -816,7 +816,7 @@
     )
   )
 
-  (module Luminometer_OPT101_Footprints:OnSemi_CASE512 (layer B.Cu) (tedit 5F69826D) (tstamp 5F6AE3CA)
+  (module Luminometer_OPT101_Footprints:OnSemi_CASE512 (layer B.Cu) (tedit 5F69826D) (tstamp 5F70DFCA)
     (at 133.445 113.492 315)
     (path /5F4B68CC)
     (fp_text reference SiPM1 (at -4.596194 -4.596194 180) (layer B.SilkS)
