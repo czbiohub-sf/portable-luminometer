@@ -973,8 +973,6 @@ Text Notes 4625 1850 0    39   ~ 0
 10Hz
 Text Notes 4650 3350 0    39   ~ 0
 10Hz
-Text Label 9775 1450 0    50   ~ 0
-SCLK
 Wire Wire Line
 	9775 1450 9675 1450
 NoConn ~ 9675 1550
@@ -1487,7 +1485,6 @@ Wire Wire Line
 Wire Wire Line
 	7350 5650 7275 5650
 Connection ~ 7350 5650
-NoConn ~ 7850 5850
 $Comp
 L LuminometerCustomPartLib:Harting__15210122401000 J1
 U 1 1 60D4F0B3
@@ -1674,27 +1671,47 @@ F 3 "~" H 10500 5525 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L Mechanical:MountingHole_Pad H?
+L Mechanical:MountingHole_Pad H7
 U 1 1 61762E6B
 P 9850 5975
-F 0 "H?" H 9950 5978 50  0000 L CNN
+F 0 "H7" H 9950 5978 50  0000 L CNN
 F 1 "MountingHole_Pad" H 9950 5933 50  0001 L CNN
-F 2 "MountingHole:MountingHole_2.5mm" H 9850 5975 50  0001 C CNN
+F 2 "MountingHole:MountingHole_2.2mm_M2" H 9850 5975 50  0001 C CNN
 F 3 "~" H 9850 5975 50  0001 C CNN
 	1    9850 5975
 	1    0    0    -1  
 $EndComp
 $Comp
-L Mechanical:MountingHole_Pad H?
+L Mechanical:MountingHole_Pad H8
 U 1 1 617631A2
 P 10175 5975
-F 0 "H?" H 10275 5978 50  0000 L CNN
+F 0 "H8" H 10275 5978 50  0000 L CNN
 F 1 "MountingHole_Pad" H 10275 5933 50  0001 L CNN
-F 2 "MountingHole:MountingHole_2.5mm" H 10175 5975 50  0001 C CNN
+F 2 "MountingHole:MountingHole_2.2mm_M2" H 10175 5975 50  0001 C CNN
 F 3 "~" H 10175 5975 50  0001 C CNN
 	1    10175 5975
 	1    0    0    -1  
 $EndComp
 Text Notes 9600 5975 2    50   ~ 0
 Shutter flags
+Text Label 7300 5850 2    50   ~ 0
+GPCLK
+$Comp
+L Connector:TestPoint TP13
+U 1 1 617DDD42
+P 7350 5850
+F 0 "TP13" H 7500 5900 50  0000 R CNN
+F 1 "TestPoint" H 7500 6050 50  0001 R CNN
+F 2 "TestPoint:TestPoint_Pad_D1.5mm" H 7550 5850 50  0001 C CNN
+F 3 "~" H 7550 5850 50  0001 C CNN
+	1    7350 5850
+	1    0    0    -1  
+$EndComp
+Text Label 9775 1450 0    50   ~ 0
+GPCLK
+Wire Wire Line
+	7300 5850 7350 5850
+Wire Wire Line
+	7350 5850 7850 5850
+Connection ~ 7350 5850
 $EndSCHEMATC
