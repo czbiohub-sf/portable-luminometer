@@ -70,6 +70,7 @@ ALL_CH_DISABLE_MASK = 0b00000000 << 8
 ALL_CH_ENABLE_MASK  = 0b11111111 << 8
 CH_2_3_ENABLE_MASK  = 0b00001100 << 8
 OSR_16256_MASK = 0b111 << 2
+OSR_8192_MASK = 0b110 << 2
 # The datasheet is a bit confusing with regards to the chrystal oscillator.
 # For the luminometer design, we give the ADC the SCLK from the master SPI.
 # Therefore, we enable the XTAL_OSC_DISABLE bit of the clock register
@@ -104,7 +105,7 @@ class ADS131M09Reader(ADCReader):
         self.bytes_per_word: int = int(self.ads_bits_per_word / self.rpi_bits_per_word)
 
         self._DRDY: int = 11  # drdy pin is 37
-        self._first_read: bool = False
+        self._first_read: bool = True
 
         GPIO.setup(self._DRDY, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 
@@ -117,14 +118,16 @@ class ADS131M09Reader(ADCReader):
         self.spi.no_cs = True  # We tied the ~CS to GND
 
     def read(self):
+        # the null command frame is used to read from the ADC
+        null_cmd_frame = [0b0] * self.ads_num_frame_words * self.bytes_per_word 
         if self._first_read:
-            self.spi.writebytes2([0b0] * self.ads_num_frame_words * self.bytes_per_word)
-            self._first_read = True
-        cmd_frame = [0b0] * self.ads_num_frame_words * self.bytes_per_word
-        self.spi.writebytes2(cmd_frame)
-        res = self.spi.readbytes(len(cmd_frame))
+            self.spi.writebytes2(null_cmd_frame)
+            self.spi.readbytes(len(null_cmd_frame))
+            self._first_read = False
 
-        res = self.spi.readbytes(len(cmd_frame)) 
+        self.spi.writebytes2(null_cmd_frame)
+        res = self.spi.readbytes(len(null_cmd_frame)) 
+
         if not self.crc_check(res):
             print(f'CRC CHECK FAILED ON read()')
 
@@ -244,10 +247,10 @@ if __name__ == "__main__":
         print("not ready")
     print("ready")
 
-    adc_reader.write_register(CLOCK_ADDR, ALL_CH_DISABLE_MASK | OSR_16256_MASK | PWR_HIGH_RES_MASK | XTAL_OSC_DISABLE_MASK)
-    adc_reader.write_register(MODE_ADDR, CLEAR_RESET_MASK |  WLEN_24_MASK | SPI_TIMEOUT_MASK | DRDY_HIZ_OPEN_COLLECT) # DRDY_FMT_PULSE_MASK |
+    adc_reader.write_register(CLOCK_ADDR, ALL_CH_DISABLE_MASK | OSR_8192_MASK | PWR_HIGH_RES_MASK | XTAL_OSC_DISABLE_MASK)
+    adc_reader.write_register(MODE_ADDR, CLEAR_RESET_MASK |  WLEN_24_MASK | SPI_TIMEOUT_MASK | DRDY_HIZ_OPEN_COLLECT | DRDY_FMT_PULSE_MASK)
     adc_reader.write_register(CFG_ADDR, GLOBAL_CHOP_EN_MASK | DEFAULT_CHOP_DELAY_MASK)
-    adc_reader.write_register(CLOCK_ADDR, CH_2_3_ENABLE_MASK | OSR_16256_MASK | PWR_HIGH_RES_MASK| XTAL_OSC_DISABLE_MASK)
+    adc_reader.write_register(CLOCK_ADDR, CH_2_3_ENABLE_MASK | OSR_8192_MASK | PWR_HIGH_RES_MASK| XTAL_OSC_DISABLE_MASK)
 
     print('ID')
     d = adc_reader.read_register(ID_ADDR)
@@ -274,7 +277,21 @@ if __name__ == "__main__":
     print(adc_reader.bytes_to_readable(d)[0])
     print()
 
-    while True:
+    sc = 0
+    def cb(channel):
+        global sc
+        sc += 1
         data = adc_reader.read()
         print(1.2 * data[3] / (2**23), 1.2 * data[4] / (2**23))
 
+    GPIO.add_event_detect(adc_reader._DRDY, GPIO.FALLING, callback=cb)
+
+    t0 = time.time()
+    try:
+        while True: pass
+    except KeyboardInterrupt:
+        pass
+    finally:
+        t1 = time.time()
+        GPIO.cleanup()
+    print(f'\n{sc} samples in {t1 - t0:.5} seconds. Sample rate of {sc / (t1 - t0)} Hz')
