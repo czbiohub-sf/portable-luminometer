@@ -26,15 +26,15 @@ def _initial(c):
     return crc
 
 
-_tab = [ _initial(i) for i in range(256) ]
+_tab = [_initial(i) for i in range(256)]
 
 
 def _update_crc(crc, c):
-    cc = 0xff & c
+    cc = 0xFF & c
 
     tmp = (crc >> 8) ^ cc
-    crc = (crc << 8) ^ _tab[tmp & 0xff]
-    crc = crc & 0xffff
+    crc = (crc << 8) ^ _tab[tmp & 0xFF]
+    crc = crc & 0xFFFF
 
     return crc
 
@@ -44,4 +44,3 @@ def crcb(*i):
     for c in i:
         crc = _update_crc(crc, c)
     return crc
-
