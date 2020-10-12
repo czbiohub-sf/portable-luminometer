@@ -108,7 +108,7 @@ class ADS131M09Reader(ADCReader):
         self.rpi_bits_per_word: int = 8  # only available word length on RPi
         self.bytes_per_word: int = int(self.ads_bits_per_word / self.rpi_bits_per_word)  # 3 bytes per word
 
-        self._DRDY: int = 11  # drdy pin is pin 11
+        self._DRDY: int = 40  # drdy pin is pin 11
 
         # Flag for clearing ADC FIFO buffer; see Datasheet 8.5.1.9.1
         self._first_read: bool = True
@@ -125,10 +125,16 @@ class ADS131M09Reader(ADCReader):
         """
         self.spi.open(0, device)
 
+        # Wait for DRDY to go high which signifies that the ADC is awake
+        while not GPIO.input(adc_reader._DRDY): pass
+
         # ADS131M08 Settings
         self.spi.mode = 0b01  # SPI Mode 1; See Datasheet 8.5.1
         self.spi.max_speed_hz = int(1e6)  # 1 MHz clock speed
         self.spi.no_cs = False
+
+        # Initialize ADC to desired settings
+        self.init_ads_config()
 
     def init_ads_config(self):
         self.write_register(
@@ -281,8 +287,9 @@ def twos_complement(input_value: int, num_bits: int) -> int:
 
 
 if __name__ == "__main__":
+    device = 1  # using CE1
     adc_reader = ADS131M09Reader()
-    adc_reader.setup_adc(1)
+    adc_reader.setup_adc(device)
 
     # wait for DRDY to go high, indicating the ADC has started up
     while not GPIO.input(adc_reader._DRDY):
