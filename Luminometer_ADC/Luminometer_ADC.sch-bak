@@ -21,6 +21,9 @@ F 0 "U7" H 8850 1539 60  0000 C CNN
 F 1 "ADS131M08IPBS" H 8850 1433 60  0000 C CNN
 F 2 "Package_QFP:LQFP-32_5x5mm_P0.5mm" H 8875 -1150 60  0001 C CNN
 F 3 "https://www.ti.com/lit/ds/symlink/ads131m08.pdf?ts=1595957796694&ref_url=https%253A%252F%252Fwww.ti.com%252Fproduct%252FADS131M08" H 8850 1433 60  0001 C CNN
+F 4 "Digikey" H 8875 1350 50  0001 C CNN "Supplier"
+F 5 "296-ADS131M08IPBS-ND" H 8875 1350 50  0001 C CNN "Part Number"
+F 6 "7.69" H 8875 1350 50  0001 C CNN "Price"
 	1    8875 1350
 	1    0    0    -1  
 $EndComp
@@ -31,7 +34,10 @@ P 7825 1500
 F 0 "C12" H 7925 1500 50  0000 L CNN
 F 1 "10nF" H 7525 1500 50  0000 L CNN
 F 2 "Capacitor_SMD:C_0603_1608Metric" H 7825 1500 50  0001 C CNN
-F 3 "~" H 7825 1500 50  0001 C CNN
+F 3 "https://search.murata.co.jp/Ceramy/image/img/A01X/G101/ENG/GRM033R70J103JA01-01.pdf" H 7825 1500 50  0001 C CNN
+F 4 "Digikey" H 7825 1500 50  0001 C CNN "Supplier"
+F 5 "490-16599-1-ND" H 7825 1500 50  0001 C CNN "Part Number"
+F 6 "0.10" H 7825 1500 50  0001 C CNN "Price"
 	1    7825 1500
 	1    0    0    -1  
 $EndComp
@@ -84,7 +90,10 @@ P 10125 1650
 F 0 "R16" V 10025 1650 50  0000 C CNN
 F 1 "470" V 10125 1650 50  0000 C CNN
 F 2 "Resistor_SMD:R_0603_1608Metric" V 10055 1650 50  0001 C CNN
-F 3 "~" H 10125 1650 50  0001 C CNN
+F 3 "https://www.vishay.com/docs/28705/mcx0x0xpro.pdf" H 10125 1650 50  0001 C CNN
+F 4 "Digikey" V 10125 1650 50  0001 C CNN "Supplier"
+F 5 "MCT0603-470-CFCT-ND" V 10125 1650 50  0001 C CNN "Part Number"
+F 6 "0.16" V 10125 1650 50  0001 C CNN "Price"
 	1    10125 1650
 	0    1    1    0   
 $EndComp
@@ -104,17 +113,6 @@ F 2 "" H 10400 1600 50  0001 C CNN
 F 3 "" H 10400 1600 50  0001 C CNN
 	1    10400 1600
 	1    0    0    -1  
-$EndComp
-$Comp
-L Device:C_Small C16
-U 1 1 5F240BCB
-P 9925 1850
-F 0 "C16" V 9875 1950 50  0000 C CNN
-F 1 "220nF" V 9975 2050 50  0000 C CNN
-F 2 "Capacitor_SMD:C_0603_1608Metric" H 9925 1850 50  0001 C CNN
-F 3 "~" H 9925 1850 50  0001 C CNN
-	1    9925 1850
-	0    1    1    0   
 $EndComp
 Wire Wire Line
 	9675 1850 9825 1850
@@ -153,27 +151,9 @@ Wire Wire Line
 	9775 2950 9775 3050
 Wire Wire Line
 	9775 3050 9675 3050
-Wire Wire Line
-	9775 3050 9875 3050
 Connection ~ 9775 3050
 Wire Wire Line
-	9875 2850 9675 2850
-Wire Wire Line
 	9675 2750 10375 2750
-$Comp
-L Device:C_Small C17
-U 1 1 5F2AFA7A
-P 10375 2900
-F 0 "C17" H 10467 2946 50  0000 L CNN
-F 1 "1uF" H 10467 2855 50  0000 L CNN
-F 2 "Capacitor_SMD:C_0603_1608Metric" H 10375 2900 50  0001 C CNN
-F 3 "~" H 10375 2900 50  0001 C CNN
-	1    10375 2900
-	1    0    0    -1  
-$EndComp
-Wire Wire Line
-	9875 3050 10375 3050
-Connection ~ 9875 3050
 $Comp
 L power:GNDA #PWR025
 U 1 1 5F2B80B2
@@ -326,49 +306,6 @@ Wire Wire Line
 	10375 3050 10575 3050
 Wire Wire Line
 	10575 3550 9825 3550
-$Comp
-L Device:R R14
-U 1 1 5F482985
-P 7625 1700
-F 0 "R14" V 7675 1550 50  0000 C CNN
-F 1 "1k" V 7625 1700 50  0000 C CNN
-F 2 "Resistor_SMD:R_0603_1608Metric" V 7555 1700 50  0001 C CNN
-F 3 "~" H 7625 1700 50  0001 C CNN
-	1    7625 1700
-	0    1    1    0   
-$EndComp
-$Comp
-L Device:C_Small C13
-U 1 1 5F48298B
-P 7825 1800
-F 0 "C13" H 7925 1800 50  0000 L CNN
-F 1 "10nF" H 7525 1800 50  0000 L CNN
-F 2 "Capacitor_SMD:C_0603_1608Metric" H 7825 1800 50  0001 C CNN
-F 3 "~" H 7825 1800 50  0001 C CNN
-	1    7825 1800
-	1    0    0    -1  
-$EndComp
-Wire Wire Line
-	7925 1700 7825 1700
-Wire Wire Line
-	7925 1900 7825 1900
-Wire Wire Line
-	7825 1700 7775 1700
-Connection ~ 7825 1700
-Wire Wire Line
-	7775 1900 7825 1900
-Connection ~ 7825 1900
-$Comp
-L Device:R R15
-U 1 1 5F482997
-P 7625 1900
-F 0 "R15" V 7575 1750 50  0000 C CNN
-F 1 "1k" V 7625 1900 50  0000 C CNN
-F 2 "Resistor_SMD:R_0603_1608Metric" V 7555 1900 50  0001 C CNN
-F 3 "~" H 7625 1900 50  0001 C CNN
-	1    7625 1900
-	0    1    1    0   
-$EndComp
 Connection ~ 4150 6225
 Wire Wire Line
 	4150 6225 4150 6275
@@ -436,21 +373,13 @@ F 0 "SiPM1" H 3975 1525 39  0000 R CNN
 F 1 "MICROFC−60035−SMT" H 3975 1600 39  0000 R CNN
 F 2 "Luminometer_OPT101_Footprints:OnSemi_CASE512" H 4000 1225 39  0001 C CNN
 F 3 "https://www.onsemi.com/pub/Collateral/MICROC-SERIES-D.PDF" H 4000 1775 100 0001 C CNN
+F 4 "Mouser" H 4000 1775 50  0001 C CNN "Supplier"
+F 5 "863-MFC60035SMTTR1" H 4000 1775 50  0001 C CNN "Part Number"
+F 6 "76.39" H 4000 1775 50  0001 C CNN "Price"
 	1    4000 1775
 	1    0    0    1   
 $EndComp
 NoConn ~ 4250 1775
-$Comp
-L Device:C_Small C8
-U 1 1 5F4EBA72
-P 4700 1650
-F 0 "C8" V 4625 1500 50  0000 L CNN
-F 1 "1uF" V 4750 1475 50  0000 L CNN
-F 2 "Capacitor_SMD:C_0603_1608Metric" H 4700 1650 50  0001 C CNN
-F 3 "~" H 4700 1650 50  0001 C CNN
-	1    4700 1650
-	0    -1   1    0   
-$EndComp
 $Comp
 L power:GNDA #PWR013
 U 1 1 5F4ED377
@@ -554,6 +483,9 @@ F 0 "SiPM2" H 3925 3575 39  0000 R CNN
 F 1 "MICROFC−60035−SMT" H 3950 3500 39  0000 R CNN
 F 2 "Luminometer_OPT101_Footprints:OnSemi_CASE512" H 4000 2825 39  0001 C CNN
 F 3 "https://www.onsemi.com/pub/Collateral/MICROC-SERIES-D.PDF" H 4000 3375 100 0001 C CNN
+F 4 "Mouser" H 4000 3375 50  0001 C CNN "Supplier"
+F 5 "863-MFC60035SMTTR1" H 4000 3375 50  0001 C CNN "Part Number"
+F 6 "76.39" H 4000 3375 50  0001 C CNN "Price"
 	1    4000 3375
 	1    0    0    -1  
 $EndComp
@@ -617,22 +549,8 @@ F 3 "https://www.analog.com/media/en/technical-documentation/data-sheets/ADR512.
 	1    4150 6075
 	0    -1   -1   0   
 $EndComp
-Connection ~ 9875 2850
-Wire Wire Line
-	9875 2850 10100 2850
 Text Label 10100 2850 2    50   ~ 0
 REF1.2V
-$Comp
-L Device:C_Small C15
-U 1 1 5F2A0D2E
-P 9875 2950
-F 0 "C15" H 9967 2996 50  0000 L CNN
-F 1 "220nF" H 9967 2905 50  0000 L CNN
-F 2 "Capacitor_SMD:C_0603_1608Metric" H 9875 2950 50  0001 C CNN
-F 3 "~" H 9875 2950 50  0001 C CNN
-	1    9875 2950
-	1    0    0    -1  
-$EndComp
 Text Label 4500 5625 0    50   ~ 0
 REF2.4V
 $Comp
@@ -929,7 +847,10 @@ P 1675 3000
 F 0 "R1" H 1606 3046 50  0000 R CNN
 F 1 "1k" V 1675 3025 50  0000 R CNN
 F 2 "Resistor_SMD:R_0603_1608Metric" V 1605 3000 50  0001 C CNN
-F 3 "~" H 1675 3000 50  0001 C CNN
+F 3 "http://www.vishaypg.com/docs/63060/VSMP.pdf" H 1675 3000 50  0001 C CNN
+F 4 "Y1636-1K-ND" H 1675 3000 50  0001 C CNN "Part Number"
+F 5 "Digikey" H 1675 3000 50  0001 C CNN "Supplier"
+F 6 "11.63" H 1675 3000 50  0001 C CNN "Price"
 	1    1675 3000
 	1    0    0    -1  
 $EndComp
@@ -940,7 +861,10 @@ P 1950 3150
 F 0 "C2" V 1813 3150 50  0000 C CNN
 F 1 "220nF" V 1722 3150 50  0000 C CNN
 F 2 "Capacitor_SMD:C_0603_1608Metric" H 1950 3150 50  0001 C CNN
-F 3 "~" H 1950 3150 50  0001 C CNN
+F 3 "http://www.yuden.co.jp/productdata/catalog/mlcc06_e.pdf" H 1950 3150 50  0001 C CNN
+F 4 "Digikey" V 1950 3150 50  0001 C CNN "Supplier"
+F 5 "587-5958-2-ND" V 1950 3150 50  0001 C CNN "Part Number"
+F 6 "0.2" V 1950 3150 50  0001 C CNN "Price"
 	1    1950 3150
 	0    -1   -1   0   
 $EndComp
@@ -985,7 +909,10 @@ P 4050 2650
 F 0 "C7" H 4142 2696 50  0000 L CNN
 F 1 "1uF" H 4142 2605 50  0000 L CNN
 F 2 "Capacitor_SMD:C_0603_1608Metric" H 4050 2650 50  0001 C CNN
-F 3 "~" H 4050 2650 50  0001 C CNN
+F 3 "https://ds.yuden.co.jp/TYCOMPAS/ut/detail?pn=GMK107BJ105MAHT%20&u=M" H 4050 2650 50  0001 C CNN
+F 4 "Digikey" H 4050 2650 50  0001 C CNN "Supplier"
+F 5 "587-6315-2-ND" H 4050 2650 50  0001 C CNN "Part Number"
+F 6 "0.19" H 4050 2650 50  0001 C CNN "Price"
 	1    4050 2650
 	-1   0    0    -1  
 $EndComp
@@ -1016,48 +943,18 @@ Wire Wire Line
 	1675 3150 1675 3200
 Connection ~ 1675 3150
 $Comp
-L Device:R R13
-U 1 1 5F25839E
-P 7625 1600
-F 0 "R13" V 7575 1450 50  0000 C CNN
-F 1 "1k" V 7625 1600 50  0000 C CNN
-F 2 "Resistor_SMD:R_0603_1608Metric" V 7555 1600 50  0001 C CNN
-F 3 "~" H 7625 1600 50  0001 C CNN
-	1    7625 1600
-	0    1    1    0   
-$EndComp
-$Comp
 L Device:R R12
 U 1 1 5F20AEC9
 P 7625 1400
 F 0 "R12" V 7675 1250 50  0000 C CNN
 F 1 "1k" V 7625 1400 50  0000 C CNN
 F 2 "Resistor_SMD:R_0603_1608Metric" V 7555 1400 50  0001 C CNN
-F 3 "~" H 7625 1400 50  0001 C CNN
+F 3 "https://www.susumu.co.jp/common/pdf/n_catalog_partition38_en.pdf" H 7625 1400 50  0001 C CNN
+F 4 "408-2063-1-ND" V 7625 1400 50  0001 C CNN "Part Number"
+F 5 "Digikey" V 7625 1400 50  0001 C CNN "Supplier"
+F 6 "0.49" V 7625 1400 50  0001 C CNN "Price"
 	1    7625 1400
 	0    1    1    0   
-$EndComp
-$Comp
-L Device:C_Small C9
-U 1 1 5FBDF371
-P 4700 3475
-F 0 "C9" V 4563 3475 50  0000 C CNN
-F 1 "1uF" V 4472 3475 50  0000 C CNN
-F 2 "Capacitor_SMD:C_0603_1608Metric" H 4700 3475 50  0001 C CNN
-F 3 "~" H 4700 3475 50  0001 C CNN
-	1    4700 3475
-	0    -1   -1   0   
-$EndComp
-$Comp
-L Device:R R7
-U 1 1 5FBDF378
-P 4700 3125
-F 0 "R7" V 4800 3175 50  0000 C CNN
-F 1 "100k" V 4700 3125 50  0000 C CNN
-F 2 "Resistor_SMD:R_0603_1608Metric" V 4630 3125 50  0001 C CNN
-F 3 "~" H 4700 3125 50  0001 C CNN
-	1    4700 3125
-	0    -1   1    0   
 $EndComp
 $Comp
 L Device:R R6
@@ -1066,19 +963,11 @@ P 4700 2025
 F 0 "R6" V 4800 2075 50  0000 C CNN
 F 1 "100k" V 4700 2025 50  0000 C CNN
 F 2 "Resistor_SMD:R_0603_1608Metric" V 4630 2025 50  0001 C CNN
-F 3 "~" H 4700 2025 50  0001 C CNN
+F 3 "https://www.vishay.com/docs/28779/tnpue3.pdf" H 4700 2025 50  0001 C CNN
+F 4 "Digikey" V 4700 2025 50  0001 C CNN "Supplier"
+F 5 "541-3308-1-ND " V 4700 2025 50  0001 C CNN "Part Number"
+F 6 "5.16" V 4700 2025 50  0001 C CNN "Price"
 	1    4700 2025
-	0    -1   -1   0   
-$EndComp
-$Comp
-L Device:R R10
-U 1 1 5F64942B
-P 6000 2025
-F 0 "R10" V 6075 2025 50  0000 C CNN
-F 1 "2k" V 6000 2025 50  0000 C CNN
-F 2 "Resistor_SMD:R_0603_1608Metric" V 5930 2025 50  0001 C CNN
-F 3 "~" H 6000 2025 50  0001 C CNN
-	1    6000 2025
 	0    -1   -1   0   
 $EndComp
 $Comp
@@ -1089,30 +978,11 @@ F 0 "R8" V 5650 2025 50  0000 C CNN
 F 1 "2k" V 5575 2025 50  0000 C CNN
 F 2 "Resistor_SMD:R_0603_1608Metric" V 5505 2025 50  0001 C CNN
 F 3 "~" H 5575 2025 50  0001 C CNN
+F 4 "804-1167-ND" V 5575 2025 50  0001 C CNN "Part Number"
+F 5 "Digikey" V 5575 2025 50  0001 C CNN "Supplier"
+F 6 "11.21" V 5575 2025 50  0001 C CNN "Price"
 	1    5575 2025
 	0    -1   -1   0   
-$EndComp
-$Comp
-L Device:R R11
-U 1 1 5FBDF385
-P 6000 3125
-F 0 "R11" V 6075 3125 50  0000 C CNN
-F 1 "2k" V 6000 3125 50  0000 C CNN
-F 2 "Resistor_SMD:R_0603_1608Metric" V 5930 3125 50  0001 C CNN
-F 3 "~" H 6000 3125 50  0001 C CNN
-	1    6000 3125
-	0    -1   1    0   
-$EndComp
-$Comp
-L Device:R R9
-U 1 1 5FBDF37F
-P 5575 3125
-F 0 "R9" V 5650 3125 50  0000 C CNN
-F 1 "2k" V 5575 3125 50  0000 C CNN
-F 2 "Resistor_SMD:R_0603_1608Metric" V 5505 3125 50  0001 C CNN
-F 3 "~" H 5575 3125 50  0001 C CNN
-	1    5575 3125
-	0    -1   1    0   
 $EndComp
 Connection ~ 2625 5475
 Wire Wire Line
@@ -1124,7 +994,10 @@ P 1975 2725
 F 0 "R2" V 1860 2725 50  0000 C CNN
 F 1 "24k" V 1975 2725 50  0000 C CNN
 F 2 "Resistor_SMD:R_0603_1608Metric" V 1905 2725 50  0001 C CNN
-F 3 "~" H 1975 2725 50  0001 C CNN
+F 3 "https://www.vishay.com/docs/60030/plt.pdf" H 1975 2725 50  0001 C CNN
+F 4 "PLT0603Z2402LBTS-ND" V 1975 2725 50  0001 C CNN "Part Number"
+F 5 "Digikey" V 1975 2725 50  0001 C CNN "Supplier"
+F 6 "9.36" V 1975 2725 50  0001 C CNN "Price"
 	1    1975 2725
 	0    -1   -1   0   
 $EndComp
@@ -1158,6 +1031,9 @@ F 0 "U5" H 5300 3000 50  0000 C CNN
 F 1 "ADA4522-4" H 5300 2100 50  0000 C CNN
 F 2 "digikey-footprints:SOIC-14_W3.9mm" V 4950 2500 50  0001 C CNN
 F 3 "https://www.analog.com/media/en/technical-documentation/data-sheets/ADA4522-1_4522-2_4522-4.pdf" V 4950 2500 50  0001 C CNN
+F 4 "Digikey" H 5300 2550 50  0001 C CNN "Supplier"
+F 5 "ADA4522-4ARZ-RLTR-ND" H 5300 2550 50  0001 C CNN "Part Number"
+F 6 "8.45" H 5300 2550 50  0001 C CNN "Price"
 	1    5300 2550
 	1    0    0    -1  
 $EndComp
@@ -1171,6 +1047,9 @@ F 0 "U2" H 1975 2300 50  0000 L CNN
 F 1 "ADA4522-1" H 1975 2225 50  0000 L CNN
 F 2 "Package_SO:SOIC-8_3.9x4.9mm_P1.27mm" H 2025 2075 50  0001 C CNN
 F 3 "https://www.analog.com/media/en/technical-documentation/data-sheets/ADA4522-1_4522-2_4522-4.pdf" H 2025 2175 50  0001 C CNN
+F 4 "Digikey" H 1975 2025 50  0001 C CNN "Supplier"
+F 5 "ADA4522-1ARZ-ND" H 1975 2025 50  0001 C CNN "Part Number"
+F 6 "2.83" H 1975 2025 50  0001 C CNN "Price"
 	1    1975 2025
 	1    0    0    -1  
 $EndComp
@@ -1606,7 +1485,6 @@ Text Notes 5675 1900 0    39   ~ 0
 Precision
 Text Notes 5675 3300 0    39   ~ 0
 Precision
-NoConn ~ 6100 1675
 $Comp
 L Connector:TestPoint TP11
 U 1 1 616E4924
@@ -1714,4 +1592,206 @@ Wire Wire Line
 Wire Wire Line
 	7350 5850 7850 5850
 Connection ~ 7350 5850
+$Comp
+L Device:C_Small C8
+U 1 1 5F8183AF
+P 4700 1650
+F 0 "C8" H 4792 1696 50  0000 L CNN
+F 1 "1uF" H 4792 1605 50  0000 L CNN
+F 2 "Capacitor_SMD:C_0603_1608Metric" H 4700 1650 50  0001 C CNN
+F 3 "https://ds.yuden.co.jp/TYCOMPAS/ut/detail?pn=GMK107BJ105MAHT%20&u=M" H 4700 1650 50  0001 C CNN
+F 4 "Digikey" H 4700 1650 50  0001 C CNN "Supplier"
+F 5 "587-6315-2-ND" H 4700 1650 50  0001 C CNN "Part Number"
+F 6 "0.19" H 4700 1650 50  0001 C CNN "Price"
+	1    4700 1650
+	0    1    -1   0   
+$EndComp
+$Comp
+L Device:C_Small C9
+U 1 1 5F84AE04
+P 4700 3475
+F 0 "C9" H 4792 3521 50  0000 L CNN
+F 1 "1uF" H 4792 3430 50  0000 L CNN
+F 2 "Capacitor_SMD:C_0603_1608Metric" H 4700 3475 50  0001 C CNN
+F 3 "https://ds.yuden.co.jp/TYCOMPAS/ut/detail?pn=GMK107BJ105MAHT%20&u=M" H 4700 3475 50  0001 C CNN
+F 4 "Digikey" H 4700 3475 50  0001 C CNN "Supplier"
+F 5 "587-6315-2-ND" H 4700 3475 50  0001 C CNN "Part Number"
+F 6 "0.19" H 4700 3475 50  0001 C CNN "Price"
+	1    4700 3475
+	0    -1   1    0   
+$EndComp
+$Comp
+L Device:R R7
+U 1 1 5F84C2C9
+P 4700 3125
+F 0 "R7" V 4800 3175 50  0000 C CNN
+F 1 "100k" V 4700 3125 50  0000 C CNN
+F 2 "Resistor_SMD:R_0603_1608Metric" V 4630 3125 50  0001 C CNN
+F 3 "https://www.vishay.com/docs/28779/tnpue3.pdf" H 4700 3125 50  0001 C CNN
+F 4 "Digikey" V 4700 3125 50  0001 C CNN "Supplier"
+F 5 "541-3308-1-ND " V 4700 3125 50  0001 C CNN "Part Number"
+F 6 "5.16" V 4700 3125 50  0001 C CNN "Price"
+	1    4700 3125
+	0    -1   -1   0   
+$EndComp
+$Comp
+L Device:R R9
+U 1 1 5F86B947
+P 5575 3125
+F 0 "R9" V 5650 3125 50  0000 C CNN
+F 1 "2k" V 5575 3125 50  0000 C CNN
+F 2 "Resistor_SMD:R_0603_1608Metric" V 5505 3125 50  0001 C CNN
+F 3 "~" H 5575 3125 50  0001 C CNN
+F 4 "804-1167-ND" V 5575 3125 50  0001 C CNN "Part Number"
+F 5 "Digikey" V 5575 3125 50  0001 C CNN "Supplier"
+F 6 "11.21" V 5575 3125 50  0001 C CNN "Price"
+	1    5575 3125
+	0    -1   -1   0   
+$EndComp
+$Comp
+L Device:R R11
+U 1 1 5F8B8F23
+P 6000 3125
+F 0 "R11" V 6075 3125 50  0000 C CNN
+F 1 "2k" V 6000 3125 50  0000 C CNN
+F 2 "Resistor_SMD:R_0603_1608Metric" V 5930 3125 50  0001 C CNN
+F 3 "~" H 6000 3125 50  0001 C CNN
+F 4 "804-1167-ND" V 6000 3125 50  0001 C CNN "Part Number"
+F 5 "Digikey" V 6000 3125 50  0001 C CNN "Supplier"
+F 6 "11.21" V 6000 3125 50  0001 C CNN "Price"
+	1    6000 3125
+	0    -1   -1   0   
+$EndComp
+$Comp
+L Device:R R10
+U 1 1 5F8B9298
+P 6000 2025
+F 0 "R10" V 6075 2025 50  0000 C CNN
+F 1 "2k" V 6000 2025 50  0000 C CNN
+F 2 "Resistor_SMD:R_0603_1608Metric" V 5930 2025 50  0001 C CNN
+F 3 "~" H 6000 2025 50  0001 C CNN
+F 4 "804-1167-ND" V 6000 2025 50  0001 C CNN "Part Number"
+F 5 "Digikey" V 6000 2025 50  0001 C CNN "Supplier"
+F 6 "11.21" V 6000 2025 50  0001 C CNN "Price"
+	1    6000 2025
+	0    -1   -1   0   
+$EndComp
+$Comp
+L Device:R R13
+U 1 1 5F8E8474
+P 7625 1600
+F 0 "R13" V 7675 1450 50  0000 C CNN
+F 1 "1k" V 7625 1600 50  0000 C CNN
+F 2 "Resistor_SMD:R_0603_1608Metric" V 7555 1600 50  0001 C CNN
+F 3 "https://www.susumu.co.jp/common/pdf/n_catalog_partition38_en.pdf" H 7625 1600 50  0001 C CNN
+F 4 "408-2063-1-ND" V 7625 1600 50  0001 C CNN "Part Number"
+F 5 "Digikey" V 7625 1600 50  0001 C CNN "Supplier"
+F 6 "0.49" V 7625 1600 50  0001 C CNN "Price"
+	1    7625 1600
+	0    1    1    0   
+$EndComp
+$Comp
+L Device:R R14
+U 1 1 5F8E88FD
+P 7625 1700
+F 0 "R14" V 7675 1550 50  0000 C CNN
+F 1 "1k" V 7625 1700 50  0000 C CNN
+F 2 "Resistor_SMD:R_0603_1608Metric" V 7555 1700 50  0001 C CNN
+F 3 "https://www.susumu.co.jp/common/pdf/n_catalog_partition38_en.pdf" H 7625 1700 50  0001 C CNN
+F 4 "408-2063-1-ND" V 7625 1700 50  0001 C CNN "Part Number"
+F 5 "Digikey" V 7625 1700 50  0001 C CNN "Supplier"
+F 6 "0.49" V 7625 1700 50  0001 C CNN "Price"
+	1    7625 1700
+	0    1    1    0   
+$EndComp
+$Comp
+L Device:R R15
+U 1 1 5F8E8C96
+P 7625 1900
+F 0 "R15" V 7675 1750 50  0000 C CNN
+F 1 "1k" V 7625 1900 50  0000 C CNN
+F 2 "Resistor_SMD:R_0603_1608Metric" V 7555 1900 50  0001 C CNN
+F 3 "https://www.susumu.co.jp/common/pdf/n_catalog_partition38_en.pdf" H 7625 1900 50  0001 C CNN
+F 4 "408-2063-1-ND" V 7625 1900 50  0001 C CNN "Part Number"
+F 5 "Digikey" V 7625 1900 50  0001 C CNN "Supplier"
+F 6 "0.49" V 7625 1900 50  0001 C CNN "Price"
+	1    7625 1900
+	0    1    1    0   
+$EndComp
+Wire Wire Line
+	7775 1700 7825 1700
+Wire Wire Line
+	7775 1900 7825 1900
+$Comp
+L Device:C_Small C13
+U 1 1 5F90839D
+P 7825 1800
+F 0 "C13" H 7925 1800 50  0000 L CNN
+F 1 "10nF" H 7525 1800 50  0000 L CNN
+F 2 "Capacitor_SMD:C_0603_1608Metric" H 7825 1800 50  0001 C CNN
+F 3 "https://search.murata.co.jp/Ceramy/image/img/A01X/G101/ENG/GRM033R70J103JA01-01.pdf" H 7825 1800 50  0001 C CNN
+F 4 "Digikey" H 7825 1800 50  0001 C CNN "Supplier"
+F 5 "490-16599-1-ND" H 7825 1800 50  0001 C CNN "Part Number"
+F 6 "0.10" H 7825 1800 50  0001 C CNN "Price"
+	1    7825 1800
+	1    0    0    -1  
+$EndComp
+Connection ~ 7825 1700
+Wire Wire Line
+	7825 1700 7925 1700
+Connection ~ 7825 1900
+Wire Wire Line
+	7825 1900 7925 1900
+$Comp
+L Device:C_Small C16
+U 1 1 5F9093AA
+P 9925 1850
+F 0 "C16" V 9875 1700 50  0000 C CNN
+F 1 "220nF" V 9950 1650 50  0000 C CNN
+F 2 "Capacitor_SMD:C_0603_1608Metric" H 9925 1850 50  0001 C CNN
+F 3 "http://www.yuden.co.jp/productdata/catalog/mlcc06_e.pdf" H 9925 1850 50  0001 C CNN
+F 4 "Digikey" V 9925 1850 50  0001 C CNN "Supplier"
+F 5 "587-5958-2-ND" V 9925 1850 50  0001 C CNN "Part Number"
+F 6 "0.2" V 9925 1850 50  0001 C CNN "Price"
+	1    9925 1850
+	0    -1   -1   0   
+$EndComp
+Wire Wire Line
+	9675 2850 9925 2850
+Wire Wire Line
+	9775 3050 9925 3050
+$Comp
+L Device:C_Small C15
+U 1 1 5F9587C0
+P 9925 2950
+F 0 "C15" H 10050 2975 50  0000 C CNN
+F 1 "220nF" H 10075 2900 50  0000 C CNN
+F 2 "Capacitor_SMD:C_0603_1608Metric" H 9925 2950 50  0001 C CNN
+F 3 "http://www.yuden.co.jp/productdata/catalog/mlcc06_e.pdf" H 9925 2950 50  0001 C CNN
+F 4 "Digikey" V 9925 2950 50  0001 C CNN "Supplier"
+F 5 "587-5958-2-ND" V 9925 2950 50  0001 C CNN "Part Number"
+F 6 "0.2" V 9925 2950 50  0001 C CNN "Price"
+	1    9925 2950
+	1    0    0    -1  
+$EndComp
+Connection ~ 9925 2850
+Wire Wire Line
+	9925 2850 10100 2850
+Connection ~ 9925 3050
+Wire Wire Line
+	9925 3050 10375 3050
+$Comp
+L Device:C_Small C17
+U 1 1 5F95A064
+P 10375 2900
+F 0 "C17" H 10225 3000 50  0000 L CNN
+F 1 "1uF" H 10200 2825 50  0000 L CNN
+F 2 "Capacitor_SMD:C_0603_1608Metric" H 10375 2900 50  0001 C CNN
+F 3 "https://ds.yuden.co.jp/TYCOMPAS/ut/detail?pn=GMK107BJ105MAHT%20&u=M" H 10375 2900 50  0001 C CNN
+F 4 "Digikey" H 10375 2900 50  0001 C CNN "Supplier"
+F 5 "587-6315-2-ND" H 10375 2900 50  0001 C CNN "Part Number"
+F 6 "0.19" H 10375 2900 50  0001 C CNN "Price"
+	1    10375 2900
+	-1   0    0    -1  
+$EndComp
 $EndSCHEMATC
