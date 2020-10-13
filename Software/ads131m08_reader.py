@@ -118,7 +118,7 @@ class ADS131M08Reader(ADCReader):
         # pull-up resistor; see Datasheet 8.5.1.5
         GPIO.setup(self._DRDY, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 
-    def setup_adc(self, device: int, channels: List[int] =[2,3]):
+    def setup_adc(self, device: int, channels: List[int] = [2, 3]):
         """
         On the Raspberry Pi, SPI bus 0 supports SPI mode 1 and 3; The ADS131M08 communicates in SPI mode
         1. Therefore, the SPI bus must be bus 0.
@@ -132,7 +132,8 @@ class ADS131M08Reader(ADCReader):
         self.spi.open(0, device)
 
         # Wait for DRDY to go high which signifies that the ADC is awake
-        while not GPIO.input(self._DRDY): pass
+        while not GPIO.input(self._DRDY):
+            pass
 
         # ADS131M08 Settings
         self.spi.mode = 0b01  # SPI Mode 1; See Datasheet 8.5.1
@@ -143,7 +144,9 @@ class ADS131M08Reader(ADCReader):
         channel_enable_mask = 0b00000000
         for chl in channels:
             if chl > 7 or chl < 0:
-                raise RuntimeError('Channels must be between 0 and 7 inclusive, corresponding to the channels on the ADC')
+                raise RuntimeError(
+                    "Channels must be between 0 and 7 inclusive, corresponding to the channels on the ADC"
+                )
             channel_enable_mask |= 0b1 << chl
 
         # Left shift the channel enable mask by 8 positions
@@ -300,6 +303,7 @@ class ADS131M08Reader(ADCReader):
 
 # Helper functions for manipulating bytes, performing CRC checks, e.t.c.
 
+
 def bytes_to_readable(res):
     return [bits(res[i : i + self.bytes_per_word]) for i in range(0, len(res), self.bytes_per_word)]
 
@@ -334,7 +338,7 @@ def twos_complement(input_value: int, num_bits: int) -> int:
 if __name__ == "__main__":
     device = 1  # using CE1
     adc_reader = ADS131M08Reader()
-    adc_reader.setup_adc(device, channels=[2,3])
+    adc_reader.setup_adc(device, channels=[2, 3])
 
     # wait for DRDY to go high, indicating the ADC has started up
     while not GPIO.input(adc_reader._DRDY):
