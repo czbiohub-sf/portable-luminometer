@@ -231,7 +231,7 @@
             clock@GPCLK0 { pll = "PLLA"; chan = "APER"; };
       };
       clock_setup {
-         clock@GPCLK0 { freq = <1000000>; };
+         clock@GPCLK0 { freq = <488000>; };
       };
    };
 };

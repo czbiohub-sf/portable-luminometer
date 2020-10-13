@@ -45,7 +45,7 @@ from adc_reader import ADCReader
 
 
 # Set gpio pin numbering to the gpio pin numbers on the raspberry pi
-GPIO.setmode(GPIO.BOARD)
+GPIO.setmode(GPIO.BCM)
 
 
 # Commands (Datasheet 8.5.1.10)
@@ -100,7 +100,7 @@ GLOBAL_CHOP_EN_MASK = 0b1 << 8
 DEFAULT_CHOP_DELAY_MASK = 0b0011 << 9
 
 
-class ADS131M09Reader(ADCReader):
+class ADS131M08Reader(ADCReader):
     def __init__(self):
         self.spi = spidev.SpiDev()
         self.ads_num_frame_words: int = 10  # Num. words in full ADS131 frame
@@ -108,7 +108,7 @@ class ADS131M09Reader(ADCReader):
         self.rpi_bits_per_word: int = 8  # only available word length on RPi
         self.bytes_per_word: int = int(self.ads_bits_per_word / self.rpi_bits_per_word)  # 3 bytes per word
 
-        self._DRDY: int = 40  # drdy pin is pin 11
+        self._DRDY: int = 21  # drdy pin is BCM 21
 
         # Flag for clearing ADC FIFO buffer; see Datasheet 8.5.1.9.1
         self._first_read: bool = True
@@ -126,11 +126,11 @@ class ADS131M09Reader(ADCReader):
         self.spi.open(0, device)
 
         # Wait for DRDY to go high which signifies that the ADC is awake
-        while not GPIO.input(adc_reader._DRDY): pass
+        while not GPIO.input(self._DRDY): pass
 
         # ADS131M08 Settings
         self.spi.mode = 0b01  # SPI Mode 1; See Datasheet 8.5.1
-        self.spi.max_speed_hz = int(1e6)  # 1 MHz clock speed
+        self.spi.max_speed_hz = 488000 #int(1e6)  # 1 MHz clock speed
         self.spi.no_cs = False
 
         # Initialize ADC to desired settings
@@ -288,7 +288,7 @@ def twos_complement(input_value: int, num_bits: int) -> int:
 
 if __name__ == "__main__":
     device = 1  # using CE1
-    adc_reader = ADS131M09Reader()
+    adc_reader = ADS131M08Reader()
     adc_reader.setup_adc(device)
 
     # wait for DRDY to go high, indicating the ADC has started up
