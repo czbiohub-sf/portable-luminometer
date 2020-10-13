@@ -200,7 +200,7 @@ class ADS131M08Reader(ADCReader):
             bytes_to_read = self.bytes_per_word * (2 + num_registers)
 
         ret_data = self.spi.readbytes(bytes_to_read)
-        if not self.crc_check(ret_data):
+        if not crc_check(ret_data):
             print(f"CRC CHECK FAILED ON read_register({register_addr}, {num_registers})")
         return ret_data
 
@@ -224,7 +224,7 @@ class ADS131M08Reader(ADCReader):
         self.spi.writebytes2(null_cmd_frame)
         res = self.spi.readbytes(len(null_cmd_frame))
 
-        if not self.crc_check(res):
+        if not crc_check(res):
             raise RuntimeError(f"CRC CHECK FAILED ON read METHOD")
 
         # ADC data is returned in Two's Complement format; see Datasheet 8.5.1.9
@@ -278,7 +278,7 @@ class ADS131M08Reader(ADCReader):
         self.spi.writebytes2(cmd_frame)
         ret_data = self.spi.readbytes(len(cmd_frame))
 
-        if not self.crc_check(ret_data):
+        if not crc_check(ret_data):
             raise RuntimeError(f"CRC CHECK FAILED ON write_register({register_addr}, {data})")
         return ret_data
 
@@ -297,13 +297,17 @@ class ADS131M08Reader(ADCReader):
         """
         return not GPIO.input(adc_reader._DRDY)
 
-    def bytes_to_readable(self, res):
-        return [bits(res[i : i + self.bytes_per_word]) for i in range(0, len(res), self.bytes_per_word)]
 
-    def crc_check(self, d: List[int]) -> bool:
-        # The last 24-bit word of d is the 16-bit CRC, with 8 bits of 0 padding
-        # on the LSB. The CRC is on the first 9 words of the communication frame
-        return crcb(*d[:-3]) == combine_bytes(*d[-3:-1])
+# Helper functions for manipulating bytes, performing CRC checks, e.t.c.
+
+def bytes_to_readable(res):
+    return [bits(res[i : i + self.bytes_per_word]) for i in range(0, len(res), self.bytes_per_word)]
+
+
+def crc_check(d: List[int]) -> bool:
+    # The last 24-bit word of d is the 16-bit CRC, with 8 bits of 0 padding
+    # on the LSB. The CRC is on the first 9 words of the communication frame
+    return crcb(*d[:-3]) == combine_bytes(*d[-3:-1])
 
 
 def combine_bytes(*byte_args: int):
@@ -339,27 +343,27 @@ if __name__ == "__main__":
 
     print("ID")
     d = adc_reader.read_register(ID_ADDR)
-    print(adc_reader.bytes_to_readable(d)[0])
+    print(bytes_to_readable(d)[0])
     print()
 
     print("MODE")
     d = adc_reader.read_register(MODE_ADDR)
-    print(adc_reader.bytes_to_readable(d)[0])
+    print(bytes_to_readable(d)[0])
     print()
 
     print("CLOCK")
     d = adc_reader.read_register(CLOCK_ADDR)
-    print(adc_reader.bytes_to_readable(d)[0])
+    print(bytes_to_readable(d)[0])
     print()
 
     print("CFG")
     d = adc_reader.read_register(CFG_ADDR)
-    print(adc_reader.bytes_to_readable(d)[0])
+    print(bytes_to_readable(d)[0])
     print()
 
     print("STATUS register")
     d = adc_reader.read_register(STATUS_ADDR)
-    print(adc_reader.bytes_to_readable(d)[0])
+    print(bytes_to_readable(d)[0])
     print()
 
     sc = 0
