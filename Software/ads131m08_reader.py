@@ -130,7 +130,7 @@ class ADS131M08Reader(ADCReader):
 
         # ADS131M08 Settings
         self.spi.mode = 0b01  # SPI Mode 1; See Datasheet 8.5.1
-        self.spi.max_speed_hz = 488000 #int(1e6)  # 1 MHz clock speed
+        self.spi.max_speed_hz = 488000  # 488 kHz clock speed
         self.spi.no_cs = False
 
         # Initialize ADC to desired settings

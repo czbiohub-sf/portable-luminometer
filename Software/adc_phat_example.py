@@ -15,9 +15,6 @@ if __name__ == '__main__':
     adc_reader.setup_adc(device)
 
     inkyphat = InkyPHAT('black')
-
-    img = Image.new("P", (inkyphat.WIDTH, inkyphat.HEIGHT))
-    draw = ImageDraw.Draw(img)
     font = ImageFont.truetype(FredokaOne, 22)
 
     d1 = d2 = 0.0
@@ -31,10 +28,14 @@ if __name__ == '__main__':
 
     try:
         while True:
-            message = f"{d1:0.3} {d2:0.3}"
+            message = f"{d1:.3} \t {d2:.3}"
+            print(message)
             w, h = font.getsize(message)
+            print(w,h)
             x = (inkyphat.WIDTH / 2) - (w / 2)
             y = (inkyphat.HEIGHT / 2) - (h / 2)
+            img = Image.new("P", (inkyphat.WIDTH, inkyphat.HEIGHT))
+            draw = ImageDraw.Draw(img)
             draw.text((x, y), message, inkyphat.BLACK, font)
             inkyphat.set_image(img)
             inkyphat.show()
