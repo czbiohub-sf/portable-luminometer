@@ -1,6 +1,6 @@
 #! /usr/bin/env python3
 
-from ads131m08_reader import ADS131M09Reader
+from ads131m08_reader import ADS131M08Reader
 
 from PIL import Image, ImageFont, ImageDraw
 from font_fredoka_one import FredokaOne
