@@ -11,6 +11,7 @@ import RPi.GPIO as GPIO
 
 if __name__ == '__main__':
     device = 1  # using CE1
+    # default channels are channels 2,3
     adc_reader = ADS131M08Reader()
     adc_reader.setup_adc(device)
 
@@ -22,7 +23,7 @@ if __name__ == '__main__':
     def cb(channel):
         global d1, d2
         data = adc_reader.read()
-        d1, d2 = 1.2 * data[3] / (2 ** 23), 1.2 * data[4] / (2 ** 23)
+        d1, d2 = data[2], data[3]
 
     GPIO.add_event_detect(adc_reader._DRDY, GPIO.FALLING, callback=cb)
 

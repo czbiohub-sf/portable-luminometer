@@ -118,10 +118,16 @@ class ADS131M08Reader(ADCReader):
         # pull-up resistor; see Datasheet 8.5.1.5
         GPIO.setup(self._DRDY, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 
-    def setup_adc(self, device):
+    def setup_adc(self, device: int, channels: List[int] =[2,3]):
         """
         On the Raspberry Pi, SPI bus 0 supports SPI mode 1 and 3; The ADS131M08 communicates in SPI mode
         1. Therefore, the SPI bus must be bus 0.
+
+        params:
+            device: The device number for the ADC - will depend on the pinout of the ADC to RPi.
+                    For the luminometer project, this will be device 1 (i.e. device = 1)
+            channels: The list of channels to initalize. Each number must be between 0 and 7 inclusive (corresponding
+                      to channels 0 to 7)
         """
         self.spi.open(0, device)
 
@@ -133,10 +139,28 @@ class ADS131M08Reader(ADCReader):
         self.spi.max_speed_hz = 488000  # 488 kHz clock speed
         self.spi.no_cs = False
 
-        # Initialize ADC to desired settings
-        self.init_ads_config()
+        # Channel selection for the ADS131M08
+        channel_enable_mask = 0b00000000
+        for chl in channels:
+            if chl > 7 or chl < 0:
+                raise RuntimeError('Channels must be between 0 and 7 inclusive, corresponding to the channels on the ADC')
+            channel_enable_mask |= 0b1 << chl
 
-    def init_ads_config(self):
+        # Left shift the channel enable mask by 8 positions
+        channel_enable_mask <<= 8
+
+        # Initialize ADC to desired settings
+        self.init_ads_config(channel_enable_mask)
+
+    def init_ads_config(self, channel_enable_mask: int):
+        """
+        Sets the necessary settings for the ADS131M08, mostly hardcoded for the ulc-luminometer-project. See the datasheet
+        for information about each of the settings.
+
+        channel_enable_mask is the mask of channels to enable. It is a byte of values (1 if that channel is enabled, else 0),
+        left-shifted by 8 positions.
+        e.g. channel_enable_mask == 0b00001100 << 8 would enable channels 2 and 3
+        """
         self.write_register(
             CLOCK_ADDR, ALL_CH_DISABLE_MASK | OSR_8192_MASK | PWR_HIGH_RES_MASK | XTAL_OSC_DISABLE_MASK,
         )
@@ -145,10 +169,49 @@ class ADS131M08Reader(ADCReader):
         )
         self.write_register(CFG_ADDR, GLOBAL_CHOP_EN_MASK | DEFAULT_CHOP_DELAY_MASK)
         self.write_register(
-            CLOCK_ADDR, CH_2_3_ENABLE_MASK | OSR_8192_MASK | PWR_HIGH_RES_MASK | XTAL_OSC_DISABLE_MASK,
+            CLOCK_ADDR, channel_enable_mask | OSR_8192_MASK | PWR_HIGH_RES_MASK | XTAL_OSC_DISABLE_MASK,
         )
 
-    def read(self):
+    def read_register(self, register_addr: int, num_registers: int = 1):
+        """
+        params
+                register_addr:     16-bit register address mask
+                num_registers:     number of consecutive registers to read
+
+        Read from register given at the register address
+        """
+        if num_registers < 1:
+            return
+
+        shift_value = self.ads_bits_per_word - 16
+        register_shift = 7
+
+        cmd = (RREG_OPCODE | (register_addr << register_shift) | (num_registers - 1)) << shift_value
+        cmd_payload = [*cmd.to_bytes(self.bytes_per_word, "big")]
+        cmd_frame = cmd_payload + [0] * self.bytes_per_word * (10 - int(len(cmd_payload) / self.bytes_per_word))
+        self.spi.writebytes2(cmd_frame)
+
+        # if one register is being read, the expected frame back is 10 words long
+        # else, it is the number of requested registers, plus the confimation, plus the crc.
+        # hence, 2 + num_registers words are expected back
+        if num_registers == 1:
+            bytes_to_read = self.bytes_per_word * 10
+        else:
+            bytes_to_read = self.bytes_per_word * (2 + num_registers)
+
+        ret_data = self.spi.readbytes(bytes_to_read)
+        if not self.crc_check(ret_data):
+            print(f"CRC CHECK FAILED ON read_register({register_addr}, {num_registers})")
+        return ret_data
+
+    def read(self) -> List[float]:
+        """
+        Read all 8 ADC channels, and return the voltages in a list.
+        
+        For example, to read channels 0, 3, and 4, (let adc_reader be the initialized ADS131M08 object)
+        data = adc_reader.read()
+        ch0_voltage, ch3_voltage, ch4_voltage = data[0], data[3], data[4]
+        """
         # the null command frame is used to read from the ADC
         null_cmd_frame = [0b0] * self.ads_num_frame_words * self.bytes_per_word
 
@@ -165,12 +228,22 @@ class ADS131M08Reader(ADCReader):
             raise RuntimeError(f"CRC CHECK FAILED ON read METHOD")
 
         # ADC data is returned in Two's Complement format; see Datasheet 8.5.1.9
-        for i in range(1, 10):
+        for i in range(1, 9):
             res[i] = twos_complement(res[i], 24)
 
         # Combine bytes back into words of bytes_per_word length before returning.
         data = [combine_bytes(*res[i : i + self.bytes_per_word]) for i in range(0, len(res), self.bytes_per_word)]
-        return data
+        adc_data = [self.adc_val_to_voltage(v) for v in data[1:9]]
+        return adc_data
+
+    def adc_val_to_voltage(self, adc_val: int) -> float:
+        """
+        Takes the adc value (which is an integer) and returns the corresponding voltage
+        Reference: 8.5.1.9
+        """
+        if adc_val > 0x7FFFFF:
+            adc_val -= 0xFFFFFF
+        return 1.2 * adc_val / (2 ** 23)
 
     def write_register(self, register_addr: int, data: int):
         """
@@ -218,38 +291,6 @@ class ADS131M08Reader(ADCReader):
         time.sleep(10e-6)
         return self.spi.readbytes(len(cmd_frame))
 
-    def read_register(self, register_addr: int, num_registers: int = 1):
-        """
-        params
-                register_addr:     16-bit register address mask
-                num_registers:     number of consecutive registers to read
-
-        Read from register given at the register address
-        """
-        if num_registers < 1:
-            return
-
-        shift_value = self.ads_bits_per_word - 16
-        register_shift = 7
-
-        cmd = (RREG_OPCODE | (register_addr << register_shift) | (num_registers - 1)) << shift_value
-        cmd_payload = [*cmd.to_bytes(self.bytes_per_word, "big")]
-        cmd_frame = cmd_payload + [0] * self.bytes_per_word * (10 - int(len(cmd_payload) / self.bytes_per_word))
-        self.spi.writebytes2(cmd_frame)
-
-        # if one register is being read, the expected frame back is 10 words long
-        # else, it is the number of requested registers, plus the confimation, plus the crc.
-        # hence, 2 + num_registers words are expected back
-        if num_registers == 1:
-            bytes_to_read = self.bytes_per_word * 10
-        else:
-            bytes_to_read = self.bytes_per_word * (2 + num_registers)
-
-        ret_data = self.spi.readbytes(bytes_to_read)
-        if not self.crc_check(ret_data):
-            print(f"CRC CHECK FAILED ON read_register({register_addr}, {num_registers})")
-        return ret_data
-
     def data_ready(self):
         """
         DRDY is active low, and pulses low when data is ready. 
@@ -289,7 +330,7 @@ def twos_complement(input_value: int, num_bits: int) -> int:
 if __name__ == "__main__":
     device = 1  # using CE1
     adc_reader = ADS131M08Reader()
-    adc_reader.setup_adc(device)
+    adc_reader.setup_adc(device, channels=[2,3])
 
     # wait for DRDY to go high, indicating the ADC has started up
     while not GPIO.input(adc_reader._DRDY):
@@ -327,7 +368,7 @@ if __name__ == "__main__":
         global sc
         sc += 1
         data = adc_reader.read()
-        print(1.2 * data[3] / (2 ** 23), 1.2 * data[4] / (2 ** 23))
+        print(data)
 
     GPIO.add_event_detect(adc_reader._DRDY, GPIO.FALLING, callback=cb)
 
