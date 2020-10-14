@@ -2,7 +2,7 @@
 <export version="D">
   <design>
     <source>/Users/paul.lebel/Documents/GitHub/ulc-tube-reader/Luminometer_ADC/Luminometer_ADC.sch</source>
-    <date>Thursday, October 08, 2020 at 05:09:47 PM</date>
+    <date>Tuesday, October 13, 2020 at 03:25:58 PM</date>
     <tool>Eeschema (5.1.5-0)</tool>
     <sheet number="1" name="/" tstamps="/">
       <title_block>
@@ -23,6 +23,11 @@
       <value>ADS131M08IPBS</value>
       <footprint>Package_QFP:LQFP-32_5x5mm_P0.5mm</footprint>
       <datasheet>https://www.ti.com/lit/ds/symlink/ads131m08.pdf?ts=1595957796694&amp;ref_url=https%253A%252F%252Fwww.ti.com%252Fproduct%252FADS131M08</datasheet>
+      <fields>
+        <field name="Part Number">296-ADS131M08IPBS-ND</field>
+        <field name="Price">7.69</field>
+        <field name="Supplier">Digikey</field>
+      </fields>
       <libsource lib="ADS131M08" part="ADS131M08IPBS" description=""/>
       <sheetpath names="/" tstamps="/"/>
       <tstamp>5F205E39</tstamp>
@@ -30,7 +35,12 @@
     <comp ref="C12">
       <value>10nF</value>
       <footprint>Capacitor_SMD:C_0603_1608Metric</footprint>
-      <datasheet>~</datasheet>
+      <datasheet>https://search.murata.co.jp/Ceramy/image/img/A01X/G101/ENG/GRM033R70J103JA01-01.pdf</datasheet>
+      <fields>
+        <field name="Part Number">490-16599-1-ND</field>
+        <field name="Price">0.10</field>
+        <field name="Supplier">Digikey</field>
+      </fields>
       <libsource lib="Device" part="C_Small" description="Unpolarized capacitor, small symbol"/>
       <sheetpath names="/" tstamps="/"/>
       <tstamp>5F20BF9B</tstamp>
@@ -38,66 +48,28 @@
     <comp ref="R16">
       <value>470</value>
       <footprint>Resistor_SMD:R_0603_1608Metric</footprint>
-      <datasheet>~</datasheet>
+      <datasheet>https://www.vishay.com/docs/28705/mcx0x0xpro.pdf</datasheet>
+      <fields>
+        <field name="Part Number">MCT0603-470-CFCT-ND</field>
+        <field name="Price">0.16</field>
+        <field name="Supplier">Digikey</field>
+      </fields>
       <libsource lib="Device" part="R" description="Resistor"/>
       <sheetpath names="/" tstamps="/"/>
       <tstamp>5F22E58F</tstamp>
-    </comp>
-    <comp ref="C16">
-      <value>220nF</value>
-      <footprint>Capacitor_SMD:C_0603_1608Metric</footprint>
-      <datasheet>~</datasheet>
-      <libsource lib="Device" part="C_Small" description="Unpolarized capacitor, small symbol"/>
-      <sheetpath names="/" tstamps="/"/>
-      <tstamp>5F240BCB</tstamp>
-    </comp>
-    <comp ref="C17">
-      <value>1uF</value>
-      <footprint>Capacitor_SMD:C_0603_1608Metric</footprint>
-      <datasheet>~</datasheet>
-      <libsource lib="Device" part="C_Small" description="Unpolarized capacitor, small symbol"/>
-      <sheetpath names="/" tstamps="/"/>
-      <tstamp>5F2AFA7A</tstamp>
-    </comp>
-    <comp ref="C14">
-      <value>1uF</value>
-      <footprint>Capacitor_SMD:C_0603_1608Metric</footprint>
-      <datasheet>~</datasheet>
-      <libsource lib="Device" part="C_Small" description="Unpolarized capacitor, small symbol"/>
-      <sheetpath names="/" tstamps="/"/>
-      <tstamp>5F2BD078</tstamp>
     </comp>
     <comp ref="R5">
       <value>300R</value>
       <footprint>Resistor_SMD:R_0603_1608Metric</footprint>
       <datasheet>~</datasheet>
+      <fields>
+        <field name="Part Number">118-CR0603-FX-3000ELFCT-ND</field>
+        <field name="Price">0.1</field>
+        <field name="Supplier">Digikey</field>
+      </fields>
       <libsource lib="Device" part="R" description="Resistor"/>
       <sheetpath names="/" tstamps="/"/>
       <tstamp>5F32F48A</tstamp>
-    </comp>
-    <comp ref="R14">
-      <value>1k</value>
-      <footprint>Resistor_SMD:R_0603_1608Metric</footprint>
-      <datasheet>~</datasheet>
-      <libsource lib="Device" part="R" description="Resistor"/>
-      <sheetpath names="/" tstamps="/"/>
-      <tstamp>5F482985</tstamp>
-    </comp>
-    <comp ref="C13">
-      <value>10nF</value>
-      <footprint>Capacitor_SMD:C_0603_1608Metric</footprint>
-      <datasheet>~</datasheet>
-      <libsource lib="Device" part="C_Small" description="Unpolarized capacitor, small symbol"/>
-      <sheetpath names="/" tstamps="/"/>
-      <tstamp>5F48298B</tstamp>
-    </comp>
-    <comp ref="R15">
-      <value>1k</value>
-      <footprint>Resistor_SMD:R_0603_1608Metric</footprint>
-      <datasheet>~</datasheet>
-      <libsource lib="Device" part="R" description="Resistor"/>
-      <sheetpath names="/" tstamps="/"/>
-      <tstamp>5F482997</tstamp>
     </comp>
     <comp ref="H1">
       <value>MountingHole_Pad</value>
@@ -133,73 +105,40 @@
       <sheetpath names="/" tstamps="/"/>
       <tstamp>5FBDF36A</tstamp>
     </comp>
-    <comp ref="U4">
-      <value>ADR512</value>
-      <footprint>Package_TO_SOT_SMD:SOT-23</footprint>
-      <datasheet>https://www.analog.com/media/en/technical-documentation/data-sheets/ADR512.pdf</datasheet>
-      <libsource lib="Reference_Voltage" part="CJ432" description="Shunt Regulator, SOT-23"/>
-      <sheetpath names="/" tstamps="/"/>
-      <tstamp>5F30ECC5</tstamp>
-    </comp>
-    <comp ref="C15">
-      <value>220nF</value>
-      <footprint>Capacitor_SMD:C_0603_1608Metric</footprint>
-      <datasheet>~</datasheet>
-      <libsource lib="Device" part="C_Small" description="Unpolarized capacitor, small symbol"/>
-      <sheetpath names="/" tstamps="/"/>
-      <tstamp>5F2A0D2E</tstamp>
-    </comp>
-    <comp ref="C5">
-      <value>220nF</value>
-      <footprint>Capacitor_SMD:C_0603_1608Metric</footprint>
-      <datasheet>~</datasheet>
-      <libsource lib="Device" part="C_Small" description="Unpolarized capacitor, small symbol"/>
-      <sheetpath names="/" tstamps="/"/>
-      <tstamp>5FCB6D45</tstamp>
-    </comp>
     <comp ref="U3">
       <value>ADR512</value>
       <footprint>Package_TO_SOT_SMD:SOT-23</footprint>
       <datasheet>https://www.analog.com/media/en/technical-documentation/data-sheets/ADR512.pdf</datasheet>
+      <fields>
+        <field name="Part Number">ADR512ARTZ-REEL7CT-ND</field>
+        <field name="Price">1.71000</field>
+        <field name="Supplier">Digikey</field>
+      </fields>
       <libsource lib="Reference_Voltage" part="CJ432" description="Shunt Regulator, SOT-23"/>
       <sheetpath names="/" tstamps="/"/>
       <tstamp>5FCB6D52</tstamp>
-    </comp>
-    <comp ref="C10">
-      <value>1uF</value>
-      <footprint>Capacitor_SMD:C_0603_1608Metric</footprint>
-      <datasheet>~</datasheet>
-      <libsource lib="Device" part="C_Small" description="Unpolarized capacitor, small symbol"/>
-      <sheetpath names="/" tstamps="/"/>
-      <tstamp>5F439AD0</tstamp>
-    </comp>
-    <comp ref="C11">
-      <value>1uF</value>
-      <footprint>Capacitor_SMD:C_0603_1608Metric</footprint>
-      <datasheet>~</datasheet>
-      <libsource lib="Device" part="C_Small" description="Unpolarized capacitor, small symbol"/>
-      <sheetpath names="/" tstamps="/"/>
-      <tstamp>5F439ACA</tstamp>
     </comp>
     <comp ref="U6">
       <value>LP5907MFX-3</value>
       <footprint>Package_TO_SOT_SMD:SOT-23-5</footprint>
       <datasheet>http://www.ti.com/lit/ds/symlink/lp5907.pdf</datasheet>
+      <fields>
+        <field name="Part Number">296-40357-1-ND </field>
+        <field name="Price">0.54</field>
+        <field name="Supplier">Digikey</field>
+      </fields>
       <libsource lib="Regulator_Linear" part="LP5907MFX-3.0" description="250-mA Ultra-Low-Noise Low-IQ LDO, 3.0V, SOT-23"/>
       <sheetpath names="/" tstamps="/"/>
       <tstamp>5F439AC4</tstamp>
     </comp>
-    <comp ref="C6">
-      <value>220nF</value>
-      <footprint>Capacitor_SMD:C_0603_1608Metric</footprint>
-      <datasheet>~</datasheet>
-      <libsource lib="Device" part="C_Small" description="Unpolarized capacitor, small symbol"/>
-      <sheetpath names="/" tstamps="/"/>
-      <tstamp>5F2D8E12</tstamp>
-    </comp>
     <comp ref="U1">
       <value>LT3464</value>
       <footprint>Package_TO_SOT_SMD:SOT-23-8</footprint>
+      <fields>
+        <field name="Part Number">LT3464ETS8#TRMPBFCT-ND</field>
+        <field name="Price">3.93</field>
+        <field name="Supplier">Digikey</field>
+      </fields>
       <libsource lib="LuminometerCustomPartLib" part="LT3464" description=""/>
       <sheetpath names="/" tstamps="/"/>
       <tstamp>604FDA5C</tstamp>
@@ -208,6 +147,11 @@
       <value>2.7M</value>
       <footprint>Resistor_SMD:R_0603_1608Metric</footprint>
       <datasheet>~</datasheet>
+      <fields>
+        <field name="Part Number">511-1712-1-ND</field>
+        <field name="Price">0.13</field>
+        <field name="Supplier">Digikey</field>
+      </fields>
       <libsource lib="Device" part="R" description="Resistor"/>
       <sheetpath names="/" tstamps="/"/>
       <tstamp>6065551B</tstamp>
@@ -216,6 +160,11 @@
       <value>100k</value>
       <footprint>Resistor_SMD:R_0603_1608Metric</footprint>
       <datasheet>~</datasheet>
+      <fields>
+        <field name="Part Number">P100KBDCT-ND</field>
+        <field name="Price">0.72</field>
+        <field name="Supplier">Digikey</field>
+      </fields>
       <libsource lib="Device" part="R" description="Resistor"/>
       <sheetpath names="/" tstamps="/"/>
       <tstamp>60655EAC</tstamp>
@@ -238,7 +187,7 @@
       <footprint>Capacitor_SMD:C_0603_1608Metric</footprint>
       <datasheet>http://www.yuden.co.jp/productdata/catalog/mlcc06_e.pdf</datasheet>
       <fields>
-        <field name="Part Number">587-5958-2-ND</field>
+        <field name="Part Number">587-5958-1-ND</field>
         <field name="Price">0.2</field>
         <field name="Supplier">Digikey</field>
       </fields>
@@ -251,7 +200,7 @@
       <footprint>Capacitor_SMD:C_0603_1608Metric</footprint>
       <datasheet>https://ds.yuden.co.jp/TYCOMPAS/ut/detail?pn=GMK107BJ105MAHT%20&amp;u=M</datasheet>
       <fields>
-        <field name="Part Number">587-6315-2-ND</field>
+        <field name="Part Number">587-6315-1-ND</field>
         <field name="Price">0.19</field>
         <field name="Supplier">Digikey</field>
       </fields>
@@ -259,69 +208,44 @@
       <sheetpath names="/" tstamps="/"/>
       <tstamp>5F7D8876</tstamp>
     </comp>
-    <comp ref="R13">
-      <value>1k</value>
-      <footprint>Resistor_SMD:R_0603_1608Metric</footprint>
-      <datasheet>~</datasheet>
-      <libsource lib="Device" part="R" description="Resistor"/>
-      <sheetpath names="/" tstamps="/"/>
-      <tstamp>5F25839E</tstamp>
-    </comp>
     <comp ref="R12">
       <value>1k</value>
       <footprint>Resistor_SMD:R_0603_1608Metric</footprint>
-      <datasheet>~</datasheet>
+      <datasheet>https://www.susumu.co.jp/common/pdf/n_catalog_partition38_en.pdf</datasheet>
+      <fields>
+        <field name="Part Number">408-2063-1-ND</field>
+        <field name="Price">0.49</field>
+        <field name="Supplier">Digikey</field>
+      </fields>
       <libsource lib="Device" part="R" description="Resistor"/>
       <sheetpath names="/" tstamps="/"/>
       <tstamp>5F20AEC9</tstamp>
     </comp>
-    <comp ref="R7">
-      <value>100k</value>
-      <footprint>Resistor_SMD:R_0603_1608Metric</footprint>
-      <datasheet>~</datasheet>
-      <libsource lib="Device" part="R" description="Resistor"/>
-      <sheetpath names="/" tstamps="/"/>
-      <tstamp>5FBDF378</tstamp>
-    </comp>
     <comp ref="R6">
       <value>100k</value>
       <footprint>Resistor_SMD:R_0603_1608Metric</footprint>
-      <datasheet>~</datasheet>
+      <datasheet>https://www.vishay.com/docs/28779/tnpue3.pdf</datasheet>
+      <fields>
+        <field name="Part Number">541-3308-1-ND </field>
+        <field name="Price">5.16</field>
+        <field name="Supplier">Digikey</field>
+      </fields>
       <libsource lib="Device" part="R" description="Resistor"/>
       <sheetpath names="/" tstamps="/"/>
       <tstamp>5F65E9B0</tstamp>
-    </comp>
-    <comp ref="R10">
-      <value>2k</value>
-      <footprint>Resistor_SMD:R_0603_1608Metric</footprint>
-      <datasheet>~</datasheet>
-      <libsource lib="Device" part="R" description="Resistor"/>
-      <sheetpath names="/" tstamps="/"/>
-      <tstamp>5F64942B</tstamp>
     </comp>
     <comp ref="R8">
       <value>2k</value>
       <footprint>Resistor_SMD:R_0603_1608Metric</footprint>
       <datasheet>~</datasheet>
+      <fields>
+        <field name="Part Number">804-1167-ND&#xD;</field>
+        <field name="Price">11.21</field>
+        <field name="Supplier">Digikey</field>
+      </fields>
       <libsource lib="Device" part="R" description="Resistor"/>
       <sheetpath names="/" tstamps="/"/>
       <tstamp>5F643BAA</tstamp>
-    </comp>
-    <comp ref="R11">
-      <value>2k</value>
-      <footprint>Resistor_SMD:R_0603_1608Metric</footprint>
-      <datasheet>~</datasheet>
-      <libsource lib="Device" part="R" description="Resistor"/>
-      <sheetpath names="/" tstamps="/"/>
-      <tstamp>5FBDF385</tstamp>
-    </comp>
-    <comp ref="R9">
-      <value>2k</value>
-      <footprint>Resistor_SMD:R_0603_1608Metric</footprint>
-      <datasheet>~</datasheet>
-      <libsource lib="Device" part="R" description="Resistor"/>
-      <sheetpath names="/" tstamps="/"/>
-      <tstamp>5FBDF37F</tstamp>
     </comp>
     <comp ref="R2">
       <value>24k</value>
@@ -340,6 +264,11 @@
       <value>ADA4522-4</value>
       <footprint>digikey-footprints:SOIC-14_W3.9mm</footprint>
       <datasheet>https://www.analog.com/media/en/technical-documentation/data-sheets/ADA4522-1_4522-2_4522-4.pdf</datasheet>
+      <fields>
+        <field name="Part Number">ADA4522-4ARZ-RLTR-ND</field>
+        <field name="Price">8.45</field>
+        <field name="Supplier">Digikey</field>
+      </fields>
       <libsource lib="LuminometerCustomPartLib" part="ADA4522-4" description=""/>
       <sheetpath names="/" tstamps="/"/>
       <tstamp>5FC129AF</tstamp>
@@ -358,33 +287,27 @@
       <tstamp>5FC2A34C</tstamp>
     </comp>
     <comp ref="L1">
-      <value>732-4872-1-ND</value>
+      <value> </value>
       <footprint>Luminometer_OPT101_Footprints:L_1212_3030Metric</footprint>
       <datasheet>https://www.we-online.de/katalog/datasheet/74438335470.pdf</datasheet>
+      <fields>
+        <field name="Part Number">732-4872-1-ND</field>
+        <field name="Price">1.57</field>
+        <field name="Supplier">Digikey</field>
+      </fields>
       <libsource lib="LuminometerCustomPartLib" part="732-4872-1-ND" description="Inductor"/>
       <sheetpath names="/" tstamps="/"/>
       <tstamp>5FFBE2CE</tstamp>
-    </comp>
-    <comp ref="C1">
-      <value>1uF</value>
-      <footprint>Capacitor_SMD:C_0603_1608Metric</footprint>
-      <datasheet>~</datasheet>
-      <libsource lib="Device" part="C_Small" description="Unpolarized capacitor, small symbol"/>
-      <sheetpath names="/" tstamps="/"/>
-      <tstamp>5FFCF752</tstamp>
-    </comp>
-    <comp ref="C3">
-      <value>220nF</value>
-      <footprint>Capacitor_SMD:C_0603_1608Metric</footprint>
-      <datasheet>~</datasheet>
-      <libsource lib="Device" part="C_Small" description="Unpolarized capacitor, small symbol"/>
-      <sheetpath names="/" tstamps="/"/>
-      <tstamp>6000D0B1</tstamp>
     </comp>
     <comp ref="C4">
       <value>330nF</value>
       <footprint>Capacitor_SMD:C_0603_1608Metric</footprint>
       <datasheet>~</datasheet>
+      <fields>
+        <field name="Part Number">445-11296-1-ND</field>
+        <field name="Price">0.28</field>
+        <field name="Supplier">Digikey</field>
+      </fields>
       <libsource lib="Device" part="C_Small" description="Unpolarized capacitor, small symbol"/>
       <sheetpath names="/" tstamps="/"/>
       <tstamp>600AD165</tstamp>
@@ -465,6 +388,11 @@
       <value>Harting__15210122401000</value>
       <footprint>Luminometer_OPT101_Footprints:Harting_15210122401000</footprint>
       <datasheet>~</datasheet>
+      <fields>
+        <field name="Part Number">1195-5658-1-ND</field>
+        <field name="Price">4.98</field>
+        <field name="Supplier">Digikey</field>
+      </fields>
       <libsource lib="LuminometerCustomPartLib" part="Harting__15210122401000" description="Generic connector, double row, 02x06, counter clockwise pin numbering scheme (similar to DIP packge numbering), script generated (kicad-library-utils/schlib/autogen/connector/)"/>
       <sheetpath names="/" tstamps="/"/>
       <tstamp>60D4F0B3</tstamp>
@@ -562,7 +490,7 @@
       <footprint>Capacitor_SMD:C_0603_1608Metric</footprint>
       <datasheet>https://ds.yuden.co.jp/TYCOMPAS/ut/detail?pn=GMK107BJ105MAHT%20&amp;u=M</datasheet>
       <fields>
-        <field name="Part Number">587-6315-2-ND</field>
+        <field name="Part Number">587-6315-1-ND</field>
         <field name="Price">0.19</field>
         <field name="Supplier">Digikey</field>
       </fields>
@@ -575,13 +503,260 @@
       <footprint>Capacitor_SMD:C_0603_1608Metric</footprint>
       <datasheet>https://ds.yuden.co.jp/TYCOMPAS/ut/detail?pn=GMK107BJ105MAHT%20&amp;u=M</datasheet>
       <fields>
-        <field name="Part Number">587-6315-2-ND</field>
+        <field name="Part Number">587-6315-1-ND</field>
         <field name="Price">0.19</field>
         <field name="Supplier">Digikey</field>
       </fields>
       <libsource lib="Device" part="C_Small" description="Unpolarized capacitor, small symbol"/>
       <sheetpath names="/" tstamps="/"/>
       <tstamp>5F84AE04</tstamp>
+    </comp>
+    <comp ref="R7">
+      <value>100k</value>
+      <footprint>Resistor_SMD:R_0603_1608Metric</footprint>
+      <datasheet>https://www.vishay.com/docs/28779/tnpue3.pdf</datasheet>
+      <fields>
+        <field name="Part Number">541-3308-1-ND </field>
+        <field name="Price">5.16</field>
+        <field name="Supplier">Digikey</field>
+      </fields>
+      <libsource lib="Device" part="R" description="Resistor"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5F84C2C9</tstamp>
+    </comp>
+    <comp ref="R9">
+      <value>2k</value>
+      <footprint>Resistor_SMD:R_0603_1608Metric</footprint>
+      <datasheet>~</datasheet>
+      <fields>
+        <field name="Part Number">804-1167-ND&#xD;</field>
+        <field name="Price">11.21</field>
+        <field name="Supplier">Digikey</field>
+      </fields>
+      <libsource lib="Device" part="R" description="Resistor"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5F86B947</tstamp>
+    </comp>
+    <comp ref="R11">
+      <value>2k</value>
+      <footprint>Resistor_SMD:R_0603_1608Metric</footprint>
+      <datasheet>~</datasheet>
+      <fields>
+        <field name="Part Number">804-1167-ND&#xD;</field>
+        <field name="Price">11.21</field>
+        <field name="Supplier">Digikey</field>
+      </fields>
+      <libsource lib="Device" part="R" description="Resistor"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5F8B8F23</tstamp>
+    </comp>
+    <comp ref="R10">
+      <value>2k</value>
+      <footprint>Resistor_SMD:R_0603_1608Metric</footprint>
+      <datasheet>~</datasheet>
+      <fields>
+        <field name="Part Number">804-1167-ND&#xD;</field>
+        <field name="Price">11.21</field>
+        <field name="Supplier">Digikey</field>
+      </fields>
+      <libsource lib="Device" part="R" description="Resistor"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5F8B9298</tstamp>
+    </comp>
+    <comp ref="R13">
+      <value>1k</value>
+      <footprint>Resistor_SMD:R_0603_1608Metric</footprint>
+      <datasheet>https://www.susumu.co.jp/common/pdf/n_catalog_partition38_en.pdf</datasheet>
+      <fields>
+        <field name="Part Number">408-2063-1-ND</field>
+        <field name="Price">0.49</field>
+        <field name="Supplier">Digikey</field>
+      </fields>
+      <libsource lib="Device" part="R" description="Resistor"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5F8E8474</tstamp>
+    </comp>
+    <comp ref="R14">
+      <value>1k</value>
+      <footprint>Resistor_SMD:R_0603_1608Metric</footprint>
+      <datasheet>https://www.susumu.co.jp/common/pdf/n_catalog_partition38_en.pdf</datasheet>
+      <fields>
+        <field name="Part Number">408-2063-1-ND</field>
+        <field name="Price">0.49</field>
+        <field name="Supplier">Digikey</field>
+      </fields>
+      <libsource lib="Device" part="R" description="Resistor"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5F8E88FD</tstamp>
+    </comp>
+    <comp ref="R15">
+      <value>1k</value>
+      <footprint>Resistor_SMD:R_0603_1608Metric</footprint>
+      <datasheet>https://www.susumu.co.jp/common/pdf/n_catalog_partition38_en.pdf</datasheet>
+      <fields>
+        <field name="Part Number">408-2063-1-ND</field>
+        <field name="Price">0.49</field>
+        <field name="Supplier">Digikey</field>
+      </fields>
+      <libsource lib="Device" part="R" description="Resistor"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5F8E8C96</tstamp>
+    </comp>
+    <comp ref="C13">
+      <value>10nF</value>
+      <footprint>Capacitor_SMD:C_0603_1608Metric</footprint>
+      <datasheet>https://search.murata.co.jp/Ceramy/image/img/A01X/G101/ENG/GRM033R70J103JA01-01.pdf</datasheet>
+      <fields>
+        <field name="Part Number">490-16599-1-ND</field>
+        <field name="Price">0.10</field>
+        <field name="Supplier">Digikey</field>
+      </fields>
+      <libsource lib="Device" part="C_Small" description="Unpolarized capacitor, small symbol"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5F90839D</tstamp>
+    </comp>
+    <comp ref="C16">
+      <value>220nF</value>
+      <footprint>Capacitor_SMD:C_0603_1608Metric</footprint>
+      <datasheet>http://www.yuden.co.jp/productdata/catalog/mlcc06_e.pdf</datasheet>
+      <fields>
+        <field name="Part Number">587-5958-1-ND</field>
+        <field name="Price">0.2</field>
+        <field name="Supplier">Digikey</field>
+      </fields>
+      <libsource lib="Device" part="C_Small" description="Unpolarized capacitor, small symbol"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5F9093AA</tstamp>
+    </comp>
+    <comp ref="C15">
+      <value>220nF</value>
+      <footprint>Capacitor_SMD:C_0603_1608Metric</footprint>
+      <datasheet>http://www.yuden.co.jp/productdata/catalog/mlcc06_e.pdf</datasheet>
+      <fields>
+        <field name="Part Number">587-5958-1-ND</field>
+        <field name="Price">0.2</field>
+        <field name="Supplier">Digikey</field>
+      </fields>
+      <libsource lib="Device" part="C_Small" description="Unpolarized capacitor, small symbol"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5F9587C0</tstamp>
+    </comp>
+    <comp ref="C17">
+      <value>1uF</value>
+      <footprint>Capacitor_SMD:C_0603_1608Metric</footprint>
+      <datasheet>https://ds.yuden.co.jp/TYCOMPAS/ut/detail?pn=GMK107BJ105MAHT%20&amp;u=M</datasheet>
+      <fields>
+        <field name="Part Number">587-6315-1-ND</field>
+        <field name="Price">0.19</field>
+        <field name="Supplier">Digikey</field>
+      </fields>
+      <libsource lib="Device" part="C_Small" description="Unpolarized capacitor, small symbol"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5F95A064</tstamp>
+    </comp>
+    <comp ref="C14">
+      <value>1uF</value>
+      <footprint>Capacitor_SMD:C_0603_1608Metric</footprint>
+      <datasheet>https://ds.yuden.co.jp/TYCOMPAS/ut/detail?pn=GMK107BJ105MAHT%20&amp;u=M</datasheet>
+      <fields>
+        <field name="Part Number">587-6315-1-ND</field>
+        <field name="Price">0.19</field>
+        <field name="Supplier">Digikey</field>
+      </fields>
+      <libsource lib="Device" part="C_Small" description="Unpolarized capacitor, small symbol"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5F988D56</tstamp>
+    </comp>
+    <comp ref="C11">
+      <value>1uF</value>
+      <footprint>Capacitor_SMD:C_0603_1608Metric</footprint>
+      <datasheet>https://ds.yuden.co.jp/TYCOMPAS/ut/detail?pn=GMK107BJ105MAHT%20&amp;u=M</datasheet>
+      <fields>
+        <field name="Part Number">587-6315-1-ND</field>
+        <field name="Price">0.19</field>
+        <field name="Supplier">Digikey</field>
+      </fields>
+      <libsource lib="Device" part="C_Small" description="Unpolarized capacitor, small symbol"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5F85BFB5</tstamp>
+    </comp>
+    <comp ref="C10">
+      <value>1uF</value>
+      <footprint>Capacitor_SMD:C_0603_1608Metric</footprint>
+      <datasheet>https://ds.yuden.co.jp/TYCOMPAS/ut/detail?pn=GMK107BJ105MAHT%20&amp;u=M</datasheet>
+      <fields>
+        <field name="Part Number">587-6315-1-ND</field>
+        <field name="Price">0.19</field>
+        <field name="Supplier">Digikey</field>
+      </fields>
+      <libsource lib="Device" part="C_Small" description="Unpolarized capacitor, small symbol"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5F85C7AA</tstamp>
+    </comp>
+    <comp ref="C6">
+      <value>220nF</value>
+      <footprint>Capacitor_SMD:C_0603_1608Metric</footprint>
+      <datasheet>http://www.yuden.co.jp/productdata/catalog/mlcc06_e.pdf</datasheet>
+      <fields>
+        <field name="Part Number">587-5958-1-ND</field>
+        <field name="Price">0.2</field>
+        <field name="Supplier">Digikey</field>
+      </fields>
+      <libsource lib="Device" part="C_Small" description="Unpolarized capacitor, small symbol"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5F8A87C4</tstamp>
+    </comp>
+    <comp ref="C5">
+      <value>220nF</value>
+      <footprint>Capacitor_SMD:C_0603_1608Metric</footprint>
+      <datasheet>http://www.yuden.co.jp/productdata/catalog/mlcc06_e.pdf</datasheet>
+      <fields>
+        <field name="Part Number">587-5958-1-ND</field>
+        <field name="Price">0.2</field>
+        <field name="Supplier">Digikey</field>
+      </fields>
+      <libsource lib="Device" part="C_Small" description="Unpolarized capacitor, small symbol"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5F8C7B14</tstamp>
+    </comp>
+    <comp ref="U4">
+      <value>ADR512</value>
+      <footprint>Package_TO_SOT_SMD:SOT-23</footprint>
+      <datasheet>https://www.analog.com/media/en/technical-documentation/data-sheets/ADR512.pdf</datasheet>
+      <fields>
+        <field name="Part Number">ADR512ARTZ-REEL7CT-ND</field>
+        <field name="Price">1.71000</field>
+        <field name="Supplier">Digikey</field>
+      </fields>
+      <libsource lib="Reference_Voltage" part="CJ432" description="Shunt Regulator, SOT-23"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5F8A7ED4</tstamp>
+    </comp>
+    <comp ref="C3">
+      <value>220nF</value>
+      <footprint>Capacitor_SMD:C_0603_1608Metric</footprint>
+      <datasheet>http://www.yuden.co.jp/productdata/catalog/mlcc06_e.pdf</datasheet>
+      <fields>
+        <field name="Part Number">587-5958-1-ND</field>
+        <field name="Price">0.2</field>
+        <field name="Supplier">Digikey</field>
+      </fields>
+      <libsource lib="Device" part="C_Small" description="Unpolarized capacitor, small symbol"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5F8F8097</tstamp>
+    </comp>
+    <comp ref="C1">
+      <value>1uF</value>
+      <footprint>Capacitor_SMD:C_0603_1608Metric</footprint>
+      <datasheet>https://ds.yuden.co.jp/TYCOMPAS/ut/detail?pn=GMK107BJ105MAHT%20&amp;u=M</datasheet>
+      <fields>
+        <field name="Part Number">587-6315-1-ND</field>
+        <field name="Price">0.19</field>
+        <field name="Supplier">Digikey</field>
+      </fields>
+      <libsource lib="Device" part="C_Small" description="Unpolarized capacitor, small symbol"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5F8F9725</tstamp>
     </comp>
   </components>
   <libparts>
@@ -943,293 +1118,293 @@
     </library>
   </libraries>
   <nets>
-    <net code="1" name="/SCLK">
-      <node ref="TP10" pin="1"/>
+    <net code="1" name="+3V0">
+      <node ref="C11" pin="1"/>
+      <node ref="C17" pin="1"/>
+      <node ref="U7" pin="15"/>
+      <node ref="U6" pin="5"/>
+      <node ref="R5" pin="1"/>
+    </net>
+    <net code="2" name="/SCLK">
       <node ref="U7" pin="19"/>
       <node ref="J1" pin="a3"/>
+      <node ref="TP10" pin="1"/>
     </net>
-    <net code="2" name="/MISO">
-      <node ref="U7" pin="20"/>
-      <node ref="TP8" pin="1"/>
+    <net code="3" name="/MISO">
       <node ref="J1" pin="a4"/>
+      <node ref="TP8" pin="1"/>
+      <node ref="U7" pin="20"/>
     </net>
-    <net code="3" name="/MOSI">
-      <node ref="U7" pin="21"/>
-      <node ref="TP7" pin="1"/>
+    <net code="4" name="/MOSI">
       <node ref="J1" pin="a5"/>
+      <node ref="TP7" pin="1"/>
+      <node ref="U7" pin="21"/>
     </net>
-    <net code="4" name="Net-(U7-Pad22)">
+    <net code="5" name="Net-(U7-Pad22)">
       <node ref="U7" pin="22"/>
     </net>
-    <net code="5" name="Net-(U7-Pad27)">
+    <net code="6" name="Net-(C16-Pad1)">
+      <node ref="C16" pin="1"/>
+      <node ref="U7" pin="24"/>
+    </net>
+    <net code="7" name="Net-(U7-Pad27)">
       <node ref="U7" pin="27"/>
     </net>
-    <net code="6" name="Net-(C12-Pad2)">
+    <net code="8" name="Net-(C12-Pad2)">
       <node ref="R13" pin="1"/>
       <node ref="U7" pin="29"/>
       <node ref="C12" pin="2"/>
     </net>
-    <net code="7" name="Net-(C12-Pad1)">
-      <node ref="C12" pin="1"/>
-      <node ref="R12" pin="1"/>
+    <net code="9" name="Net-(C12-Pad1)">
       <node ref="U7" pin="30"/>
+      <node ref="R12" pin="1"/>
+      <node ref="C12" pin="1"/>
     </net>
-    <net code="8" name="/ADC0N">
-      <node ref="TP2" pin="1"/>
-      <node ref="C8" pin="1"/>
-      <node ref="R12" pin="2"/>
+    <net code="10" name="/ADC0N">
       <node ref="U5" pin="1"/>
-      <node ref="R6" pin="2"/>
       <node ref="R8" pin="1"/>
+      <node ref="R6" pin="2"/>
+      <node ref="R12" pin="2"/>
+      <node ref="C8" pin="1"/>
+      <node ref="TP2" pin="1"/>
     </net>
-    <net code="9" name="/ADC0P">
+    <net code="11" name="/ADC0P">
       <node ref="R10" pin="2"/>
-      <node ref="U5" pin="14"/>
       <node ref="R13" pin="2"/>
+      <node ref="U5" pin="14"/>
       <node ref="TP4" pin="1"/>
     </net>
-    <net code="10" name="/ADC1N">
-      <node ref="U5" pin="7"/>
+    <net code="12" name="/ADC1N">
       <node ref="R9" pin="1"/>
-      <node ref="TP3" pin="1"/>
       <node ref="R7" pin="2"/>
       <node ref="C9" pin="2"/>
       <node ref="R14" pin="2"/>
+      <node ref="U5" pin="7"/>
+      <node ref="TP3" pin="1"/>
     </net>
-    <net code="11" name="/ADC1P">
+    <net code="13" name="/ADC1P">
       <node ref="TP5" pin="1"/>
-      <node ref="R15" pin="2"/>
       <node ref="U5" pin="8"/>
+      <node ref="R15" pin="2"/>
       <node ref="R11" pin="2"/>
     </net>
-    <net code="12" name="+3V3">
+    <net code="14" name="+3V3">
       <node ref="C14" pin="1"/>
       <node ref="R16" pin="1"/>
       <node ref="J1" pin="b2"/>
       <node ref="U7" pin="26"/>
     </net>
-    <net code="13" name="Net-(R16-Pad2)">
-      <node ref="R16" pin="2"/>
+    <net code="15" name="Net-(R16-Pad2)">
       <node ref="U7" pin="16"/>
+      <node ref="R16" pin="2"/>
     </net>
-    <net code="14" name="GNDA">
+    <net code="16" name="GNDA">
+      <node ref="C1" pin="2"/>
+      <node ref="U4" pin="3"/>
+      <node ref="C5" pin="2"/>
+      <node ref="SiPM2" pin="4"/>
+      <node ref="C6" pin="2"/>
+      <node ref="C10" pin="2"/>
+      <node ref="C11" pin="2"/>
       <node ref="U7" pin="1"/>
       <node ref="U7" pin="10"/>
-      <node ref="TP12" pin="1"/>
-      <node ref="TP11" pin="1"/>
-      <node ref="SiPM1" pin="4"/>
+      <node ref="C14" pin="2"/>
       <node ref="U7" pin="11"/>
+      <node ref="C17" pin="2"/>
       <node ref="U7" pin="12"/>
+      <node ref="C15" pin="2"/>
+      <node ref="C16" pin="2"/>
       <node ref="U7" pin="13"/>
+      <node ref="C4" pin="2"/>
+      <node ref="SiPM1" pin="4"/>
       <node ref="U7" pin="2"/>
+      <node ref="U2" pin="4"/>
       <node ref="U7" pin="25"/>
-      <node ref="J1" pin="b6"/>
-      <node ref="J1" pin="b5"/>
-      <node ref="J1" pin="b4"/>
-      <node ref="J1" pin="b3"/>
       <node ref="U7" pin="28"/>
       <node ref="U7" pin="3"/>
+      <node ref="TP12" pin="1"/>
+      <node ref="U6" pin="2"/>
+      <node ref="TP11" pin="1"/>
+      <node ref="U1" pin="4"/>
       <node ref="U7" pin="4"/>
       <node ref="U7" pin="5"/>
       <node ref="U7" pin="6"/>
       <node ref="U7" pin="7"/>
+      <node ref="R4" pin="2"/>
       <node ref="U7" pin="8"/>
       <node ref="U7" pin="9"/>
-      <node ref="C16" pin="1"/>
-      <node ref="SiPM2" pin="4"/>
-      <node ref="C4" pin="2"/>
-      <node ref="C1" pin="2"/>
-      <node ref="C14" pin="2"/>
-      <node ref="U4" pin="3"/>
-      <node ref="C15" pin="2"/>
-      <node ref="C5" pin="2"/>
-      <node ref="U2" pin="4"/>
       <node ref="U5" pin="11"/>
-      <node ref="C17" pin="2"/>
-      <node ref="C10" pin="2"/>
-      <node ref="C11" pin="2"/>
-      <node ref="U6" pin="2"/>
-      <node ref="C7" pin="2"/>
-      <node ref="C2" pin="1"/>
+      <node ref="J1" pin="b6"/>
+      <node ref="J1" pin="b5"/>
+      <node ref="J1" pin="b4"/>
+      <node ref="J1" pin="b3"/>
       <node ref="R1" pin="2"/>
-      <node ref="C6" pin="2"/>
-      <node ref="R4" pin="2"/>
-      <node ref="U1" pin="4"/>
+      <node ref="C2" pin="1"/>
+      <node ref="C7" pin="2"/>
     </net>
-    <net code="15" name="Net-(C16-Pad2)">
-      <node ref="U7" pin="24"/>
-      <node ref="C16" pin="2"/>
-    </net>
-    <net code="16" name="/~CS">
+    <net code="17" name="/~CS">
       <node ref="J1" pin="a1"/>
-      <node ref="TP9" pin="1"/>
       <node ref="U7" pin="17"/>
-    </net>
-    <net code="17" name="+3V0">
-      <node ref="R5" pin="1"/>
-      <node ref="C11" pin="1"/>
-      <node ref="U6" pin="5"/>
-      <node ref="U7" pin="15"/>
-      <node ref="C17" pin="1"/>
+      <node ref="TP9" pin="1"/>
     </net>
     <net code="18" name="Net-(U4-Pad1)">
       <node ref="U4" pin="1"/>
     </net>
-    <net code="19" name="Net-(C13-Pad1)">
-      <node ref="C13" pin="1"/>
-      <node ref="R14" pin="1"/>
-      <node ref="U7" pin="31"/>
-    </net>
-    <net code="20" name="Net-(C13-Pad2)">
-      <node ref="R15" pin="1"/>
-      <node ref="C13" pin="2"/>
-      <node ref="U7" pin="32"/>
-    </net>
-    <net code="21" name="Net-(H1-Pad1)">
+    <net code="19" name="Net-(H1-Pad1)">
       <node ref="H1" pin="1"/>
     </net>
-    <net code="22" name="Net-(C8-Pad2)">
+    <net code="20" name="Net-(C8-Pad2)">
       <node ref="R6" pin="1"/>
       <node ref="C8" pin="2"/>
-      <node ref="U5" pin="2"/>
       <node ref="SiPM1" pin="1"/>
+      <node ref="U5" pin="2"/>
     </net>
-    <net code="23" name="Net-(SiPM1-Pad2)">
+    <net code="21" name="Net-(SiPM1-Pad2)">
       <node ref="SiPM1" pin="2"/>
     </net>
-    <net code="24" name="Net-(SiPM1-Pad5)">
+    <net code="22" name="Net-(SiPM1-Pad5)">
       <node ref="SiPM1" pin="5"/>
     </net>
-    <net code="25" name="/BIAS">
-      <node ref="C2" pin="2"/>
-      <node ref="TP1" pin="1"/>
-      <node ref="SiPM1" pin="3"/>
-      <node ref="SiPM2" pin="3"/>
-      <node ref="U2" pin="6"/>
+    <net code="23" name="/BIAS">
       <node ref="R2" pin="2"/>
+      <node ref="C2" pin="2"/>
+      <node ref="SiPM1" pin="3"/>
+      <node ref="U2" pin="6"/>
+      <node ref="SiPM2" pin="3"/>
+      <node ref="TP1" pin="1"/>
     </net>
-    <net code="26" name="/REF1.2V">
-      <node ref="U5" pin="10"/>
-      <node ref="U5" pin="12"/>
-      <node ref="C6" pin="1"/>
-      <node ref="U7" pin="14"/>
+    <net code="24" name="/REF1.2V">
       <node ref="U3" pin="3"/>
-      <node ref="U2" pin="3"/>
       <node ref="C15" pin="1"/>
+      <node ref="U7" pin="14"/>
+      <node ref="C6" pin="1"/>
+      <node ref="U2" pin="3"/>
       <node ref="U1" pin="1"/>
+      <node ref="U5" pin="12"/>
+      <node ref="U5" pin="10"/>
       <node ref="U4" pin="2"/>
     </net>
-    <net code="27" name="Net-(R10-Pad1)">
-      <node ref="R10" pin="1"/>
+    <net code="25" name="Net-(R10-Pad1)">
       <node ref="U5" pin="13"/>
       <node ref="R8" pin="2"/>
+      <node ref="R10" pin="1"/>
     </net>
-    <net code="28" name="Net-(C9-Pad1)">
+    <net code="26" name="Net-(C9-Pad1)">
       <node ref="C9" pin="1"/>
-      <node ref="U5" pin="6"/>
       <node ref="SiPM2" pin="1"/>
       <node ref="R7" pin="1"/>
+      <node ref="U5" pin="6"/>
     </net>
-    <net code="29" name="Net-(SiPM2-Pad2)">
+    <net code="27" name="Net-(SiPM2-Pad2)">
       <node ref="SiPM2" pin="2"/>
     </net>
-    <net code="30" name="Net-(SiPM2-Pad5)">
+    <net code="28" name="Net-(SiPM2-Pad5)">
       <node ref="SiPM2" pin="5"/>
     </net>
-    <net code="31" name="Net-(R11-Pad1)">
-      <node ref="U5" pin="9"/>
+    <net code="29" name="Net-(R11-Pad1)">
       <node ref="R11" pin="1"/>
       <node ref="R9" pin="2"/>
+      <node ref="U5" pin="9"/>
     </net>
-    <net code="32" name="/REF2.4V">
-      <node ref="C5" pin="1"/>
-      <node ref="U5" pin="5"/>
-      <node ref="R5" pin="2"/>
-      <node ref="U5" pin="3"/>
-      <node ref="U3" pin="2"/>
-    </net>
-    <net code="33" name="Net-(U3-Pad1)">
+    <net code="30" name="Net-(U3-Pad1)">
       <node ref="U3" pin="1"/>
     </net>
-    <net code="34" name="Net-(U6-Pad4)">
+    <net code="31" name="Net-(U6-Pad4)">
       <node ref="U6" pin="4"/>
     </net>
-    <net code="35" name="Net-(R3-Pad2)">
-      <node ref="R3" pin="2"/>
+    <net code="32" name="/REF2.4V">
+      <node ref="R5" pin="2"/>
+      <node ref="U5" pin="5"/>
+      <node ref="U5" pin="3"/>
+      <node ref="C5" pin="1"/>
+      <node ref="U3" pin="2"/>
+    </net>
+    <net code="33" name="Net-(R3-Pad2)">
       <node ref="U1" pin="2"/>
       <node ref="R4" pin="1"/>
+      <node ref="R3" pin="2"/>
     </net>
-    <net code="36" name="+34V">
+    <net code="34" name="+34V">
       <node ref="R3" pin="1"/>
-      <node ref="U2" pin="7"/>
       <node ref="U1" pin="3"/>
+      <node ref="U2" pin="7"/>
       <node ref="C3" pin="1"/>
     </net>
-    <net code="37" name="Net-(R1-Pad1)">
-      <node ref="R1" pin="1"/>
+    <net code="35" name="Net-(R1-Pad1)">
       <node ref="R2" pin="1"/>
+      <node ref="R1" pin="1"/>
       <node ref="U2" pin="2"/>
     </net>
-    <net code="38" name="Net-(U2-Pad1)">
+    <net code="36" name="Net-(U2-Pad1)">
       <node ref="U2" pin="1"/>
     </net>
-    <net code="39" name="Net-(U2-Pad5)">
+    <net code="37" name="Net-(U2-Pad5)">
       <node ref="U2" pin="5"/>
     </net>
-    <net code="40" name="Net-(U2-Pad8)">
+    <net code="38" name="Net-(U2-Pad8)">
       <node ref="U2" pin="8"/>
     </net>
-    <net code="41" name="Net-(L1-Pad2)">
+    <net code="39" name="Net-(L1-Pad2)">
       <node ref="U1" pin="6"/>
       <node ref="L1" pin="2"/>
     </net>
-    <net code="42" name="Net-(C3-Pad2)">
+    <net code="40" name="Net-(C3-Pad2)">
+      <node ref="U1" pin="5"/>
       <node ref="C4" pin="1"/>
       <node ref="C3" pin="2"/>
-      <node ref="U1" pin="5"/>
     </net>
-    <net code="43" name="/~DRDY">
+    <net code="41" name="/~DRDY">
+      <node ref="J1" pin="a2"/>
       <node ref="U7" pin="18"/>
       <node ref="TP6" pin="1"/>
-      <node ref="J1" pin="a2"/>
     </net>
-    <net code="44" name="+5V">
-      <node ref="J1" pin="b1"/>
-      <node ref="C7" pin="1"/>
-      <node ref="U5" pin="4"/>
+    <net code="42" name="+5V">
+      <node ref="C1" pin="1"/>
+      <node ref="U1" pin="7"/>
       <node ref="U6" pin="3"/>
       <node ref="U6" pin="1"/>
-      <node ref="C10" pin="1"/>
-      <node ref="C1" pin="1"/>
       <node ref="L1" pin="1"/>
+      <node ref="U5" pin="4"/>
+      <node ref="C10" pin="1"/>
       <node ref="U1" pin="8"/>
-      <node ref="U1" pin="7"/>
+      <node ref="C7" pin="1"/>
+      <node ref="J1" pin="b1"/>
     </net>
-    <net code="45" name="Net-(H2-Pad1)">
+    <net code="43" name="Net-(H2-Pad1)">
       <node ref="H2" pin="1"/>
     </net>
-    <net code="46" name="Net-(H3-Pad1)">
+    <net code="44" name="Net-(H3-Pad1)">
       <node ref="H3" pin="1"/>
     </net>
-    <net code="47" name="Net-(H4-Pad1)">
+    <net code="45" name="Net-(H4-Pad1)">
       <node ref="H4" pin="1"/>
     </net>
-    <net code="48" name="Net-(H5-Pad1)">
+    <net code="46" name="Net-(H5-Pad1)">
       <node ref="H5" pin="1"/>
     </net>
-    <net code="49" name="Net-(H6-Pad1)">
+    <net code="47" name="Net-(H6-Pad1)">
       <node ref="H6" pin="1"/>
     </net>
-    <net code="50" name="Net-(H7-Pad1)">
+    <net code="48" name="Net-(H7-Pad1)">
       <node ref="H7" pin="1"/>
     </net>
-    <net code="51" name="Net-(H8-Pad1)">
+    <net code="49" name="Net-(H8-Pad1)">
       <node ref="H8" pin="1"/>
     </net>
-    <net code="52" name="/GPCLK">
+    <net code="50" name="/GPCLK">
       <node ref="TP13" pin="1"/>
-      <node ref="J1" pin="a6"/>
       <node ref="U7" pin="23"/>
+      <node ref="J1" pin="a6"/>
+    </net>
+    <net code="51" name="Net-(C13-Pad1)">
+      <node ref="U7" pin="31"/>
+      <node ref="R14" pin="1"/>
+      <node ref="C13" pin="1"/>
+    </net>
+    <net code="52" name="Net-(C13-Pad2)">
+      <node ref="U7" pin="32"/>
+      <node ref="R15" pin="1"/>
+      <node ref="C13" pin="2"/>
     </net>
   </nets>
 </export>
