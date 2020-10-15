@@ -9,17 +9,17 @@ from inky import InkyPHAT
 import RPi.GPIO as GPIO
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     device = 1  # using CE1
     # default channels are channels 2,3
     adc_reader = ADS131M08Reader()
     adc_reader.setup_adc(device)
 
-    inkyphat = InkyPHAT('black')
+    inkyphat = InkyPHAT("black")
     font = ImageFont.truetype(FredokaOne, 22)
 
     d1 = d2 = 0.0
-    
+
     def cb(channel):
         global d1, d2
         data = adc_reader.read()
@@ -43,4 +43,3 @@ if __name__ == '__main__':
         pass
     finally:
         GPIO.cleanup()
-
