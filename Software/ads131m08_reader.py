@@ -131,9 +131,6 @@ class ADS131M08Reader(ADCReader):
         """
         self.spi.open(0, device)
 
-        # Wait for DRDY to go high which signifies that the ADC is awake
-        while not GPIO.input(self._DRDY): pass
-
         # ADS131M08 Settings
         self.spi.mode = 0b01  # SPI Mode 1; See Datasheet 8.5.1
         self.spi.max_speed_hz = 488000  # 488 kHz clock speed
@@ -299,9 +296,8 @@ class ADS131M08Reader(ADCReader):
 
 
 # Helper functions for manipulating bytes, performing CRC checks, e.t.c.
-
-def bytes_to_readable(res):
-    return [bits(res[i : i + self.bytes_per_word]) for i in range(0, len(res), self.bytes_per_word)]
+def bytes_to_readable(res, bytes_per_word=3):
+    return [bits(res[i : i + bytes_per_word]) for i in range(0, len(res), bytes_per_word)]
 
 
 def crc_check(d: List[int]) -> bool:
@@ -336,11 +332,6 @@ if __name__ == "__main__":
     adc_reader = ADS131M08Reader()
     adc_reader.setup_adc(device, channels=[2,3])
 
-    # wait for DRDY to go high, indicating the ADC has started up
-    while not GPIO.input(adc_reader._DRDY):
-        print("not ready")
-    print("ready")
-
     print("ID")
     d = adc_reader.read_register(ID_ADDR)
     print(bytes_to_readable(d)[0])
@@ -367,12 +358,10 @@ if __name__ == "__main__":
     print()
 
     sc = 0
-
     def cb(channel):
         global sc
         sc += 1
-        data = adc_reader.read()
-        print(data)
+        print(adc_reader.read())
 
     GPIO.add_event_detect(adc_reader._DRDY, GPIO.FALLING, callback=cb)
 
@@ -386,3 +375,4 @@ if __name__ == "__main__":
         t1 = time.time()
         GPIO.cleanup()
     print(f"\n{sc} samples in {t1 - t0:.5} seconds. Sample rate of {sc / (t1 - t0)} Hz")
+
