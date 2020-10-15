@@ -100,6 +100,10 @@ GLOBAL_CHOP_EN_MASK = 0b1 << 8
 DEFAULT_CHOP_DELAY_MASK = 0b0011 << 9
 
 
+class CRCError(Exception):
+    pass
+
+
 class ADS131M08Reader(ADCReader):
     def __init__(self):
         self.spi = spidev.SpiDev()
@@ -140,7 +144,7 @@ class ADS131M08Reader(ADCReader):
         channel_enable_mask = 0b00000000
         for chl in channels:
             if chl > 7 or chl < 0:
-                raise RuntimeError(
+                raise CRCError(
                     "Channels must be between 0 and 7 inclusive, corresponding to the channels on the ADC"
                 )
             channel_enable_mask |= 0b1 << chl
@@ -171,7 +175,7 @@ class ADS131M08Reader(ADCReader):
             CLOCK_ADDR, channel_enable_mask | OSR_8192_MASK | PWR_HIGH_RES_MASK | XTAL_OSC_DISABLE_MASK,
         )
 
-    def read_register(self, register_addr: int, num_registers: int = 1):
+    def read_register(self, register_addr: int, num_registers: int = 1) -> List[float]:
         """
         params
                 register_addr:     16-bit register address mask
@@ -200,7 +204,7 @@ class ADS131M08Reader(ADCReader):
 
         ret_data = self.spi.readbytes(bytes_to_read)
         if not crc_check(ret_data):
-            print(f"CRC CHECK FAILED ON read_register({register_addr}, {num_registers})")
+            raise CRCError(f"CRC CHECK FAILED ON read_register({register_addr}, {num_registers})")
         return ret_data
 
     def read(self) -> List[float]:
@@ -224,7 +228,7 @@ class ADS131M08Reader(ADCReader):
         res = self.spi.readbytes(len(null_cmd_frame))
 
         if not crc_check(res):
-            raise RuntimeError(f"CRC CHECK FAILED ON read METHOD")
+            raise CRCError(f"CRC CHECK FAILED ON read METHOD")
 
         # ADC data is returned in Two's Complement format; see Datasheet 8.5.1.9
         for i in range(1, 9):
@@ -244,7 +248,7 @@ class ADS131M08Reader(ADCReader):
             adc_val -= 0xFFFFFF
         return 1.2 * adc_val / (2 ** 23)
 
-    def write_register(self, register_addr: int, data: int):
+    def write_register(self, register_addr: int, data: int) -> List[int]:
         """
         params
                 register_addr:     16-bit register address mask
@@ -278,10 +282,10 @@ class ADS131M08Reader(ADCReader):
         ret_data = self.spi.readbytes(len(cmd_frame))
 
         if not crc_check(ret_data):
-            raise RuntimeError(f"CRC CHECK FAILED ON write_register({register_addr}, {data})")
+            raise CRCError(f"CRC CHECK FAILED ON write_register({register_addr}, {data})")
         return ret_data
 
-    def write(self, cmd):
+    def write(self, cmd: int) -> List[int]:
         shift_value = self.ads_bits_per_word - 16
         shifted_cmd = [*(cmd << shift_value).to_bytes(self.bytes_per_word, "big")]
         cmd_frame = shifted_cmd + [0] * self.bytes_per_word * (10 - int(len(shifted_cmd) / self.bytes_per_word))
@@ -290,7 +294,7 @@ class ADS131M08Reader(ADCReader):
         time.sleep(10e-6)
         return self.spi.readbytes(len(cmd_frame))
 
-    def data_ready(self):
+    def data_ready(self) -> bool:
         """
         DRDY is active low, and pulses low when data is ready. 
         """
@@ -298,7 +302,7 @@ class ADS131M08Reader(ADCReader):
 
 
 # Helper functions for manipulating bytes, performing CRC checks, e.t.c.
-def bytes_to_readable(res, bytes_per_word=3):
+def bytes_to_readable(res, bytes_per_word=3) -> List[str]:
     return [bits(res[i : i + bytes_per_word]) for i in range(0, len(res), bytes_per_word)]
 
 
@@ -308,11 +312,11 @@ def crc_check(d: List[int]) -> bool:
     return crcb(*d[:-3]) == combine_bytes(*d[-3:-1])
 
 
-def combine_bytes(*byte_args: int):
+def combine_bytes(*byte_args: int) -> int:
     return int.from_bytes(byte_args, byteorder="big")
 
 
-def bits(vs: List[int]):
+def bits(vs: List[int]) -> str:
     """
     vs is a list of bytes (i.e. integers in the range [0, 255])
     """
@@ -332,7 +336,7 @@ def twos_complement(input_value: int, num_bits: int) -> int:
 if __name__ == "__main__":
     device = 1  # using CE1
     adc_reader = ADS131M08Reader()
-    adc_reader.setup_adc(device, channels=[2, 3])
+    adc_reader.setup_adc(device, channels=[2,3])
 
     print("ID")
     d = adc_reader.read_register(ID_ADDR)
@@ -354,16 +358,22 @@ if __name__ == "__main__":
     print(bytes_to_readable(d)[0])
     print()
 
-    print("STATUS register")
+    print("STATUS")
     d = adc_reader.read_register(STATUS_ADDR)
     print(bytes_to_readable(d)[0])
     print()
 
-    sc = 0
+    errs = sc = d1 = d2 = 0
     def cb(channel):
-        global sc
+        global sc, d1, d2
         sc += 1
-        print(adc_reader.read())
+        try:
+            d = adc_reader.read()
+        except CRCError:
+            errs += 1
+        d1 += d[2]
+        d2 += d[3]
+        print(d[2], d[3])
 
     GPIO.add_event_detect(adc_reader._DRDY, GPIO.FALLING, callback=cb)
 
@@ -376,5 +386,8 @@ if __name__ == "__main__":
     finally:
         t1 = time.time()
         GPIO.cleanup()
+
     print(f"\n{sc} samples in {t1 - t0:.5} seconds. Sample rate of {sc / (t1 - t0)} Hz")
+    print(f"CH2: = {d1 / sc} \t CH3 = {d2 / sc} \t CH2 - CH3 = {(d1 - d2) / sc}\n")
+    print(f"{errs} CRC Errors encountered.")
 
