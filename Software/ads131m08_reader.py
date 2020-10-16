@@ -3,11 +3,7 @@
 
 -- Important Links --
 
-ADC communication is via SPI - the Wikipedia article is worth a read
-    https://en.wikipedia.org/wiki/Serial_Peripheral_Interface
-If is one diagram to see, it is this one
-    https://en.wikipedia.org/wiki/Serial_Peripheral_Interface#/media/File:SPI_8-bit_circular_transfer.svg
-And Finally, here is the ADC datasheet
+Datasheet
     https://www.ti.com/lit/ds/symlink/ads131m08.pdf?ts=1601338573920
 
 -- Application Notes --
@@ -39,71 +35,12 @@ import RPi.GPIO as GPIO
 from typing import List
 
 from crc import crcb
+from .consts import *
 from adc_reader import ADCReader
-
 
 # Set gpio pin numbering to the gpio pin numbers on the raspberry pi
 GPIO.setmode(GPIO.BCM)
 GPIO.setwarnings(False)
-
-
-# Commands (Datasheet 8.5.1.10)
-WREG_OPCODE = 0b0110000000000000
-RREG_OPCODE = 0b1010000000000000
-UNLOCK_OPCODE = 0b0000011001010101
-LOCK_OPCODE = 0b0000010101010101
-WAKEUP_OPCODE = 0b0000000000110011
-STANDBY_OPCODE = 0b0000000000100010
-RESET_OPCODE = 0b0000000000010001
-NULL_OPCODE = 0b0000000000000000
-
-
-# Register adresses (Datasheet 8.6)
-ID_ADDR = 0x00
-STATUS_ADDR = 0x01
-MODE_ADDR = 0x02
-CLOCK_ADDR = 0x03
-CFG_ADDR = 0x06
-REGMAP_CRC_ADDR = 0x3E
-
-
-# Register Payloads (Datasheet 8.6)
-# clock register
-ALL_CH_DISABLE_MASK = 0b00000000 << 8
-ALL_CH_ENABLE_MASK = 0b11111111 << 8
-CH_2_3_ENABLE_MASK = 0b00001100 << 8
-OSR_16256_MASK = 0b111 << 2
-OSR_8192_MASK = 0b110 << 2
-OSR_4096_MASK = 0b101 << 2
-# The datasheet is a bit confusing with regards to the chrystal oscillator.
-# For the luminometer design, we give the ADC the SCLK from the master SPI.
-# Therefore, we enable the XTAL_OSC_DISABLE bit of the clock register
-# I found this a bit unclear, see the link from the chip developer below
-# https://e2e.ti.com/support/data-converters/f/73/t/905809
-XTAL_OSC_DISABLE_MASK = 0b1 << 7
-EXTERNAL_REF_MASK = 0b0 << 6
-PWR_HIGH_RES_MASK = 0b11
-
-# mode register
-REG_CRC_EN_MASK = 0b1 << 13
-RX_CRC_EN_MASK = 0b1 << 12
-RESET_MASK = 0b1 << 10
-CLEAR_RESET_MASK = 0b0 << 10
-WLEN_24_MASK = 0b01 << 8
-SPI_TIMEOUT_MASK = 0b1 << 4
-DRDY_HIZ_OPEN_COLLECT = 0b1 << 1
-DRDY_FMT_PULSE_MASK = 0b1
-DRDY_FMT_LOW_MASK = 0b0
-
-# cgf register
-GLOBAL_CHOP_EN_MASK = 0b1 << 8
-DEFAULT_CHOP_DELAY_MASK = 0b0011 << 9
-
-
-# Assorted masks
-# bit is set in Status register if there was a CRC error on the previous
-# input command
-STATUS_CRC_ERR = 0b1 << 12
 
 
 class CRCError(Exception):
@@ -114,10 +51,9 @@ class ADS131M08Reader(ADCReader):
     def __init__(self):
         self.spi = spidev.SpiDev()
         self.words_per_frame: int = 10  # Num. words in full ADS131 frame
-        self.bits_per_word: int = 24  # default word length on ADS
-        self.rpi_bits_per_word: int = 8  # only available word length on RPi
-        self.bytes_per_word: int = 3  # self.bits_per_word / self.rpi_bits_per_word
-        self.bytes_per_frame: int = 30  # self.bytes_per_word * self.words_per_frame
+        self.bits_per_word: int = 24
+        self.bytes_per_word: int = 3
+        self.bytes_per_frame: int = 30
 
         self._DRDY: int = 21  # drdy pin is BCM 21
 
@@ -238,7 +174,7 @@ class ADS131M08Reader(ADCReader):
                 f"CRC CHECK FAILED ON read_register({register_addr}, {num_registers})"
             )
 
-        # We do not check the status bit here, because RREG command does not return the STATUS byte
+        # We can not check the CRC_ERR bit here, because RREG command does not return the STATUS word
         res = self.combine_frame(res)
         return res
 
@@ -381,7 +317,7 @@ class ADS131M08Reader(ADCReader):
 
     def data_ready(self) -> bool:
         """
-        DRDY is active low, and pulses low when data is ready. 
+        DRDY is active low, and pulses low when data is ready.
         """
         return not GPIO.input(adc_reader._DRDY)
 
