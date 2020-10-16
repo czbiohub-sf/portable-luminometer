@@ -115,7 +115,7 @@ class ADS131M08Reader(ADCReader):
         self.bits_per_word: int = 24  # default word length on ADS
         self.rpi_bits_per_word: int = 8  # only available word length on RPi
         self.bytes_per_word: int = 3  # self.bits_per_word / self.rpi_bits_per_word
-        self.bytes_per_frame: int = 30  # self.bytes_per_word * self.num_frame_words 
+        self.bytes_per_frame: int = 30  # self.bytes_per_word * self.num_frame_words
 
         self._DRDY: int = 21  # drdy pin is BCM 21
 
@@ -173,14 +173,24 @@ class ADS131M08Reader(ADCReader):
         resp = self.write(RESET_OPCODE)
         time.sleep(5e-6)
         if resp[0] != 0xFF28 << 8:
-            print('RESET NOT ACCEPTED')
+            print("RESET NOT ACCEPTED")
 
         self.write_register(
-            MODE_ADDR, CLEAR_RESET_MASK | WLEN_24_MASK | SPI_TIMEOUT_MASK | DRDY_HIZ_OPEN_COLLECT | DRDY_FMT_PULSE_MASK | RX_CRC_EN_MASK,
+            MODE_ADDR,
+            CLEAR_RESET_MASK
+            | WLEN_24_MASK
+            | SPI_TIMEOUT_MASK
+            | DRDY_HIZ_OPEN_COLLECT
+            | DRDY_FMT_PULSE_MASK
+            | RX_CRC_EN_MASK,
         )
         self.write_register(CFG_ADDR, GLOBAL_CHOP_EN_MASK | DEFAULT_CHOP_DELAY_MASK)
         self.write_register(
-            CLOCK_ADDR, channel_enable_mask | OSR_8192_MASK | PWR_HIGH_RES_MASK | XTAL_OSC_DISABLE_MASK,
+            CLOCK_ADDR,
+            channel_enable_mask
+            | OSR_8192_MASK
+            | PWR_HIGH_RES_MASK
+            | XTAL_OSC_DISABLE_MASK,
         )
 
     def read_register(self, register_addr: int, num_registers: int = 1) -> List[float]:
@@ -197,9 +207,13 @@ class ADS131M08Reader(ADCReader):
         shift_value = self.bits_per_word - 16
         register_shift = 7
 
-        cmd = (RREG_OPCODE | (register_addr << register_shift) | (num_registers - 1)) << shift_value
+        cmd = (
+            RREG_OPCODE | (register_addr << register_shift) | (num_registers - 1)
+        ) << shift_value
         cmd_payload = [*cmd.to_bytes(self.bytes_per_word, "big")]
-        cmd_frame = cmd_payload + [0] * self.bytes_per_word * (10 - int(len(cmd_payload) / self.bytes_per_word))
+        cmd_frame = cmd_payload + [0] * self.bytes_per_word * (
+            10 - int(len(cmd_payload) / self.bytes_per_word)
+        )
         self.spi.writebytes2(cmd_frame)
 
         # if one register is being read, the expected frame back is 10 words long
@@ -212,7 +226,9 @@ class ADS131M08Reader(ADCReader):
 
         res = self.spi.readbytes(bytes_to_read)
         if not crc_check(res):
-            raise CRCError(f"CRC CHECK FAILED ON read_register({register_addr}, {num_registers})")
+            raise CRCError(
+                f"CRC CHECK FAILED ON read_register({register_addr}, {num_registers})"
+            )
 
         return res
 
@@ -283,19 +299,25 @@ class ADS131M08Reader(ADCReader):
 
         total_payload = write_payload + crc_payload
 
-        cmd_frame = total_payload + [0] * self.bytes_per_word * (10 - int(len(total_payload) / self.bytes_per_word))
+        cmd_frame = total_payload + [0] * self.bytes_per_word * (
+            10 - int(len(total_payload) / self.bytes_per_word)
+        )
 
         self.spi.writebytes2(cmd_frame)
         res = self.spi.readbytes(self.bytes_per_frame)
 
         if not crc_check(res):
-            raise CRCError(f"CRC CHECK FAILED ON DATA READ FROM ADC: write_register({register_addr}, {data})")
+            raise CRCError(
+                f"CRC CHECK FAILED ON DATA READ FROM ADC: write_register({register_addr}, {data})"
+            )
 
         res = self.combine_frame(res)
 
         status_word = res[0]
         if res[0] & STATUS_CRC_ERR:
-            print(f"CRC CHECK FAILED ON DATA WRITTEN TO ADC: write_register({register_addr}, {data})")
+            print(
+                f"CRC CHECK FAILED ON DATA WRITTEN TO ADC: write_register({register_addr}, {data})"
+            )
 
         return res
 
@@ -310,7 +332,9 @@ class ADS131M08Reader(ADCReader):
 
         total_payload = cmd_payload + crc_payload
 
-        cmd_frame = total_payload + [0] * self.bytes_per_word * (10 - int(len(total_payload) / self.bytes_per_word))
+        cmd_frame = total_payload + [0] * self.bytes_per_word * (
+            10 - int(len(total_payload) / self.bytes_per_word)
+        )
 
         self.spi.writebytes2(cmd_frame)
         time.sleep(10e-6)
@@ -330,7 +354,10 @@ class ADS131M08Reader(ADCReader):
         This function combines these integers together into words which represent the actual output
         """
         assert len(data) == 30, f"data has length {len(data)}"
-        return [combine_bytes(*data[i : i + self.bytes_per_word]) for i in range(0, len(data), self.bytes_per_word)]
+        return [
+            combine_bytes(*data[i : i + self.bytes_per_word])
+            for i in range(0, len(data), self.bytes_per_word)
+        ]
 
     def adc_val_to_voltage(self, adc_val: int) -> float:
         """
@@ -344,7 +371,9 @@ class ADS131M08Reader(ADCReader):
 
 # Helper functions for manipulating bytes, performing CRC checks, e.t.c.
 def bytes_to_readable(res, bytes_per_word=3) -> List[str]:
-    return [bits(res[i : i + bytes_per_word]) for i in range(0, len(res), bytes_per_word)]
+    return [
+        bits(res[i : i + bytes_per_word]) for i in range(0, len(res), bytes_per_word)
+    ]
 
 
 def crc_check(d: List[int]) -> bool:
@@ -377,7 +406,7 @@ def twos_complement(input_value: int, num_bits: int) -> int:
 if __name__ == "__main__":
     device = 1  # using CE1
     adc_reader = ADS131M08Reader()
-    adc_reader.setup_adc(device, channels=[2,3])
+    adc_reader.setup_adc(device, channels=[2, 3])
 
     print("ID")
     d = adc_reader.read_register(ID_ADDR)
@@ -405,6 +434,7 @@ if __name__ == "__main__":
     print()
 
     errs = sc = d1 = d2 = 0
+
     def cb(channel):
         global sc, d1, d2, errs
         sc += 1
@@ -432,4 +462,3 @@ if __name__ == "__main__":
     print(f"\n{sc} samples in {t1 - t0:.5} seconds. Sample rate of {sc / (t1 - t0)} Hz")
     print(f"CH2: = {d1 / sc} \t CH3 = {d2 / sc} \t CH2 - CH3 = {(d1 - d2) / sc}\n")
     print(f"{errs} CRC Errors encountered.")
-
