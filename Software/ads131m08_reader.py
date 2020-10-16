@@ -176,7 +176,7 @@ class ADS131M08Reader(ADCReader):
             print('RESET NOT ACCEPTED')
 
         self.write_register(
-            MODE_ADDR, CLEAR_RESET_MASK | WLEN_24_MASK | SPI_TIMEOUT_MASK | DRDY_HIZ_OPEN_COLLECT | DRDY_FMT_PULSE_MASK# | RX_CRC_EN_MASK,
+            MODE_ADDR, CLEAR_RESET_MASK | WLEN_24_MASK | SPI_TIMEOUT_MASK | DRDY_HIZ_OPEN_COLLECT | DRDY_FMT_PULSE_MASK | RX_CRC_EN_MASK,
         )
         self.write_register(CFG_ADDR, GLOBAL_CHOP_EN_MASK | DEFAULT_CHOP_DELAY_MASK)
         self.write_register(
