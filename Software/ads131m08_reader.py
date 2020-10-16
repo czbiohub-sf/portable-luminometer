@@ -188,11 +188,7 @@ class ADS131M08Reader(ADCReader):
             | DRDY_FMT_PULSE_MASK
             | RX_CRC_EN_MASK,
         )
-        self.write_register(
-            CFG_ADDR,
-            GLOBAL_CHOP_EN_MASK
-            | DEFAULT_CHOP_DELAY_MASK
-        )
+        self.write_register(CFG_ADDR, GLOBAL_CHOP_EN_MASK | DEFAULT_CHOP_DELAY_MASK)
         self.write_register(
             CLOCK_ADDR,
             channel_enable_mask
@@ -202,7 +198,9 @@ class ADS131M08Reader(ADCReader):
         )
 
     def read_register(self, register_addr: int, num_registers: int = 1) -> List[float]:
-        return crc_exponential_backoff(self._read_register, register_addr, num_registers)
+        return crc_exponential_backoff(
+            self._read_register, register_addr, num_registers
+        )
 
     def _read_register(self, register_addr: int, num_registers: int = 1) -> List[float]:
         """
@@ -250,7 +248,7 @@ class ADS131M08Reader(ADCReader):
     def _read(self) -> List[float]:
         """
         Read all 8 ADC channels, and return the voltages in a list.
-        
+
         For example, to read channels 0, 3, and 4, (let adc_reader be the initialized ADS131M08 object)
         data = adc_reader.read()
         ch0_voltage, ch3_voltage, ch4_voltage = data[0], data[3], data[4]
@@ -274,9 +272,7 @@ class ADS131M08Reader(ADCReader):
 
         status_word = res[0]
         if status_word & STATUS_CRC_ERR:
-            raise CRCError(
-                f"CRC CHECK FAILED ON DATA WRITTEN TO ADC FROM read()"
-            )
+            raise CRCError(f"CRC CHECK FAILED ON DATA WRITTEN TO ADC FROM read()")
 
         # ADC data is returned in Two's Complement format; see Datasheet 8.5.1.9
         for i in range(1, 9):
@@ -359,17 +355,13 @@ class ADS131M08Reader(ADCReader):
         res = self.spi.readbytes(self.bytes_per_frame)
 
         if not self.crc_check(res):
-            raise CRCError(
-                f"CRC CHECK FAILED ON write({cmd})"
-            )
+            raise CRCError(f"CRC CHECK FAILED ON write({cmd})")
 
         res = self.combine_frame(res)
 
         status_word = res[0]
         if status_word & STATUS_CRC_ERR:
-            raise CRCError(
-                f"CRC CHECK FAILED ON DATA WRITTEN FROM write({cmd})"
-            )
+            raise CRCError(f"CRC CHECK FAILED ON DATA WRITTEN FROM write({cmd})")
 
         return res
 
@@ -434,9 +426,7 @@ def twos_complement(input_value: int, num_bits: int) -> int:
 
 
 def bytes_to_readable(res) -> List[str]:
-    return [
-        to_printable_bits(word) for word in res
-    ]
+    return [to_printable_bits(word) for word in res]
 
 
 def to_printable_bits(v: int) -> str:
