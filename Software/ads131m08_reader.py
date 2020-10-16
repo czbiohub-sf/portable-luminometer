@@ -17,8 +17,6 @@ word can be 2, 3, or 4 bytes (i.e. 16, 24, or 32 bits). The Raspberry Pi can onl
 if you were to attempt to send an integer which is outside the range of one byte, you would get an OS Error. This means
 we must split our words into individual bytes (which is done in our code by the int.to_bytes method). Since ADC data is
 24 bits (8.5.1.9), we will use 24-bit (3 byte) words.
-
-
 Communication words also have specific format that is worth knowing. Quoting from 8.5.1.8 SPI Communication Words:
 
 "The device defaults to a 24-bit word size. Commands, responses, CRC, and registers always contain 16 bits of actual
@@ -86,7 +84,7 @@ PWR_HIGH_RES_MASK = 0b11
 
 # mode register
 REG_CRC_EN_MASK = 0b1 << 13
-CRC_IN_EN_MASK = 0b1 << 12
+RX_CRC_EN_MASK = 0b1 << 12
 RESET_MASK = 0b1 << 10
 CLEAR_RESET_MASK = 0b0 << 10
 WLEN_24_MASK = 0b01 << 8
@@ -100,6 +98,12 @@ GLOBAL_CHOP_EN_MASK = 0b1 << 8
 DEFAULT_CHOP_DELAY_MASK = 0b0011 << 9
 
 
+# Assorted masks
+# bit is set in Status register if there was a CRC error on the previous
+# input command
+STATUS_CRC_ERR = 0b1 << 12
+
+
 class CRCError(Exception):
     pass
 
@@ -107,10 +111,11 @@ class CRCError(Exception):
 class ADS131M08Reader(ADCReader):
     def __init__(self):
         self.spi = spidev.SpiDev()
-        self.ads_num_frame_words: int = 10  # Num. words in full ADS131 frame
-        self.ads_bits_per_word: int = 24  # default word length on ADS
+        self.num_frame_words: int = 10  # Num. words in full ADS131 frame
+        self.bits_per_word: int = 24  # default word length on ADS
         self.rpi_bits_per_word: int = 8  # only available word length on RPi
-        self.bytes_per_word: int = int(self.ads_bits_per_word / self.rpi_bits_per_word)  # 3 bytes per word
+        self.bytes_per_word: int = 3  # self.bits_per_word / self.rpi_bits_per_word
+        self.bytes_per_frame: int = 30  # self.bytes_per_word * self.num_frame_words 
 
         self._DRDY: int = 21  # drdy pin is BCM 21
 
@@ -164,11 +169,14 @@ class ADS131M08Reader(ADCReader):
         left-shifted by 8 positions.
         e.g. channel_enable_mask == 0b00001100 << 8 would enable channels 2 and 3
         """
+        # see 8.5.1.10.2
+        resp = self.write(RESET_OPCODE)
+        time.sleep(5e-6)
+        if resp[0] != 0xFF28 << 8:
+            print('RESET NOT ACCEPTED')
+
         self.write_register(
-            CLOCK_ADDR, ALL_CH_DISABLE_MASK | OSR_8192_MASK | PWR_HIGH_RES_MASK | XTAL_OSC_DISABLE_MASK,
-        )
-        self.write_register(
-            MODE_ADDR, CLEAR_RESET_MASK | WLEN_24_MASK | SPI_TIMEOUT_MASK | DRDY_HIZ_OPEN_COLLECT | DRDY_FMT_PULSE_MASK,
+            MODE_ADDR, CLEAR_RESET_MASK | WLEN_24_MASK | SPI_TIMEOUT_MASK | DRDY_HIZ_OPEN_COLLECT | DRDY_FMT_PULSE_MASK | RX_CRC_EN_MASK,
         )
         self.write_register(CFG_ADDR, GLOBAL_CHOP_EN_MASK | DEFAULT_CHOP_DELAY_MASK)
         self.write_register(
@@ -186,7 +194,7 @@ class ADS131M08Reader(ADCReader):
         if num_registers < 1:
             return
 
-        shift_value = self.ads_bits_per_word - 16
+        shift_value = self.bits_per_word - 16
         register_shift = 7
 
         cmd = (RREG_OPCODE | (register_addr << register_shift) | (num_registers - 1)) << shift_value
@@ -198,14 +206,15 @@ class ADS131M08Reader(ADCReader):
         # else, it is the number of requested registers, plus the confimation, plus the crc.
         # hence, 2 + num_registers words are expected back
         if num_registers == 1:
-            bytes_to_read = self.bytes_per_word * 10
+            bytes_to_read = self.bytes_per_frame
         else:
             bytes_to_read = self.bytes_per_word * (2 + num_registers)
 
-        ret_data = self.spi.readbytes(bytes_to_read)
-        if not crc_check(ret_data):
+        res = self.spi.readbytes(bytes_to_read)
+        if not crc_check(res):
             raise CRCError(f"CRC CHECK FAILED ON read_register({register_addr}, {num_registers})")
-        return ret_data
+
+        return res  # self.combine_frame(res)
 
     def read(self) -> List[float]:
         """
@@ -216,37 +225,29 @@ class ADS131M08Reader(ADCReader):
         ch0_voltage, ch3_voltage, ch4_voltage = data[0], data[3], data[4]
         """
         # the null command frame is used to read from the ADC
-        null_cmd_frame = [0b0] * self.ads_num_frame_words * self.bytes_per_word
+        null_cmd_frame = [0b0] * self.num_frame_words * self.bytes_per_word
 
         # clear the FIFO buffer on first read; see Datasheet 8.5.1.9.1
         if self._first_read:
             self.spi.writebytes2(null_cmd_frame)
-            self.spi.readbytes(len(null_cmd_frame))
+            self.spi.readbytes(self.bytes_per_frame)
             self._first_read = False
 
         self.spi.writebytes2(null_cmd_frame)
-        res = self.spi.readbytes(len(null_cmd_frame))
+        res = self.spi.readbytes(self.bytes_per_frame)
 
         if not crc_check(res):
-            raise CRCError(f"CRC CHECK FAILED ON read METHOD")
+            raise CRCError(f"CRC CHECK FAILED ON read")
 
         # ADC data is returned in Two's Complement format; see Datasheet 8.5.1.9
         for i in range(1, 9):
             res[i] = twos_complement(res[i], 24)
 
         # Combine bytes back into words of bytes_per_word length before returning.
-        data = [combine_bytes(*res[i : i + self.bytes_per_word]) for i in range(0, len(res), self.bytes_per_word)]
+        data = self.combine_frame(res)
         adc_data = [self.adc_val_to_voltage(v) for v in data[1:9]]
-        return adc_data
 
-    def adc_val_to_voltage(self, adc_val: int) -> float:
-        """
-        Takes the adc value (which is an integer) and returns the corresponding voltage
-        Reference: 8.5.1.9
-        """
-        if adc_val > 0x7FFFFF:
-            adc_val -= 0xFFFFFF
-        return 1.2 * adc_val / (2 ** 23)
+        return adc_data
 
     def write_register(self, register_addr: int, data: int) -> List[int]:
         """
@@ -260,7 +261,7 @@ class ADS131M08Reader(ADCReader):
         to write to, minus 1.
         Therefore, we shift the register address left by 7
         """
-        shift_value = self.ads_bits_per_word - 16
+        shift_value = self.bits_per_word - 16
         register_addr_shift = 7
 
         # Shift the data (which is 16 bits) to three word requirement and then split the word into individual bytes
@@ -273,32 +274,72 @@ class ADS131M08Reader(ADCReader):
             | (register_addr << register_addr_shift)
             | (int(len(shifted_data_payload) / self.bytes_per_word) - 1)
         ) << shift_value
-        cmd_payload = [*cmd.to_bytes(self.bytes_per_word, "big")]
 
-        total_payload = cmd_payload + shifted_data_payload
+        cmd_payload = [*cmd.to_bytes(self.bytes_per_word, "big")]
+        write_payload = cmd_payload + shifted_data_payload
+
+        crc = crcb(*write_payload) << shift_value
+        crc_payload = [*crc.to_bytes(self.bytes_per_word, "big")]
+
+        total_payload = write_payload + crc_payload
+
         cmd_frame = total_payload + [0] * self.bytes_per_word * (10 - int(len(total_payload) / self.bytes_per_word))
 
         self.spi.writebytes2(cmd_frame)
-        ret_data = self.spi.readbytes(len(cmd_frame))
+        res = self.spi.readbytes(self.bytes_per_frame)
 
-        if not crc_check(ret_data):
-            raise CRCError(f"CRC CHECK FAILED ON write_register({register_addr}, {data})")
-        return ret_data
+        if not crc_check(res):
+            raise CRCError(f"CRC CHECK FAILED ON DATA READ FROM ADC: write_register({register_addr}, {data})")
+
+        res = self.combine_frame(res)
+
+        status_word = res[0]
+        if res[0] & STATUS_CRC_ERR:
+            print(f"CRC CHECK FAILED ON DATA WRITTEN TO ADC: write_register({register_addr}, {data})")
+
+        return res
 
     def write(self, cmd: int) -> List[int]:
-        shift_value = self.ads_bits_per_word - 16
-        shifted_cmd = [*(cmd << shift_value).to_bytes(self.bytes_per_word, "big")]
-        cmd_frame = shifted_cmd + [0] * self.bytes_per_word * (10 - int(len(shifted_cmd) / self.bytes_per_word))
+        shift_value = self.bits_per_word - 16
+
+        cmd = cmd << shift_value
+        cmd_payload = [*(cmd).to_bytes(self.bytes_per_word, "big")]
+
+        crc = crcb(*cmd_payload) << shift_value
+        crc_payload = [*crc.to_bytes(self.bytes_per_word, "big")]
+
+        total_payload = cmd_payload + crc_payload
+
+        cmd_frame = total_payload + [0] * self.bytes_per_word * (10 - int(len(total_payload) / self.bytes_per_word))
 
         self.spi.writebytes2(cmd_frame)
         time.sleep(10e-6)
-        return self.spi.readbytes(len(cmd_frame))
+        res = self.combine_frame(self.spi.readbytes(self.bytes_per_frame))
+
+        return res
 
     def data_ready(self) -> bool:
         """
         DRDY is active low, and pulses low when data is ready. 
         """
         return not GPIO.input(adc_reader._DRDY)
+
+    def combine_frame(self, data: List[int]) -> List[int]:
+        """
+        data is a list of 30 integers, representing the response SPI Frame which is made up of 10 words.
+        This function combines these integers together into words which represent the actual output
+        """
+        assert len(data) == 30, f"data has length {len(data)}"
+        return [combine_bytes(*data[i : i + self.bytes_per_word]) for i in range(0, len(data), self.bytes_per_word)]
+
+    def adc_val_to_voltage(self, adc_val: int) -> float:
+        """
+        Takes the adc value (which is an integer) and returns the corresponding voltage
+        Reference: 8.5.1.9
+        """
+        if adc_val > 0x7FFFFF:
+            adc_val -= 0xFFFFFF
+        return 1.2 * adc_val / (2 ** 23)
 
 
 # Helper functions for manipulating bytes, performing CRC checks, e.t.c.
@@ -323,7 +364,7 @@ def bits(vs: List[int]) -> str:
     bit_string = ""
     for v in vs:
         bs = "{0:b}".format(v)
-        bit_string += "0" * (8 - len(bs)) + bs
+        bit_string += "0" * (3 * 8 - len(bs)) + bs
     return " ".join([bit_string[i : i + 4] for i in range(0, len(bit_string), 4)])
 
 
@@ -365,12 +406,13 @@ if __name__ == "__main__":
 
     errs = sc = d1 = d2 = 0
     def cb(channel):
-        global sc, d1, d2
+        global sc, d1, d2, errs
         sc += 1
         try:
             d = adc_reader.read()
         except CRCError:
             errs += 1
+            return
         d1 += d[2]
         d2 += d[3]
         print(d[2], d[3])
