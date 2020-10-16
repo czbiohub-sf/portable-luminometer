@@ -176,7 +176,7 @@ class ADS131M08Reader(ADCReader):
             print('RESET NOT ACCEPTED')
 
         self.write_register(
-            MODE_ADDR, CLEAR_RESET_MASK | WLEN_24_MASK | SPI_TIMEOUT_MASK | DRDY_HIZ_OPEN_COLLECT | DRDY_FMT_PULSE_MASK | RX_CRC_EN_MASK,
+            MODE_ADDR, CLEAR_RESET_MASK | WLEN_24_MASK | SPI_TIMEOUT_MASK | DRDY_HIZ_OPEN_COLLECT | DRDY_FMT_PULSE_MASK# | RX_CRC_EN_MASK,
         )
         self.write_register(CFG_ADDR, GLOBAL_CHOP_EN_MASK | DEFAULT_CHOP_DELAY_MASK)
         self.write_register(
@@ -214,7 +214,7 @@ class ADS131M08Reader(ADCReader):
         if not crc_check(res):
             raise CRCError(f"CRC CHECK FAILED ON read_register({register_addr}, {num_registers})")
 
-        return res  # self.combine_frame(res)
+        return res
 
     def read(self) -> List[float]:
         """
@@ -364,7 +364,7 @@ def bits(vs: List[int]) -> str:
     bit_string = ""
     for v in vs:
         bs = "{0:b}".format(v)
-        bit_string += "0" * (3 * 8 - len(bs)) + bs
+        bit_string += "0" * (8 - len(bs)) + bs
     return " ".join([bit_string[i : i + 4] for i in range(0, len(bit_string), 4)])
 
 
