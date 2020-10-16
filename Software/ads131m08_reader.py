@@ -74,6 +74,7 @@ ALL_CH_ENABLE_MASK = 0b11111111 << 8
 CH_2_3_ENABLE_MASK = 0b00001100 << 8
 OSR_16256_MASK = 0b111 << 2
 OSR_8192_MASK = 0b110 << 2
+OSR_4096_MASK = 0b101 << 2
 # The datasheet is a bit confusing with regards to the chrystal oscillator.
 # For the luminometer design, we give the ADC the SCLK from the master SPI.
 # Therefore, we enable the XTAL_OSC_DISABLE bit of the clock register
@@ -150,7 +151,7 @@ class ADS131M08Reader(ADCReader):
         channel_enable_mask = 0b00000000
         for chl in channels:
             if chl > 7 or chl < 0:
-                raise CRCError(
+                raise RuntimeError(
                     "Channels must be between 0 and 7 inclusive, corresponding to the channels on the ADC"
                 )
             channel_enable_mask |= 0b1 << chl
@@ -166,16 +167,17 @@ class ADS131M08Reader(ADCReader):
         Sets the necessary settings for the ADS131M08, mostly hardcoded for the ulc-luminometer-project. See the datasheet
         for information about each of the settings.
 
-        channel_enable_mask is the mask of channels to enable. It is a byte of values (1 if that channel is enabled, else 0),
-        left-shifted by 8 positions.
+        params:
+            channel_enable_mask: is the mask of channels to enable. It is a byte of values (1 if that channel is enabled, else 0),
+                                 left-shifted by 8 positions.
+
         e.g. channel_enable_mask == 0b00001100 << 8 would enable channels 2 and 3
         """
         # see 8.5.1.10.2
         resp = self.write(RESET_OPCODE)
         time.sleep(5e-6)
         if resp[0] != 0xFF28 << 8:
-            # TODO: Cleanup, and what to do after failed reset?
-            print("RESET NOT ACCEPTED")
+            print("RESET NOT ACCEPTED; Continuing anyways")
 
         self.write_register(
             MODE_ADDR,
@@ -194,21 +196,24 @@ class ADS131M08Reader(ADCReader):
         self.write_register(
             CLOCK_ADDR,
             channel_enable_mask
-            | OSR_8192_MASK
+            | OSR_4096_MASK
             | PWR_HIGH_RES_MASK
             | XTAL_OSC_DISABLE_MASK,
         )
 
     def read_register(self, register_addr: int, num_registers: int = 1) -> List[float]:
-        """
-        params
-                register_addr:     16-bit register address mask
-                num_registers:     number of consecutive registers to read
+        return crc_exponential_backoff(self._read_register, register_addr, num_registers)
 
-        Read from register given at the register address
+    def _read_register(self, register_addr: int, num_registers: int = 1) -> List[float]:
+        """
+        Read from register given at the register address (8.5.1.10.7)
+
+        params:
+                register_addr: 16-bit register address mask
+                num_registers: number of consecutive registers to read
         """
         if num_registers < 1:
-            return
+            return []
 
         shift_value = self.bits_per_word - 16
         register_shift = 7
@@ -230,14 +235,19 @@ class ADS131M08Reader(ADCReader):
             bytes_to_read = self.bytes_per_word * (2 + num_registers)
 
         res = self.spi.readbytes(bytes_to_read)
-        if not crc_check(res):
+        if not self.crc_check(res):
             raise CRCError(
                 f"CRC CHECK FAILED ON read_register({register_addr}, {num_registers})"
             )
 
+        # We do not check the status bit here, because RREG command does not return the STATUS byte
+        res = self.combine_frame(res)
         return res
 
     def read(self) -> List[float]:
+        return crc_exponential_backoff(self._read)
+
+    def _read(self) -> List[float]:
         """
         Read all 8 ADC channels, and return the voltages in a list.
         
@@ -257,24 +267,32 @@ class ADS131M08Reader(ADCReader):
         self.spi.writebytes2(null_cmd_frame)
         res = self.spi.readbytes(self.bytes_per_frame)
 
-        if not crc_check(res):
-            raise CRCError(f"CRC CHECK FAILED ON read")
+        if not self.crc_check(res):
+            raise CRCError(f"CRC CHECK FAILED ON read()")
+
+        res = self.combine_frame(res)
+
+        status_word = res[0]
+        if status_word & STATUS_CRC_ERR:
+            raise CRCError(
+                f"CRC CHECK FAILED ON DATA WRITTEN TO ADC FROM read()"
+            )
 
         # ADC data is returned in Two's Complement format; see Datasheet 8.5.1.9
         for i in range(1, 9):
             res[i] = twos_complement(res[i], 24)
 
-        # Combine bytes back into words of bytes_per_word length before returning.
-        data = self.combine_frame(res)
-        adc_data = [self.adc_val_to_voltage(v) for v in data[1:9]]
-
+        adc_data = [self.adc_val_to_voltage(v) for v in res[1:9]]
         return adc_data
 
     def write_register(self, register_addr: int, data: int) -> List[int]:
+        return crc_exponential_backoff(self._write_register, register_addr, data)
+
+    def _write_register(self, register_addr: int, data: int) -> List[int]:
         """
-        params
-                register_addr:     16-bit register address mask
-                data:              data to write
+        params:
+                register_addr: 16-bit register address mask
+                data:          list of bytes of data to write
 
         Datasheet 8.5.1.10.8
         The ADS write command is 0b011a aaaa annn nnnn, where a aaaa a is the
@@ -304,22 +322,31 @@ class ADS131M08Reader(ADCReader):
         self.spi.writebytes2(cmd_frame)
         res = self.spi.readbytes(self.bytes_per_frame)
 
-        if not crc_check(res):
+        if not self.crc_check(res):
             raise CRCError(
-                f"CRC CHECK FAILED ON DATA READ FROM ADC: write_register({register_addr}, {data})"
+                f"CRC CHECK FAILED ON write_register({register_addr}, {data})"
             )
 
         res = self.combine_frame(res)
 
         status_word = res[0]
         if status_word & STATUS_CRC_ERR:
-            print(
-                f"CRC CHECK FAILED ON DATA WRITTEN TO ADC: write_register({register_addr}, {data})"
+            raise CRCError(
+                f"CRC CHECK FAILED ON DATA WRITTEN FROM write_register({register_addr}, {data})"
             )
 
         return res
 
     def write(self, cmd: int) -> List[int]:
+        return crc_exponential_backoff(self._write, cmd)
+
+    def _write(self, cmd: int) -> List[int]:
+        """
+        Write a command to the ADC. Used for RESET commands, for example. See datasheet section 8.5.1.10.
+
+        params:
+                cmd: 16-bit command
+        """
         shift_value = self.bits_per_word - 16
 
         cmd = cmd << shift_value
@@ -329,7 +356,20 @@ class ADS131M08Reader(ADCReader):
 
         self.spi.writebytes2(cmd_frame)
         time.sleep(10e-6)
-        res = self.combine_frame(self.spi.readbytes(self.bytes_per_frame))
+        res = self.spi.readbytes(self.bytes_per_frame)
+
+        if not self.crc_check(res):
+            raise CRCError(
+                f"CRC CHECK FAILED ON write({cmd})"
+            )
+
+        res = self.combine_frame(res)
+
+        status_word = res[0]
+        if status_word & STATUS_CRC_ERR:
+            raise CRCError(
+                f"CRC CHECK FAILED ON DATA WRITTEN FROM write({cmd})"
+            )
 
         return res
 
@@ -373,39 +413,67 @@ class ADS131M08Reader(ADCReader):
             adc_val -= 0xFFFFFF
         return 1.2 * adc_val / (2 ** 24)
 
-
-# Helper functions for manipulating bytes, performing CRC checks, e.t.c.
-def bytes_to_readable(res, bytes_per_word=3) -> List[str]:
-    return [
-        bits(res[i : i + bytes_per_word]) for i in range(0, len(res), bytes_per_word)
-    ]
-
-
-def crc_check(d: List[int]) -> bool:
-    # The last 24-bit word of d is the 16-bit CRC, with 8 bits of 0 padding
-    # on the LSB. The CRC is on the first 9 words of the communication frame
-    return crcb(*d[:-3]) == combine_bytes(*d[-3:-1])
+    def crc_check(self, d: List[int]) -> bool:
+        """
+        Perform a CRC check on the received communication frame.
+        See 8.3.13, 8.5.1.7
+        The last 24-bit word of d is the 16-bit CRC, with 8 bits of 0 padding
+        on the LSB. The CRC is on the first 9 words of the communication frame
+        """
+        return crcb(*d[:-3]) == combine_bytes(*d[-3:-1])
 
 
 def combine_bytes(*byte_args: int) -> int:
     return int.from_bytes(byte_args, byteorder="big")
 
 
-def bits(vs: List[int]) -> str:
-    """
-    vs is a list of bytes (i.e. integers in the range [0, 255])
-    """
-    bit_string = ""
-    for v in vs:
-        bs = "{0:b}".format(v)
-        bit_string += "0" * (8 - len(bs)) + bs
-    return " ".join([bit_string[i : i + 4] for i in range(0, len(bit_string), 4)])
-
-
 def twos_complement(input_value: int, num_bits: int) -> int:
-    """Calculates a two's complement integer from the given input value's bits."""
+    """ Calculates a two's complement integer from the given input value's bits """
     mask = 2 ** (num_bits - 1)
     return -(input_value & mask) + (input_value & ~mask)
+
+
+def bytes_to_readable(res) -> List[str]:
+    return [
+        to_printable_bits(word) for word in res
+    ]
+
+
+def to_printable_bits(v: int) -> str:
+    """ vs is a list of bytes (i.e. integers in the range [0, 255]) """
+    bs = "{0:b}".format(v)
+    bs = "0" * (24 - len(bs)) + bs
+    return " ".join([bs[i : i + 4] for i in range(0, len(bs), 4)])
+
+
+def crc_exponential_backoff(func, *args, **kwargs):
+    """
+    Errors can occur in digital communications; this is no exception. Although I expect
+    that communication errors will be few and far between, they can occur, and considering
+    the application of this project, best practices should be followed.
+
+    Exponential Backoff is a common (and very simple) algorithm for this type of application,
+    where there may be time-dependent influences (such as another device on the SPI lines).
+
+    Here, the maximum wait time is 0.001 * (1 + 2 + 4 + 8) = 0.015 s (plus time to execute func.
+    Our sample frequency will be in the range of 10 - 20 Hz, so that is a period of 0.05 to 0.1 s.
+    We want to finish our backoff before the next sample, as to not throw off timing for the
+    entire device.
+
+    params:
+            func: function which communicates with ADC, assumed to throw a CRCError
+            args, kwargs: arguments and keyword arguments for func
+    """
+    err = None
+    retries = 4
+    while retries > 0:
+        try:
+            return func(*args, **kwargs)
+        except CRCError as e:
+            time.sleep(0.001 * 2 ** (4 - retries))
+            retries -= 1
+            err = e
+    raise err
 
 
 if __name__ == "__main__":
