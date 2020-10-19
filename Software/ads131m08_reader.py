@@ -35,7 +35,7 @@ import RPi.GPIO as GPIO
 from typing import List
 
 from crc import crcb
-from .consts import *
+from consts import *
 from adc_reader import ADCReader
 
 # Set gpio pin numbering to the gpio pin numbers on the raspberry pi
