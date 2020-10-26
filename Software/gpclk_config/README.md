@@ -6,7 +6,7 @@ We compile the `dts` to `bin` and move it to the `/boot` folder with the followi
 
 `sudo dtc -I dts -O dtb -o /boot/dt-blob.bin dt-blob.dts`
 
-On reboot, the `dt-blob.bin` file should run and we should have a 1 MHz clock on `GPCLK0`, which translates to [GPIO 4, pin 7](https://pinout.xyz/pinout/gpclk).
+On reboot, the `dt-blob.bin` file should run and we should have a 488 kHz clock on `GPCLK0`, which translates to [GPIO 4, pin 7](https://pinout.xyz/pinout/gpclk).
 
 ## Explanation / Sources
 
@@ -21,6 +21,6 @@ clock_routing {
      clock@GPCLK0 { pll = "PLLA"; chan = "APER"; };
 };
 clock_setup {
-  clock@GPCLK0 { freq = <1000000>; };
+  clock@GPCLK0 { freq = <488000>; };
 };
 ```
