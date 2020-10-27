@@ -1,6 +1,13 @@
 # ADC Driver
 
 
+## Setup
+
+- Run `pip3 install -r requirements.txt` from the root of this project
+- Follow the instructions in `gpclk_configi/README.md`
+
+## Contents
+
 `gpclk_config/` - contains the `dt-blob.dts` file required to run the ADC. See the README for instructions on setting up the Raspberry Pi.
 
 `adc_reader.py` - defines the `ADCReader` abstract base class, includes the basic operations for ADC drivers for this project
