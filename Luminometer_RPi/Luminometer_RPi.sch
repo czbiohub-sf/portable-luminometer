@@ -17,63 +17,18 @@ Text Notes 1725 5475 0    118  ~ 24
 Mounting Holes
 Text Notes 2150 2000 0    118  ~ 24
 RPi GPIO
-Text Label 800  4150 0    60   ~ 0
-GND
-Wire Wire Line
-	2000 4150 800  4150
-Text Label 800  3450 0    60   ~ 0
-GND
-Wire Wire Line
-	2000 3450 800  3450
-Text Label 800  2650 0    60   ~ 0
-GND
-Wire Wire Line
-	2000 2650 800  2650
 Text Label 800  2250 0    60   ~ 0
 P3V3_HAT
 Wire Wire Line
 	2000 2250 800  2250
 Wire Wire Line
-	3200 2850 4400 2850
-Wire Wire Line
 	3200 3150 4400 3150
-Wire Wire Line
-	3200 3650 4400 3650
-Wire Wire Line
-	3200 3850 4400 3850
-Text Label 4400 2850 2    60   ~ 0
-GND
 Text Label 4400 3150 2    60   ~ 0
 GND
-Text Label 4400 3650 2    60   ~ 0
-GND
-Text Label 4400 3850 2    60   ~ 0
-GND
-Text Label 4400 2450 2    60   ~ 0
-GND
-Wire Wire Line
-	3200 2450 4400 2450
-Text Label 4400 2350 2    60   ~ 0
-P5V_HAT
-Wire Wire Line
-	3200 2350 4400 2350
 Text Label 4400 2250 2    60   ~ 0
 P5V_HAT
 Wire Wire Line
 	3200 2250 4400 2250
-Text Notes 850  1250 0    100  ~ 0
-This is based on the official Raspberry Pi spec to be able to call an extension board a HAT.\nhttps://github.com/raspberrypi/hats/blob/master/designguide.md
-$Comp
-L raspberrypi_hat:Harting__15120122401000 J1
-U 1 1 5F7C6D43
-P 6775 3100
-F 0 "J1" H 6775 3450 50  0000 C CNN
-F 1 "Harting__15120122401000" H 6775 2750 50  0001 C CNN
-F 2 "Luminometer_OPT101_Footprints:Harting_15210122401000" H 6725 3150 50  0001 C CNN
-F 3 "" H 6725 3150 50  0001 C CNN
-	1    6775 3100
-	1    0    0    -1  
-$EndComp
 Text Label 6050 2850 0    50   ~ 0
 ADC_~CE
 Wire Wire Line
@@ -141,34 +96,18 @@ Text Label 800  3350 0    50   ~ 0
 SPI0_SCLK
 Wire Wire Line
 	800  3350 2000 3350
-Text Label 800  3050 0    50   ~ 0
+Text Label 8175 3075 2    50   ~ 0
 P3V3_HAT
-Wire Wire Line
-	800  3050 2000 3050
-Text Label 7450 2950 2    50   ~ 0
-P3V3_HAT
-Wire Wire Line
-	7450 2950 7025 2950
-Text Label 7450 2850 2    50   ~ 0
+Text Label 8175 2700 2    50   ~ 0
 P5V_HAT
-Wire Wire Line
-	7450 2850 7025 2850
 Text Label 4400 3350 2    50   ~ 0
 INKY_~CE
-Wire Wire Line
-	3200 3350 4400 3350
-Text Label 4375 4150 2    50   ~ 0
+Text Label 4375 2650 2    50   ~ 0
 ADC_~DRDY
-Wire Wire Line
-	4375 4150 3200 4150
-Text Label 4375 3450 2    50   ~ 0
+Text Label 4400 3450 2    50   ~ 0
 ADC_~CE
-Wire Wire Line
-	4375 3450 3200 3450
 Text Label 800  2550 0    50   ~ 0
 GPCLK
-Wire Wire Line
-	800  2550 2000 2550
 Text Label 7075 3450 0    50   ~ 0
 GND
 $Comp
@@ -257,6 +196,179 @@ F 1 "MountingHole" H 2525 6905 50  0000 L CNN
 F 2 "MountingHole:MountingHole_2.2mm_M2" H 2425 6950 50  0001 C CNN
 F 3 "~" H 2425 6950 50  0001 C CNN
 	1    2425 6950
+	1    0    0    -1  
+$EndComp
+$Comp
+L Mechanical:MountingHole H8
+U 1 1 5F90ED96
+P 3250 6950
+F 0 "H8" H 3350 6996 50  0000 L CNN
+F 1 "MountingHole" H 3350 6905 50  0000 L CNN
+F 2 "MountingHole:MountingHole_2.5mm" H 3250 6950 50  0001 C CNN
+F 3 "~" H 3250 6950 50  0001 C CNN
+	1    3250 6950
+	1    0    0    -1  
+$EndComp
+$Comp
+L Device:Ferrite_Bead_Small FB1
+U 1 1 5F962070
+P 7625 2700
+F 0 "FB1" V 7388 2700 50  0000 C CNN
+F 1 "Ferrite_Bead_Small" V 7479 2700 50  0000 C CNN
+F 2 "Resistor_SMD:R_0603_1608Metric" V 7555 2700 50  0001 C CNN
+F 3 "~" H 7625 2700 50  0001 C CNN
+F 4 "Digikey" V 7625 2700 50  0001 C CNN "Supplier"
+F 5 "732-1589-1-ND" V 7625 2700 50  0001 C CNN "Part Number "
+F 6 "" V 7625 2700 50  0001 C CNN "Field6"
+	1    7625 2700
+	0    1    1    0   
+$EndComp
+$Comp
+L Device:Ferrite_Bead_Small FB2
+U 1 1 5F966FB4
+P 7625 3075
+F 0 "FB2" V 7388 3075 50  0000 C CNN
+F 1 "Ferrite_Bead_Small" V 7479 3075 50  0000 C CNN
+F 2 "Resistor_SMD:R_0603_1608Metric" V 7555 3075 50  0001 C CNN
+F 3 "~" H 7625 3075 50  0001 C CNN
+F 4 "Digikey" V 7625 3075 50  0001 C CNN "Supplier"
+F 5 "732-1589-1-ND" V 7625 3075 50  0001 C CNN "Part Number"
+	1    7625 3075
+	0    1    1    0   
+$EndComp
+$Comp
+L LuminometerCustomPartLib:EG4627CT-ND SW1
+U 1 1 5F96BE09
+P 5625 5275
+F 0 "SW1" V 5579 5423 50  0000 L CNN
+F 1 "EG4627CT-ND" V 5670 5423 50  0000 L CNN
+F 2 "project_footprints:EG4627CT-ND" H 5625 5475 50  0001 C CNN
+F 3 "~" H 5625 5475 50  0001 C CNN
+	1    5625 5275
+	0    1    1    0   
+$EndComp
+$Comp
+L LuminometerCustomPartLib:EG4627CT-ND SW2
+U 1 1 5F96FDF3
+P 6525 5275
+F 0 "SW2" V 6479 5423 50  0000 L CNN
+F 1 "EG4627CT-ND" V 6570 5423 50  0000 L CNN
+F 2 "project_footprints:EG4627CT-ND" H 6525 5475 50  0001 C CNN
+F 3 "~" H 6525 5475 50  0001 C CNN
+	1    6525 5275
+	0    1    1    0   
+$EndComp
+$Comp
+L LuminometerCustomPartLib:EG4627CT-ND SW3
+U 1 1 5F970E01
+P 7400 5275
+F 0 "SW3" V 7354 5423 50  0000 L CNN
+F 1 "EG4627CT-ND" V 7445 5423 50  0000 L CNN
+F 2 "project_footprints:EG4627CT-ND" H 7400 5475 50  0001 C CNN
+F 3 "~" H 7400 5475 50  0001 C CNN
+	1    7400 5275
+	0    1    1    0   
+$EndComp
+Text Label 5625 5000 0    50   ~ 0
+B1
+Wire Wire Line
+	5625 5000 5625 5075
+Text Label 5625 5550 3    60   ~ 0
+GND
+Wire Wire Line
+	5625 5475 5625 5550
+Text Label 6525 5525 3    60   ~ 0
+GND
+Wire Wire Line
+	6525 5475 6525 5525
+Text Label 7400 5525 3    60   ~ 0
+GND
+Wire Wire Line
+	7400 5475 7400 5525
+Text Label 6525 5000 0    50   ~ 0
+B2
+Wire Wire Line
+	6525 5000 6525 5075
+Text Label 7400 5000 0    50   ~ 0
+B3
+Wire Wire Line
+	7400 5000 7400 5075
+Text Label 1775 3850 0    50   ~ 0
+B1
+Wire Wire Line
+	1775 3850 2000 3850
+Text Label 1775 3950 0    50   ~ 0
+B2
+Wire Wire Line
+	1775 3950 2000 3950
+Text Label 1775 4050 0    50   ~ 0
+B3
+Wire Wire Line
+	1775 4050 2000 4050
+$Comp
+L LuminometerCustomPartLib:Harting_15110122601000 J1
+U 1 1 5F98726C
+P 6775 3100
+F 0 "J1" H 6775 3567 50  0000 C CNN
+F 1 "Harting_15110122601000" H 6775 3476 50  0000 C CNN
+F 2 "Luminometer_OPT101_Footprints:Harting_15110122601000" H 6725 3150 50  0001 C CNN
+F 3 "" H 6725 3150 50  0001 C CNN
+	1    6775 3100
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	7025 2850 7525 2850
+Wire Wire Line
+	7525 2850 7525 2700
+Wire Wire Line
+	7725 2700 8175 2700
+Wire Wire Line
+	7025 2950 7525 2950
+Wire Wire Line
+	7525 2950 7525 3075
+Wire Wire Line
+	7725 3075 8175 3075
+Wire Wire Line
+	800  2550 2000 2550
+NoConn ~ 3200 2550
+NoConn ~ 3200 2750
+NoConn ~ 3200 2950
+NoConn ~ 3200 3050
+NoConn ~ 2000 2350
+NoConn ~ 2000 2450
+NoConn ~ 2000 3050
+NoConn ~ 2000 3550
+NoConn ~ 2000 3750
+NoConn ~ 3200 4150
+NoConn ~ 3200 4050
+NoConn ~ 3200 3950
+NoConn ~ 3200 3750
+NoConn ~ 3200 3550
+Wire Wire Line
+	4400 3350 3200 3350
+Wire Wire Line
+	4375 2650 3200 2650
+NoConn ~ 3200 2350
+NoConn ~ 3200 3250
+NoConn ~ 3200 2850
+NoConn ~ 3200 2450
+NoConn ~ 2000 2650
+NoConn ~ 2000 3450
+NoConn ~ 2000 4150
+NoConn ~ 3200 3850
+NoConn ~ 3200 3650
+Wire Wire Line
+	4400 3450 3200 3450
+NoConn ~ 2000 3650
+$Comp
+L Mechanical:MountingHole H9
+U 1 1 5F9FCDCE
+P 1625 7400
+F 0 "H9" H 1725 7446 50  0000 L CNN
+F 1 "MountingHole" H 1725 7355 50  0000 L CNN
+F 2 "MountingHole:MountingHole_2.7mm_M2.5" H 1625 7400 50  0001 C CNN
+F 3 "~" H 1625 7400 50  0001 C CNN
+	1    1625 7400
 	1    0    0    -1  
 $EndComp
 $EndSCHEMATC

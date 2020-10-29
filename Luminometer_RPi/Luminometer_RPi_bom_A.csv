@@ -1,0 +1,21 @@
+Component,Description,Part,References,Value,Footprint,Quantity Per PCB,Build Quantity,Datasheet
+1,"Ferrite bead, small symbol",Ferrite_Bead_Small,FB1 FB2,Ferrite_Bead_Small,R_0603_1608Metric,2,12,~
+2,,Harting_15110122601000,J1,Harting_15110122601000,Harting_15110122601000,1,6,
+3,,RPi_SockerHeader,J2,RPi_SockerHeader,PinSocket_2x20_P2.54mm_Vertical,1,6,
+4,"Push button switch, generic, two pins",EG4627CT-ND,SW1 SW2 SW3,EG4627CT-ND,EG4627CT-ND,3,18,~
+
+
+
+
+
+Component Groups:,4
+Component Count:,7
+Fitted Components:,7
+Number of PCBs:,6
+Total components:,42
+Schematic Version:,A
+Schematic Date:,
+PCB Variant:,default
+BoM Date:,"Wednesday, October 28, 2020 at 10:44:03 PM"
+Schematic Source:,Luminometer_RPi.sch
+KiCad Version:,Eeschema (5.1.5-0)

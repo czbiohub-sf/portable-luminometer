@@ -1,27 +1,52 @@
 EESchema-LIBRARY Version 2.4
 #encoding utf-8
 #
-# Mechanical_MountingHole
+# Device_Ferrite_Bead_Small
 #
-DEF Mechanical_MountingHole H 0 40 Y Y 1 F N
-F0 "H" 0 200 50 H V C CNN
-F1 "Mechanical_MountingHole" 0 125 50 H V C CNN
-F2 "" 0 0 50 H I C CNN
+DEF Device_Ferrite_Bead_Small FB 0 0 N Y 1 F N
+F0 "FB" 75 50 50 H V L CNN
+F1 "Device_Ferrite_Bead_Small" 75 -50 50 H V L CNN
+F2 "" -70 0 50 V I C CNN
 F3 "" 0 0 50 H I C CNN
 $FPLIST
- MountingHole*
+ Inductor_*
+ L_*
+ *Ferrite*
 $ENDFPLIST
 DRAW
-C 0 0 50 0 1 50 N
+P 2 0 1 0 0 -50 0 -31 N
+P 2 0 1 0 0 35 0 51 N
+P 5 0 1 0 -72 11 -44 59 72 -8 44 -56 -72 11 N
+X ~ 1 0 100 50 D 50 50 1 1 P
+X ~ 2 0 -100 50 U 50 50 1 1 P
 ENDDRAW
 ENDDEF
 #
-# raspberrypi_hat_Harting__15120122401000
+# LuminometerCustomPartLib_EG4627CT-ND
 #
-DEF raspberrypi_hat_Harting__15120122401000 J 0 40 Y N 1 F N
+DEF LuminometerCustomPartLib_EG4627CT-ND SW 0 40 N N 1 F N
+F0 "SW" 50 100 50 H V L CNN
+F1 "LuminometerCustomPartLib_EG4627CT-ND" 0 -60 50 H V C CNN
+F2 "project_footprints:EG4627CT-ND" 0 200 50 H I C CNN
+F3 "" 0 200 50 H I C CNN
+F4 "Digikey" 0 0 50 H V C CNN "Supplier"
+F5 "EG4627CT-ND" 0 0 50 H V C CNN "Part Number"
+DRAW
+C -80 0 20 0 1 0 N
+C 80 0 20 0 1 0 N
+P 2 0 1 0 0 50 0 120 N
+P 2 0 1 0 100 50 -100 50 N
+X 1 1 -200 0 100 R 50 50 0 1 P
+X 2 2 200 0 100 L 50 50 0 1 P
+ENDDRAW
+ENDDEF
+#
+# LuminometerCustomPartLib_Harting_15110122601000
+#
+DEF LuminometerCustomPartLib_Harting_15110122601000 J 0 40 Y N 1 F N
 F0 "J" 0 350 50 H V C CNN
-F1 "raspberrypi_hat_Harting__15120122401000" 0 -350 50 H V C CNN
-F2 "project_footprints:Harting_15120122401000" -50 50 50 H I C CNN
+F1 "LuminometerCustomPartLib_Harting_15110122601000" 0 -350 50 H V C CNN
+F2 "Luminometer_OPT101_Footprints:Harting_15110122601000" -50 50 50 H I C CNN
 F3 "" -50 50 50 H I C CNN
 $FPLIST
  Connector*:*_2x??_*
@@ -52,6 +77,21 @@ X Pin_b3 b3 250 50 150 L 50 50 1 1 P
 X Pin_b4 b4 250 -50 150 L 50 50 1 1 P
 X Pin_b5 b5 250 -150 150 L 50 50 1 1 P
 X Pin_b6 b6 250 -250 150 L 50 50 1 1 P
+ENDDRAW
+ENDDEF
+#
+# Mechanical_MountingHole
+#
+DEF Mechanical_MountingHole H 0 40 Y Y 1 F N
+F0 "H" 0 200 50 H V C CNN
+F1 "Mechanical_MountingHole" 0 125 50 H V C CNN
+F2 "" 0 0 50 H I C CNN
+F3 "" 0 0 50 H I C CNN
+$FPLIST
+ MountingHole*
+$ENDFPLIST
+DRAW
+C 0 0 50 0 1 50 N
 ENDDRAW
 ENDDEF
 #
