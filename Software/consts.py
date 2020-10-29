@@ -30,7 +30,7 @@ CH_2_3_ENABLE_MASK = 0b00001100 << 8
 OSR_16256_MASK = 0b111 << 2
 OSR_8192_MASK = 0b110 << 2
 OSR_4096_MASK = 0b101 << 2
-# The datasheet is a bit confusing with regards to the chrystal oscillator.
+# The datasheet is a bit confusing with regards to the crystal oscillator.
 # For the luminometer design, we give the ADC a GPCLK signal
 # Therefore, we enable the XTAL_OSC_DISABLE bit of the clock register
 # I found this a bit unclear, see the link from the chip developer below
