@@ -204,7 +204,7 @@ U 1 1 5F90ED96
 P 3250 6950
 F 0 "H8" H 3350 6996 50  0000 L CNN
 F 1 "MountingHole" H 3350 6905 50  0000 L CNN
-F 2 "MountingHole:MountingHole_2.2mm_M2" H 3250 6950 50  0001 C CNN
+F 2 "MountingHole:MountingHole_2.5mm" H 3250 6950 50  0001 C CNN
 F 3 "~" H 3250 6950 50  0001 C CNN
 	1    3250 6950
 	1    0    0    -1  
@@ -361,10 +361,10 @@ Wire Wire Line
 	4400 3450 3200 3450
 NoConn ~ 2000 3650
 $Comp
-L Mechanical:MountingHole H?
+L Mechanical:MountingHole H9
 U 1 1 5F9FCDCE
 P 1625 7400
-F 0 "H?" H 1725 7446 50  0000 L CNN
+F 0 "H9" H 1725 7446 50  0000 L CNN
 F 1 "MountingHole" H 1725 7355 50  0000 L CNN
 F 2 "MountingHole:MountingHole_2.7mm_M2.5" H 1625 7400 50  0001 C CNN
 F 3 "~" H 1625 7400 50  0001 C CNN
