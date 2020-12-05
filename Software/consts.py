@@ -36,7 +36,7 @@ OSR_4096_MASK = 0b101 << 2
 # I found this a bit unclear, see the link from the chip developer below
 # https://e2e.ti.com/support/data-converters/f/73/t/905809
 XTAL_OSC_DISABLE_MASK = 0b1 << 7
-EXTERNAL_REF_MASK = 0b0 << 6
+EXTERNAL_REF_MASK = 0b1 << 6
 PWR_HIGH_RES_MASK = 0b11
 
 # mode register

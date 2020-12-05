@@ -128,6 +128,7 @@ class ADS131M08Reader(ADCReader):
         self.write_register(
             CLOCK_ADDR,
             channel_enable_mask
+            | EXTERNAL_REF_MASK
             | OSR_4096_MASK
             | PWR_HIGH_RES_MASK
             | XTAL_OSC_DISABLE_MASK,
