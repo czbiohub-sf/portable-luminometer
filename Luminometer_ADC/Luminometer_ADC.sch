@@ -346,17 +346,6 @@ F 3 "~" H 10575 3050 50  0001 C CNN
 $EndComp
 Connection ~ 10575 3050
 $Comp
-L Mechanical:MountingHole_Pad H1
-U 1 1 5F30D92E
-P 9850 5075
-F 0 "H1" H 9950 5078 50  0000 L CNN
-F 1 "MountingHole_Pad" H 9950 5033 50  0001 L CNN
-F 2 "MountingHole:MountingHole_3.2mm_M3_Pad" H 9850 5075 50  0001 C CNN
-F 3 "~" H 9850 5075 50  0001 C CNN
-	1    9850 5075
-	1    0    0    -1  
-$EndComp
-$Comp
 L LuminometerCustomPartLib:MICROFC−60035−SMT SiPM1
 U 1 1 5F4B68CC
 P 4000 1775
@@ -645,8 +634,6 @@ Wire Wire Line
 	4150 5625 4150 5675
 Wire Wire Line
 	3625 5975 3625 5625
-Wire Wire Line
-	3625 5625 4150 5625
 Wire Wire Line
 	3625 6175 3625 6225
 Wire Wire Line
@@ -1394,31 +1381,6 @@ F 3 "" H 3800 3375 50  0001 C CNN
 $EndComp
 Wire Wire Line
 	3800 3325 3800 3375
-$Comp
-L Mechanical:MountingHole_Pad H2
-U 1 1 6163C291
-P 10175 5075
-F 0 "H2" H 10275 5078 50  0000 L CNN
-F 1 "MountingHole_Pad" H 10275 5033 50  0001 L CNN
-F 2 "MountingHole:MountingHole_3.2mm_M3_Pad" H 10175 5075 50  0001 C CNN
-F 3 "~" H 10175 5075 50  0001 C CNN
-	1    10175 5075
-	1    0    0    -1  
-$EndComp
-$Comp
-L Mechanical:MountingHole_Pad H3
-U 1 1 6163C601
-P 10500 5075
-F 0 "H3" H 10600 5078 50  0000 L CNN
-F 1 "MountingHole_Pad" H 10600 5033 50  0001 L CNN
-F 2 "MountingHole:MountingHole_3.2mm_M3_Pad" H 10500 5075 50  0001 C CNN
-F 3 "~" H 10500 5075 50  0001 C CNN
-	1    10500 5075
-	1    0    0    -1  
-$EndComp
-NoConn ~ 10500 5175
-NoConn ~ 10175 5175
-NoConn ~ 9850 5175
 Text Notes 5675 1900 0    39   ~ 0
 Precision
 Text Notes 5675 3300 0    39   ~ 0
@@ -1449,65 +1411,10 @@ F 3 "~" H 10775 3550 50  0001 C CNN
 	0    1    1    0   
 $EndComp
 Connection ~ 10575 3550
-$Comp
-L Mechanical:MountingHole_Pad H4
-U 1 1 616FF489
-P 9850 5525
-F 0 "H4" H 9950 5528 50  0000 L CNN
-F 1 "MountingHole_Pad" H 9950 5483 50  0001 L CNN
-F 2 "MountingHole:MountingHole_2.5mm" H 9850 5525 50  0001 C CNN
-F 3 "~" H 9850 5525 50  0001 C CNN
-	1    9850 5525
-	1    0    0    -1  
-$EndComp
 Text Notes 9625 5100 2    50   ~ 0
 PCB
 Text Notes 9625 5525 2    50   ~ 0
 Tube holder
-$Comp
-L Mechanical:MountingHole_Pad H5
-U 1 1 61761F5F
-P 10175 5525
-F 0 "H5" H 10275 5528 50  0000 L CNN
-F 1 "MountingHole_Pad" H 10275 5483 50  0001 L CNN
-F 2 "MountingHole:MountingHole_2.5mm" H 10175 5525 50  0001 C CNN
-F 3 "~" H 10175 5525 50  0001 C CNN
-	1    10175 5525
-	1    0    0    -1  
-$EndComp
-$Comp
-L Mechanical:MountingHole_Pad H6
-U 1 1 617622BC
-P 10500 5525
-F 0 "H6" H 10600 5528 50  0000 L CNN
-F 1 "MountingHole_Pad" H 10600 5483 50  0001 L CNN
-F 2 "MountingHole:MountingHole_2.5mm" H 10500 5525 50  0001 C CNN
-F 3 "~" H 10500 5525 50  0001 C CNN
-	1    10500 5525
-	1    0    0    -1  
-$EndComp
-$Comp
-L Mechanical:MountingHole_Pad H7
-U 1 1 61762E6B
-P 9850 5975
-F 0 "H7" H 9950 5978 50  0000 L CNN
-F 1 "MountingHole_Pad" H 9950 5933 50  0001 L CNN
-F 2 "MountingHole:MountingHole_2.2mm_M2" H 9850 5975 50  0001 C CNN
-F 3 "~" H 9850 5975 50  0001 C CNN
-	1    9850 5975
-	1    0    0    -1  
-$EndComp
-$Comp
-L Mechanical:MountingHole_Pad H8
-U 1 1 617631A2
-P 10175 5975
-F 0 "H8" H 10275 5978 50  0000 L CNN
-F 1 "MountingHole_Pad" H 10275 5933 50  0001 L CNN
-F 2 "MountingHole:MountingHole_2.2mm_M2" H 10175 5975 50  0001 C CNN
-F 3 "~" H 10175 5975 50  0001 C CNN
-	1    10175 5975
-	1    0    0    -1  
-$EndComp
 Text Notes 9600 5975 2    50   ~ 0
 Shutter flags
 Text Label 7300 5850 2    50   ~ 0
@@ -1844,5 +1751,147 @@ F 5 "587-6315-1-ND" H 1050 5750 50  0001 C CNN "Part Number"
 F 6 "0.19" H 1050 5750 50  0001 C CNN "Price"
 	1    1050 5750
 	-1   0    0    -1  
+$EndComp
+Wire Wire Line
+	3625 5625 3750 5625
+$Comp
+L Connector:TestPoint TP17
+U 1 1 5FD30742
+P 6500 5475
+F 0 "TP17" H 6675 5650 50  0000 R CNN
+F 1 "TestPoint" H 6600 5675 50  0001 R CNN
+F 2 "TestPoint:TestPoint_Pad_D1.5mm" H 6700 5475 50  0001 C CNN
+F 3 "~" H 6700 5475 50  0001 C CNN
+	1    6500 5475
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	6500 5475 6250 5475
+$Comp
+L Connector:TestPoint TP15
+U 1 1 5FD40634
+P 3750 5625
+F 0 "TP15" H 3925 5800 50  0000 R CNN
+F 1 "TestPoint" H 3850 5825 50  0001 R CNN
+F 2 "TestPoint:TestPoint_Pad_D1.5mm" H 3950 5625 50  0001 C CNN
+F 3 "~" H 3950 5625 50  0001 C CNN
+	1    3750 5625
+	1    0    0    -1  
+$EndComp
+Connection ~ 3750 5625
+Wire Wire Line
+	3750 5625 4150 5625
+$Comp
+L Connector:TestPoint TP16
+U 1 1 5FD40C16
+P 3925 5925
+F 0 "TP16" H 4100 6100 50  0000 R CNN
+F 1 "TestPoint" H 4025 6125 50  0001 R CNN
+F 2 "TestPoint:TestPoint_Pad_D1.5mm" H 4125 5925 50  0001 C CNN
+F 3 "~" H 4125 5925 50  0001 C CNN
+	1    3925 5925
+	1    0    0    -1  
+$EndComp
+Connection ~ 3925 5925
+$Comp
+L Connector:TestPoint TP14
+U 1 1 5FD40E56
+P 2800 5475
+F 0 "TP14" H 2975 5650 50  0000 R CNN
+F 1 "TestPoint" H 2900 5675 50  0001 R CNN
+F 2 "TestPoint:TestPoint_Pad_D1.5mm" H 3000 5475 50  0001 C CNN
+F 3 "~" H 3000 5475 50  0001 C CNN
+	1    2800 5475
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	2800 5475 2625 5475
+$Comp
+L Mechanical:MountingHole H?
+U 1 1 5FD63B89
+P 9925 5925
+F 0 "H?" H 10025 5971 50  0000 L CNN
+F 1 "MountingHole" H 9675 5800 50  0000 L CNN
+F 2 "MountingHole:MountingHole_2.2mm_M2" H 9925 5925 50  0001 C CNN
+F 3 "~" H 9925 5925 50  0001 C CNN
+	1    9925 5925
+	1    0    0    -1  
+$EndComp
+$Comp
+L Mechanical:MountingHole H?
+U 1 1 5FDB2C55
+P 10325 5925
+F 0 "H?" H 10450 5975 50  0000 C CNN
+F 1 "MountingHole" H 10475 5800 50  0000 C CNN
+F 2 "MountingHole:MountingHole_2.2mm_M2" H 10325 5925 50  0001 C CNN
+F 3 "~" H 10325 5925 50  0001 C CNN
+	1    10325 5925
+	1    0    0    -1  
+$EndComp
+$Comp
+L Mechanical:MountingHole H?
+U 1 1 5FD83D7B
+P 9925 5475
+F 0 "H?" H 10025 5521 50  0000 L CNN
+F 1 "MountingHole" H 9675 5350 50  0000 L CNN
+F 2 "MountingHole:MountingHole_2.7mm_M2.5" H 9925 5475 50  0001 C CNN
+F 3 "~" H 9925 5475 50  0001 C CNN
+	1    9925 5475
+	1    0    0    -1  
+$EndComp
+$Comp
+L Mechanical:MountingHole H?
+U 1 1 5FD83D85
+P 10300 5475
+F 0 "H?" H 10400 5521 50  0000 L CNN
+F 1 "MountingHole" H 10100 5625 50  0000 L CNN
+F 2 "MountingHole:MountingHole_2.7mm_M2.5" H 10300 5475 50  0001 C CNN
+F 3 "~" H 10300 5475 50  0001 C CNN
+	1    10300 5475
+	1    0    0    -1  
+$EndComp
+$Comp
+L Mechanical:MountingHole H?
+U 1 1 5FDB2488
+P 10650 5475
+F 0 "H?" H 10750 5521 50  0000 L CNN
+F 1 "MountingHole" H 10425 5375 50  0000 L CNN
+F 2 "MountingHole:MountingHole_2.7mm_M2.5" H 10650 5475 50  0001 C CNN
+F 3 "~" H 10650 5475 50  0001 C CNN
+	1    10650 5475
+	1    0    0    -1  
+$EndComp
+$Comp
+L Mechanical:MountingHole H?
+U 1 1 5FD74442
+P 10650 5075
+F 0 "H?" H 10750 5121 50  0000 L CNN
+F 1 "MountingHole" H 10525 4925 50  0000 L CNN
+F 2 "MountingHole:MountingHole_2.7mm_M2.5" H 10650 5075 50  0001 C CNN
+F 3 "~" H 10650 5075 50  0001 C CNN
+	1    10650 5075
+	1    0    0    -1  
+$EndComp
+$Comp
+L Mechanical:MountingHole H?
+U 1 1 5FD741C7
+P 10300 5075
+F 0 "H?" H 10400 5121 50  0000 L CNN
+F 1 "MountingHole" H 10100 5250 50  0000 L CNN
+F 2 "MountingHole:MountingHole_2.7mm_M2.5" H 10300 5075 50  0001 C CNN
+F 3 "~" H 10300 5075 50  0001 C CNN
+	1    10300 5075
+	1    0    0    -1  
+$EndComp
+$Comp
+L Mechanical:MountingHole H?
+U 1 1 5FD6335D
+P 9925 5075
+F 0 "H?" H 10025 5121 50  0000 L CNN
+F 1 "MountingHole" H 9675 4925 50  0000 L CNN
+F 2 "MountingHole:MountingHole_2.7mm_M2.5" H 9925 5075 50  0001 C CNN
+F 3 "~" H 9925 5075 50  0001 C CNN
+	1    9925 5075
+	1    0    0    -1  
 $EndComp
 $EndSCHEMATC
