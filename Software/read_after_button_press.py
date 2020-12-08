@@ -34,7 +34,7 @@ import argparse
 import RPi.GPIO as GPIO
 
 from consts import *
-from ads131m08_reader import ADS131M08Reader
+from ads131m08_reader import ADS131M08Reader, bytes_to_readable
 
 
 # Device user input pushbuttons, BCM pins
@@ -45,15 +45,15 @@ BTN_3 = 26
 # Sampling rate of the ADC (488 kHz CLKIN, OSR = 4096, global chop mode. See ADS131m08 datasheet 8.4.2.2)
 SAMPLE_TIME_S = 0.050
 
-__name__ == "__main__":
-	
+if __name__ == "__main__":
+
 	# Parse command line args
 	parser = argparse.ArgumentParser()
 	parser.add_argument('--delay', '-d', type=int, required=True, help="Delay time in seconds")
 	parser.add_argument('--integration', '-i', type=int, required=True, help="Integration time in seconds")
-	parser.add_argumnet('--title','-t',type=str, required=True, help="Title for output file (no extension)")
+	parser.add_argument('--title','-t',type=str, required=True, help="Title for output file (no extension)")
 	args, _ = parser.parse_known_args()
-	
+
 	delayTime_seconds = args.delay
 	integrationTime_seconds = args.integration
 	title = args.title
@@ -103,13 +103,12 @@ __name__ == "__main__":
 			except CRCError:
 				errs += 1
 				return
-			d1 += d[2]
-			d2 += d[3]
-			print(d[2], d[3])
+			print(f"CH0: {d[0]} \t CH1: {d[1]}")
 
 		GPIO.add_event_detect(adc_reader._DRDY, GPIO.FALLING, callback=cb)
 
 		# Wait for button-press,then wait a delay before starting the measurement
+		GPIO.setup(BTN_1, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 		GPIO.wait_for_edge(BTN_1, GPIO.FALLING)
 		print(f'Button pressed. Waiting for {delayTime_seconds} seconds...')
 		time.sleep(delayTime_seconds)
