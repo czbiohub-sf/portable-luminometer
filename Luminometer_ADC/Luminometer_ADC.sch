@@ -1807,10 +1807,10 @@ $EndComp
 Wire Wire Line
 	2800 5475 2625 5475
 $Comp
-L Mechanical:MountingHole H?
+L Mechanical:MountingHole H3
 U 1 1 5FD63B89
 P 9925 5925
-F 0 "H?" H 10025 5971 50  0000 L CNN
+F 0 "H3" H 10025 5971 50  0000 L CNN
 F 1 "MountingHole" H 9675 5800 50  0000 L CNN
 F 2 "MountingHole:MountingHole_2.2mm_M2" H 9925 5925 50  0001 C CNN
 F 3 "~" H 9925 5925 50  0001 C CNN
@@ -1818,10 +1818,10 @@ F 3 "~" H 9925 5925 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L Mechanical:MountingHole H?
+L Mechanical:MountingHole H6
 U 1 1 5FDB2C55
 P 10325 5925
-F 0 "H?" H 10450 5975 50  0000 C CNN
+F 0 "H6" H 10450 5975 50  0000 C CNN
 F 1 "MountingHole" H 10475 5800 50  0000 C CNN
 F 2 "MountingHole:MountingHole_2.2mm_M2" H 10325 5925 50  0001 C CNN
 F 3 "~" H 10325 5925 50  0001 C CNN
@@ -1829,10 +1829,10 @@ F 3 "~" H 10325 5925 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L Mechanical:MountingHole H?
+L Mechanical:MountingHole H2
 U 1 1 5FD83D7B
 P 9925 5475
-F 0 "H?" H 10025 5521 50  0000 L CNN
+F 0 "H2" H 10025 5521 50  0000 L CNN
 F 1 "MountingHole" H 9675 5350 50  0000 L CNN
 F 2 "MountingHole:MountingHole_2.7mm_M2.5" H 9925 5475 50  0001 C CNN
 F 3 "~" H 9925 5475 50  0001 C CNN
@@ -1840,10 +1840,10 @@ F 3 "~" H 9925 5475 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L Mechanical:MountingHole H?
+L Mechanical:MountingHole H5
 U 1 1 5FD83D85
 P 10300 5475
-F 0 "H?" H 10400 5521 50  0000 L CNN
+F 0 "H5" H 10400 5521 50  0000 L CNN
 F 1 "MountingHole" H 10100 5625 50  0000 L CNN
 F 2 "MountingHole:MountingHole_2.7mm_M2.5" H 10300 5475 50  0001 C CNN
 F 3 "~" H 10300 5475 50  0001 C CNN
@@ -1851,10 +1851,10 @@ F 3 "~" H 10300 5475 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L Mechanical:MountingHole H?
+L Mechanical:MountingHole H8
 U 1 1 5FDB2488
 P 10650 5475
-F 0 "H?" H 10750 5521 50  0000 L CNN
+F 0 "H8" H 10750 5521 50  0000 L CNN
 F 1 "MountingHole" H 10425 5375 50  0000 L CNN
 F 2 "MountingHole:MountingHole_2.7mm_M2.5" H 10650 5475 50  0001 C CNN
 F 3 "~" H 10650 5475 50  0001 C CNN
@@ -1862,10 +1862,10 @@ F 3 "~" H 10650 5475 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L Mechanical:MountingHole H?
+L Mechanical:MountingHole H7
 U 1 1 5FD74442
 P 10650 5075
-F 0 "H?" H 10750 5121 50  0000 L CNN
+F 0 "H7" H 10750 5121 50  0000 L CNN
 F 1 "MountingHole" H 10525 4925 50  0000 L CNN
 F 2 "MountingHole:MountingHole_2.7mm_M2.5" H 10650 5075 50  0001 C CNN
 F 3 "~" H 10650 5075 50  0001 C CNN
@@ -1873,10 +1873,10 @@ F 3 "~" H 10650 5075 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L Mechanical:MountingHole H?
+L Mechanical:MountingHole H4
 U 1 1 5FD741C7
 P 10300 5075
-F 0 "H?" H 10400 5121 50  0000 L CNN
+F 0 "H4" H 10400 5121 50  0000 L CNN
 F 1 "MountingHole" H 10100 5250 50  0000 L CNN
 F 2 "MountingHole:MountingHole_2.7mm_M2.5" H 10300 5075 50  0001 C CNN
 F 3 "~" H 10300 5075 50  0001 C CNN
@@ -1884,14 +1884,28 @@ F 3 "~" H 10300 5075 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L Mechanical:MountingHole H?
+L Mechanical:MountingHole H1
 U 1 1 5FD6335D
 P 9925 5075
-F 0 "H?" H 10025 5121 50  0000 L CNN
+F 0 "H1" H 10025 5121 50  0000 L CNN
 F 1 "MountingHole" H 9675 4925 50  0000 L CNN
 F 2 "MountingHole:MountingHole_2.7mm_M2.5" H 9925 5075 50  0001 C CNN
 F 3 "~" H 9925 5075 50  0001 C CNN
 	1    9925 5075
 	1    0    0    -1  
+$EndComp
+$Comp
+L Reference_Voltage:CJ432 U?
+U 1 1 5FE5A70E
+P 4550 6275
+F 0 "U?" V 4625 6250 50  0000 R CNN
+F 1 "ADR512" V 4475 6250 50  0000 R CNN
+F 2 "Package_TO_SOT_SMD:SOT-23" H 4550 6125 50  0001 C CIN
+F 3 "https://www.analog.com/media/en/technical-documentation/data-sheets/ADR512.pdf" H 4550 6275 50  0001 C CIN
+F 4 "Digikey" V 4550 6275 50  0001 C CNN "Supplier"
+F 5 "ADR512ARTZ-REEL7CT-ND" V 4550 6275 50  0001 C CNN "Part Number"
+F 6 "1.71000" V 4550 6275 50  0001 C CNN "Price"
+	1    4550 6275
+	0    -1   -1   0   
 $EndComp
 $EndSCHEMATC

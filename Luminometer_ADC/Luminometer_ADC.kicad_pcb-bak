@@ -3,7 +3,7 @@
   (general
     (thickness 1.6)
     (drawings 54)
-    (tracks 450)
+    (tracks 453)
     (zones 0)
     (modules 71)
     (nets 33)
@@ -183,7 +183,7 @@
     (add_net "Net-(U7-Pad27)")
   )
 
-  (module Luminometer_OPT101_Footprints:Untitled (layer F.Cu) (tedit 0) (tstamp 5FCB422B)
+  (module Luminometer_OPT101_Footprints:Untitled (layer F.Cu) (tedit 5FCA9FE7) (tstamp 5FCB422B)
     (at 120.1 115.2)
     (fp_text reference G*** (at 0 0) (layer F.SilkS) hide
       (effects (font (size 1.524 1.524) (thickness 0.3)))
@@ -279,7 +279,7 @@
       (xy -1.970747 -2.491311) (xy -1.790053 -2.6243) (xy -1.600249 -2.744304) (xy -1.401992 -2.850806)
       (xy -1.195942 -2.943291) (xy -0.982756 -3.021242) (xy -0.763094 -3.084144) (xy -0.537615 -3.13148)
       (xy -0.502478 -3.137344) (xy -0.336404 -3.158638) (xy -0.160898 -3.171039) (xy 0.01906 -3.174547)
-      (xy 0.198493 -3.169161)) (layer Eco2.User) (width 0.01))
+      (xy 0.198493 -3.169161)) (layer F.SilkS) (width 0.01))
   )
 
   (module Luminometer_OPT101_Footprints:pcrTube (layer B.Cu) (tedit 0) (tstamp 5FCB3528)
@@ -669,7 +669,7 @@
   )
 
   (module TestPoint:TestPoint_Pad_D1.5mm (layer B.Cu) (tedit 5A0F774F) (tstamp 5FCAE5D3)
-    (at 150.75 107)
+    (at 151 104.7)
     (descr "SMD pad as test Point, diameter 1.5mm")
     (tags "test point SMD pad")
     (path /6016B831)
@@ -3132,8 +3132,11 @@
   (segment (start 145.796 108.839) (end 145.621 108.561) (width 0.5) (layer F.Cu) (net 9))
   (segment (start 145.621 109.535) (end 145.796 108.839) (width 0.5) (layer F.Cu) (net 9) (status 10))
   (segment (start 152.491 108.259) (end 151.707 108.259) (width 0.5) (layer F.Cu) (net 9) (tstamp 5FCAFE7D) (status 10))
-  (via (at 152 108.25) (size 0.8) (drill 0.4) (layers F.Cu B.Cu) (net 9))
-  (segment (start 152 108.25) (end 150.75 107) (width 0.25) (layer B.Cu) (net 9))
+  (via (at 151.8 106.8) (size 0.8) (drill 0.4) (layers F.Cu B.Cu) (net 9))
+  (segment (start 151.8 105.5) (end 151 104.7) (width 0.25) (layer B.Cu) (net 9))
+  (segment (start 151.8 106.8) (end 151.8 105.5) (width 0.25) (layer B.Cu) (net 9))
+  (segment (start 151.8 108.166) (end 151.707 108.259) (width 0.25) (layer F.Cu) (net 9))
+  (segment (start 151.8 106.8) (end 151.8 108.166) (width 0.25) (layer F.Cu) (net 9))
   (segment (start 134.939 106.856) (end 134.776 107.019) (width 0.25) (layer F.Cu) (net 10) (status 30))
   (segment (start 132.776 107.019) (end 134.776 107.019) (width 0.5) (layer F.Cu) (net 10) (status 30))
   (segment (start 138.353 107.019) (end 138.516 106.856) (width 0.5) (layer F.Cu) (net 10) (status 30))

@@ -55,7 +55,7 @@ class ADS131M08Reader(ADCReader):
         self.bytes_per_word: int = 3
         self.bytes_per_frame: int = 30
 
-        self._DRDY: int = 21  # drdy pin is BCM 21
+        self._DRDY: int = 15  # drdy pin is BCM 15 (or 21??)
 
         # Flag for clearing ADC FIFO buffer; see Datasheet 8.5.1.9.1
         self._first_read: bool = True
@@ -65,7 +65,7 @@ class ADS131M08Reader(ADCReader):
         # pull-up resistor; see Datasheet 8.5.1.5
         GPIO.setup(self._DRDY, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 
-    def setup_adc(self, device: int, channels: List[int] = [2, 3]):
+    def setup_adc(self, device: int, channels: List[int] = [0,1]):
         """
         On the Raspberry Pi, SPI bus 0 supports SPI mode 1 and 3; The ADS131M08 communicates in SPI mode
         1. Therefore, the SPI bus must be bus 0.
@@ -405,7 +405,7 @@ def crc_exponential_backoff(func, *args, **kwargs):
 if __name__ == "__main__":
     device = 1  # using CE1
     adc_reader = ADS131M08Reader()
-    adc_reader.setup_adc(device, channels=[2, 3])
+    adc_reader.setup_adc(device, channels=[0,1])
 
     print("ID")
     d = adc_reader.read_register(ID_ADDR)
