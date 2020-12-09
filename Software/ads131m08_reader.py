@@ -55,7 +55,7 @@ class ADS131M08Reader(ADCReader):
         self.bytes_per_word: int = 3
         self.bytes_per_frame: int = 30
 
-        self._DRDY: int = 21  # drdy pin is BCM 21
+        self._DRDY: int = 15  # drdy pin is BCM 15
 
         # Flag for clearing ADC FIFO buffer; see Datasheet 8.5.1.9.1
         self._first_read: bool = True
@@ -406,7 +406,7 @@ def crc_exponential_backoff(func, *args, **kwargs):
 if __name__ == "__main__":
     device = 1  # using CE1
     adc_reader = ADS131M08Reader()
-    adc_reader.setup_adc(device, channels=[2, 3])
+    adc_reader.setup_adc(device, channels=range(8))
 
     print("ID")
     d = adc_reader.read_register(ID_ADDR)
@@ -443,9 +443,8 @@ if __name__ == "__main__":
         except CRCError:
             errs += 1
             return
-        d1 += d[2]
-        d2 += d[3]
-        print(d[2], d[3])
+        print(f'CH0: {d[0]:.8e}')
+        print(f'CH1: {d[1]:.8e}')
 
     GPIO.add_event_detect(adc_reader._DRDY, GPIO.FALLING, callback=cb)
 
