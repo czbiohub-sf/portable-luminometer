@@ -214,36 +214,32 @@ F 3 "" H 9825 3300 50  0001 C CNN
 	1    9825 3300
 	1    0    0    -1  
 $EndComp
-Wire Wire Line
-	4150 6175 4150 6225
 $Comp
 L power:GNDA #PWR010
 U 1 1 5F316F03
-P 4150 6275
-F 0 "#PWR010" H 4150 6025 50  0001 C CNN
-F 1 "GNDA" H 4155 6102 50  0000 C CNN
-F 2 "" H 4150 6275 50  0001 C CNN
-F 3 "" H 4150 6275 50  0001 C CNN
-	1    4150 6275
+P 3950 6575
+F 0 "#PWR010" H 3950 6325 50  0001 C CNN
+F 1 "GNDA" H 3955 6402 50  0000 C CNN
+F 2 "" H 3950 6575 50  0001 C CNN
+F 3 "" H 3950 6575 50  0001 C CNN
+	1    3950 6575
 	1    0    0    -1  
 $EndComp
-Wire Wire Line
-	4150 5975 4150 5925
 $Comp
 L Device:R R5
 U 1 1 5F32F48A
-P 4150 5425
-F 0 "R5" H 4220 5471 50  0000 L CNN
-F 1 "300R" H 4220 5380 50  0000 L CNN
-F 2 "Resistor_SMD:R_0603_1608Metric" V 4080 5425 50  0001 C CNN
-F 3 "~" H 4150 5425 50  0001 C CNN
-F 4 "Digikey" H 4150 5425 50  0001 C CNN "Supplier"
-F 5 "118-CR0603-FX-3000ELFCT-ND" H 4150 5425 50  0001 C CNN "Part Number"
-F 6 "0.1" H 4150 5425 50  0001 C CNN "Price"
-	1    4150 5425
+P 3950 5200
+F 0 "R5" H 4020 5246 50  0000 L CNN
+F 1 "300R" H 4020 5155 50  0000 L CNN
+F 2 "Resistor_SMD:R_0603_1608Metric" V 3880 5200 50  0001 C CNN
+F 3 "~" H 3950 5200 50  0001 C CNN
+F 4 "Digikey" H 3950 5200 50  0001 C CNN "Supplier"
+F 5 "118-CR0603-FX-3000ELFCT-ND" H 3950 5200 50  0001 C CNN "Part Number"
+F 6 "0.1" H 3950 5200 50  0001 C CNN "Price"
+	1    3950 5200
 	1    0    0    -1  
 $EndComp
-NoConn ~ 4050 6075
+NoConn ~ 3750 6150
 Text Label 7675 5750 2    50   ~ 0
 MOSI
 Text Label 7275 5650 2    50   ~ 0
@@ -278,7 +274,7 @@ Text Notes 8525 1000 0    100  ~ 20
 24b ADC
 Text Notes 7325 4700 0    100  ~ 20
 MCU Interface
-Text Notes 3300 4700 0    100  ~ 20
+Text Notes 3100 4700 0    100  ~ 20
 Analog voltage REFS
 $Comp
 L power:+5V #PWR015
@@ -297,9 +293,8 @@ Wire Wire Line
 	10375 3050 10575 3050
 Wire Wire Line
 	10575 3550 9825 3550
-Connection ~ 4150 6225
 Wire Wire Line
-	4150 6225 4150 6275
+	3950 6425 3950 6575
 $Comp
 L power:PWR_FLAG #FLG01
 U 1 1 5F64EEDA
@@ -520,143 +515,130 @@ Wire Wire Line
 	5700 2850 6150 2850
 Text Label 10100 2850 2    50   ~ 0
 REF1.2V
-Text Label 4500 5625 0    50   ~ 0
-REF2.4V
 $Comp
-L Reference_Voltage:CJ432 U3
+L LuminometerCustomPartLib:ADR512 U3
 U 1 1 5FCB6D52
-P 4150 5775
-F 0 "U3" V 4225 5750 50  0000 R CNN
-F 1 "ADR512" V 4075 5750 50  0000 R CNN
-F 2 "Package_TO_SOT_SMD:SOT-23" H 4150 5625 50  0001 C CIN
-F 3 "https://www.analog.com/media/en/technical-documentation/data-sheets/ADR512.pdf" H 4150 5775 50  0001 C CIN
-F 4 "Digikey" V 4150 5775 50  0001 C CNN "Supplier"
-F 5 "ADR512ARTZ-REEL7CT-ND" V 4150 5775 50  0001 C CNN "Part Number"
-F 6 "1.71000" V 4150 5775 50  0001 C CNN "Price"
-	1    4150 5775
-	0    -1   -1   0   
+P 3950 5675
+F 0 "U3" H 3848 5721 50  0000 R CNN
+F 1 "ADR512" H 3848 5630 50  0000 R CNN
+F 2 "Package_TO_SOT_SMD:SOT-23" H 3950 5525 50  0001 C CIN
+F 3 "https://www.analog.com/media/en/technical-documentation/data-sheets/ADR512.pdf" H 3950 5675 50  0001 C CIN
+F 4 "Digikey" V 3950 5675 50  0001 C CNN "Supplier"
+F 5 "ADR512ARTZ-REEL7CT-ND" V 3950 5675 50  0001 C CNN "Part Number"
+F 6 "1.71000" V 3950 5675 50  0001 C CNN "Price"
+	1    3950 5675
+	-1   0    0    -1  
 $EndComp
-Text Label 4500 5925 0    50   ~ 0
+Text Label 4100 5925 0    50   ~ 0
 REF1.2V
-Wire Wire Line
-	4150 5875 4150 5925
-Connection ~ 4150 5925
-NoConn ~ 4050 5775
-Text Notes 5275 4700 0    100  ~ 20
+NoConn ~ 3750 5675
+Text Notes 5525 4700 0    100  ~ 20
 Analog 3V Source
 $Comp
 L power:+3V0 #PWR014
 U 1 1 5F45CB94
-P 6250 5425
-F 0 "#PWR014" H 6250 5275 50  0001 C CNN
-F 1 "+3V0" H 6265 5598 50  0000 C CNN
-F 2 "" H 6250 5425 50  0001 C CNN
-F 3 "" H 6250 5425 50  0001 C CNN
-	1    6250 5425
+P 6500 5425
+F 0 "#PWR014" H 6500 5275 50  0001 C CNN
+F 1 "+3V0" H 6515 5598 50  0000 C CNN
+F 2 "" H 6500 5425 50  0001 C CNN
+F 3 "" H 6500 5425 50  0001 C CNN
+	1    6500 5425
 	1    0    0    -1  
 $EndComp
 $Comp
 L power:+5V #PWR011
 U 1 1 5F439AEF
-P 5400 5425
-F 0 "#PWR011" H 5400 5275 50  0001 C CNN
-F 1 "+5V" H 5415 5598 50  0000 C CNN
-F 2 "" H 5400 5425 50  0001 C CNN
-F 3 "" H 5400 5425 50  0001 C CNN
-	1    5400 5425
+P 5650 5425
+F 0 "#PWR011" H 5650 5275 50  0001 C CNN
+F 1 "+5V" H 5665 5598 50  0000 C CNN
+F 2 "" H 5650 5425 50  0001 C CNN
+F 3 "" H 5650 5425 50  0001 C CNN
+	1    5650 5425
 	1    0    0    -1  
 $EndComp
-Connection ~ 6250 5475
+Connection ~ 6500 5475
 Wire Wire Line
-	6250 5475 6250 5425
-Connection ~ 5400 5475
+	6500 5475 6500 5425
+Connection ~ 5650 5475
 Wire Wire Line
-	5400 5475 5400 5425
+	5650 5475 5650 5425
 $Comp
 L power:GNDA #PWR012
 U 1 1 5F439AE5
-P 5850 6025
-F 0 "#PWR012" H 5850 5775 50  0001 C CNN
-F 1 "GNDA" H 5855 5852 50  0000 C CNN
-F 2 "" H 5850 6025 50  0001 C CNN
-F 3 "" H 5850 6025 50  0001 C CNN
-	1    5850 6025
+P 6100 6025
+F 0 "#PWR012" H 6100 5775 50  0001 C CNN
+F 1 "GNDA" H 6105 5852 50  0000 C CNN
+F 2 "" H 6100 6025 50  0001 C CNN
+F 3 "" H 6100 6025 50  0001 C CNN
+	1    6100 6025
 	1    0    0    -1  
 $EndComp
 Wire Wire Line
-	5850 5975 5850 6025
+	6100 5975 6100 6025
 Wire Wire Line
-	5850 5975 6250 5975
-Connection ~ 5850 5975
+	6100 5975 6500 5975
+Connection ~ 6100 5975
 Wire Wire Line
-	5850 5875 5850 5975
+	6100 5875 6100 5975
 Wire Wire Line
-	6250 5475 6150 5475
+	6500 5475 6400 5475
 Wire Wire Line
-	6250 5575 6250 5475
+	6500 5575 6500 5475
 Wire Wire Line
-	6250 5975 6250 5775
+	6500 5975 6500 5775
 Wire Wire Line
-	5400 5975 5850 5975
+	5650 5975 6100 5975
 Wire Wire Line
-	5400 5775 5400 5975
+	5650 5775 5650 5975
 Wire Wire Line
-	5500 5475 5550 5475
-Connection ~ 5500 5475
+	5750 5475 5800 5475
+Connection ~ 5750 5475
 Wire Wire Line
-	5500 5575 5500 5475
+	5750 5575 5750 5475
 Wire Wire Line
-	5550 5575 5500 5575
+	5800 5575 5750 5575
 Wire Wire Line
-	5400 5475 5500 5475
+	5650 5475 5750 5475
 Wire Wire Line
-	5400 5575 5400 5475
+	5650 5575 5650 5475
 $Comp
 L Regulator_Linear:LP5907MFX-3.0 U6
 U 1 1 5F439AC4
-P 5850 5575
-F 0 "U6" H 5850 5942 50  0000 C CNN
-F 1 "LP5907MFX-3" H 5850 5851 50  0000 C CNN
-F 2 "Package_TO_SOT_SMD:SOT-23-5" H 5850 5925 50  0001 C CNN
-F 3 "http://www.ti.com/lit/ds/symlink/lp5907.pdf" H 5850 6075 50  0001 C CNN
-F 4 "Digikey" H 5850 5575 50  0001 C CNN "Supplier"
-F 5 "296-40357-1-ND " H 5850 5575 50  0001 C CNN "Part Number"
-F 6 "0.54" H 5850 5575 50  0001 C CNN "Price"
-	1    5850 5575
+P 6100 5575
+F 0 "U6" H 6100 5942 50  0000 C CNN
+F 1 "LP5907MFX-3" H 6100 5851 50  0000 C CNN
+F 2 "Package_TO_SOT_SMD:SOT-23-5" H 6100 5925 50  0001 C CNN
+F 3 "http://www.ti.com/lit/ds/symlink/lp5907.pdf" H 6100 6075 50  0001 C CNN
+F 4 "Digikey" H 6100 5575 50  0001 C CNN "Supplier"
+F 5 "296-40357-1-ND " H 6100 5575 50  0001 C CNN "Part Number"
+F 6 "0.54" H 6100 5575 50  0001 C CNN "Price"
+	1    6100 5575
 	1    0    0    -1  
 $EndComp
 Wire Wire Line
-	4500 5625 4150 5625
+	3950 5350 3950 5475
+Connection ~ 3950 5475
 Wire Wire Line
-	4150 5575 4150 5625
-Connection ~ 4150 5625
+	3400 5700 3400 5475
 Wire Wire Line
-	4150 5625 4150 5675
+	3400 5900 3400 6425
 Wire Wire Line
-	3625 5975 3625 5625
-Wire Wire Line
-	3625 6175 3625 6225
-Wire Wire Line
-	3625 6225 3925 6225
-Text Notes 4075 5525 1    50   ~ 0
+	3400 6425 3625 6425
+Text Notes 3875 5275 1    50   ~ 0
 2mA
 Wire Wire Line
-	4150 5925 4500 5925
+	3625 6100 3625 5925
 Wire Wire Line
-	3925 5975 3925 5925
+	3625 6300 3625 6425
+Connection ~ 3625 6425
 Wire Wire Line
-	3925 5925 4150 5925
-Wire Wire Line
-	3925 6175 3925 6225
-Connection ~ 3925 6225
-Wire Wire Line
-	3925 6225 4150 6225
+	3625 6425 3950 6425
 Text Label 4825 2450 2    50   ~ 0
-REF2.4V
+SiPM_REF
 Wire Wire Line
 	4825 2450 4900 2450
 Text Label 4825 2650 2    50   ~ 0
-REF2.4V
+SiPM_REF
 Wire Wire Line
 	4825 2650 4900 2650
 Text Notes 1000 4700 0    100  ~ 20
@@ -686,16 +668,16 @@ $EndComp
 $Comp
 L power:+3V0 #PWR09
 U 1 1 60578E0E
-P 4150 5225
-F 0 "#PWR09" H 4150 5075 50  0001 C CNN
-F 1 "+3V0" H 4165 5398 50  0000 C CNN
-F 2 "" H 4150 5225 50  0001 C CNN
-F 3 "" H 4150 5225 50  0001 C CNN
-	1    4150 5225
+P 3950 5000
+F 0 "#PWR09" H 3950 4850 50  0001 C CNN
+F 1 "+3V0" H 3965 5173 50  0000 C CNN
+F 2 "" H 3950 5000 50  0001 C CNN
+F 3 "" H 3950 5000 50  0001 C CNN
+	1    3950 5000
 	1    0    0    -1  
 $EndComp
 Wire Wire Line
-	4150 5225 4150 5275
+	3950 5000 3950 5050
 Wire Wire Line
 	1050 5650 1050 5075
 $Comp
@@ -770,9 +752,9 @@ Wire Wire Line
 	4050 2550 4900 2550
 Text Notes 1075 1275 0    100  ~ 20
 Precision Bias source
-Text Notes 4825 6000 2    50   ~ 0
+Text Notes 4425 6025 2    50   ~ 0
 4uV p-p
-Text Notes 4825 5725 2    50   ~ 0
+Text Notes 3900 5450 2    50   ~ 0
 4uV p-p
 Text Label 1600 1925 2    50   ~ 0
 REF1.2V
@@ -1657,72 +1639,58 @@ Connection ~ 9825 3350
 $Comp
 L Device:C_Small C11
 U 1 1 5F85BFB5
-P 6250 5675
-F 0 "C11" H 6100 5775 50  0000 L CNN
-F 1 "1uF" H 6100 5600 50  0000 L CNN
-F 2 "Capacitor_SMD:C_0603_1608Metric" H 6250 5675 50  0001 C CNN
-F 3 "https://ds.yuden.co.jp/TYCOMPAS/ut/detail?pn=GMK107BJ105MAHT%20&u=M" H 6250 5675 50  0001 C CNN
-F 4 "Digikey" H 6250 5675 50  0001 C CNN "Supplier"
-F 5 "587-6315-1-ND" H 6250 5675 50  0001 C CNN "Part Number"
-F 6 "0.19" H 6250 5675 50  0001 C CNN "Price"
-	1    6250 5675
+P 6500 5675
+F 0 "C11" H 6350 5775 50  0000 L CNN
+F 1 "1uF" H 6350 5600 50  0000 L CNN
+F 2 "Capacitor_SMD:C_0603_1608Metric" H 6500 5675 50  0001 C CNN
+F 3 "https://ds.yuden.co.jp/TYCOMPAS/ut/detail?pn=GMK107BJ105MAHT%20&u=M" H 6500 5675 50  0001 C CNN
+F 4 "Digikey" H 6500 5675 50  0001 C CNN "Supplier"
+F 5 "587-6315-1-ND" H 6500 5675 50  0001 C CNN "Part Number"
+F 6 "0.19" H 6500 5675 50  0001 C CNN "Price"
+	1    6500 5675
 	-1   0    0    -1  
 $EndComp
 $Comp
 L Device:C_Small C10
 U 1 1 5F85C7AA
-P 5400 5675
-F 0 "C10" H 5400 5775 50  0000 L CNN
-F 1 "1uF" H 5400 5575 50  0000 L CNN
-F 2 "Capacitor_SMD:C_0603_1608Metric" H 5400 5675 50  0001 C CNN
-F 3 "https://ds.yuden.co.jp/TYCOMPAS/ut/detail?pn=GMK107BJ105MAHT%20&u=M" H 5400 5675 50  0001 C CNN
-F 4 "Digikey" H 5400 5675 50  0001 C CNN "Supplier"
-F 5 "587-6315-1-ND" H 5400 5675 50  0001 C CNN "Part Number"
-F 6 "0.19" H 5400 5675 50  0001 C CNN "Price"
-	1    5400 5675
+P 5650 5675
+F 0 "C10" H 5650 5775 50  0000 L CNN
+F 1 "1uF" H 5650 5575 50  0000 L CNN
+F 2 "Capacitor_SMD:C_0603_1608Metric" H 5650 5675 50  0001 C CNN
+F 3 "https://ds.yuden.co.jp/TYCOMPAS/ut/detail?pn=GMK107BJ105MAHT%20&u=M" H 5650 5675 50  0001 C CNN
+F 4 "Digikey" H 5650 5675 50  0001 C CNN "Supplier"
+F 5 "587-6315-1-ND" H 5650 5675 50  0001 C CNN "Part Number"
+F 6 "0.19" H 5650 5675 50  0001 C CNN "Price"
+	1    5650 5675
 	-1   0    0    -1  
-$EndComp
-$Comp
-L Device:C_Small C6
-U 1 1 5F8A87C4
-P 3925 6075
-F 0 "C6" H 3850 5975 50  0000 C CNN
-F 1 "220nF" H 3800 6150 50  0000 C CNN
-F 2 "Capacitor_SMD:C_0603_1608Metric" H 3925 6075 50  0001 C CNN
-F 3 "http://www.yuden.co.jp/productdata/catalog/mlcc06_e.pdf" H 3925 6075 50  0001 C CNN
-F 4 "Digikey" V 3925 6075 50  0001 C CNN "Supplier"
-F 5 "587-5958-1-ND" V 3925 6075 50  0001 C CNN "Part Number"
-F 6 "0.2" V 3925 6075 50  0001 C CNN "Price"
-	1    3925 6075
-	1    0    0    -1  
 $EndComp
 $Comp
 L Device:C_Small C5
 U 1 1 5F8C7B14
-P 3625 6075
-F 0 "C5" H 3550 5975 50  0000 C CNN
-F 1 "220nF" H 3475 6150 50  0000 C CNN
-F 2 "Capacitor_SMD:C_0603_1608Metric" H 3625 6075 50  0001 C CNN
-F 3 "http://www.yuden.co.jp/productdata/catalog/mlcc06_e.pdf" H 3625 6075 50  0001 C CNN
-F 4 "Digikey" V 3625 6075 50  0001 C CNN "Supplier"
-F 5 "587-5958-1-ND" V 3625 6075 50  0001 C CNN "Part Number"
-F 6 "0.2" V 3625 6075 50  0001 C CNN "Price"
-	1    3625 6075
+P 3400 5800
+F 0 "C5" H 3325 5700 50  0000 C CNN
+F 1 "220nF" H 3250 5875 50  0000 C CNN
+F 2 "Capacitor_SMD:C_0603_1608Metric" H 3400 5800 50  0001 C CNN
+F 3 "http://www.yuden.co.jp/productdata/catalog/mlcc06_e.pdf" H 3400 5800 50  0001 C CNN
+F 4 "Digikey" V 3400 5800 50  0001 C CNN "Supplier"
+F 5 "587-5958-1-ND" V 3400 5800 50  0001 C CNN "Part Number"
+F 6 "0.2" V 3400 5800 50  0001 C CNN "Price"
+	1    3400 5800
 	1    0    0    -1  
 $EndComp
 $Comp
-L Reference_Voltage:CJ432 U4
+L LuminometerCustomPartLib:ADR512 U4
 U 1 1 5F8A7ED4
-P 4150 6075
-F 0 "U4" V 4225 6050 50  0000 R CNN
-F 1 "ADR512" V 4075 6050 50  0000 R CNN
-F 2 "Package_TO_SOT_SMD:SOT-23" H 4150 5925 50  0001 C CIN
-F 3 "https://www.analog.com/media/en/technical-documentation/data-sheets/ADR512.pdf" H 4150 6075 50  0001 C CIN
-F 4 "Digikey" V 4150 6075 50  0001 C CNN "Supplier"
-F 5 "ADR512ARTZ-REEL7CT-ND" V 4150 6075 50  0001 C CNN "Part Number"
-F 6 "1.71000" V 4150 6075 50  0001 C CNN "Price"
-	1    4150 6075
-	0    -1   -1   0   
+P 3950 6150
+F 0 "U4" H 3848 6196 50  0000 R CNN
+F 1 "ADR512" H 3848 6105 50  0000 R CNN
+F 2 "Package_TO_SOT_SMD:SOT-23" H 3950 6000 50  0001 C CIN
+F 3 "https://www.analog.com/media/en/technical-documentation/data-sheets/ADR512.pdf" H 3950 6150 50  0001 C CIN
+F 4 "Digikey" V 3950 6150 50  0001 C CNN "Supplier"
+F 5 "ADR512ARTZ-REEL7CT-ND" V 3950 6150 50  0001 C CNN "Part Number"
+F 6 "1.71000" V 3950 6150 50  0001 C CNN "Price"
+	1    3950 6150
+	-1   0    0    -1  
 $EndComp
 $Comp
 L Device:C_Small C3
@@ -1752,60 +1720,6 @@ F 6 "0.19" H 1050 5750 50  0001 C CNN "Price"
 	1    1050 5750
 	-1   0    0    -1  
 $EndComp
-Wire Wire Line
-	3625 5625 3750 5625
-$Comp
-L Connector:TestPoint TP17
-U 1 1 5FD30742
-P 6500 5475
-F 0 "TP17" H 6675 5650 50  0000 R CNN
-F 1 "TestPoint" H 6600 5675 50  0001 R CNN
-F 2 "TestPoint:TestPoint_Pad_D1.5mm" H 6700 5475 50  0001 C CNN
-F 3 "~" H 6700 5475 50  0001 C CNN
-	1    6500 5475
-	1    0    0    -1  
-$EndComp
-Wire Wire Line
-	6500 5475 6250 5475
-$Comp
-L Connector:TestPoint TP15
-U 1 1 5FD40634
-P 3750 5625
-F 0 "TP15" H 3925 5800 50  0000 R CNN
-F 1 "TestPoint" H 3850 5825 50  0001 R CNN
-F 2 "TestPoint:TestPoint_Pad_D1.5mm" H 3950 5625 50  0001 C CNN
-F 3 "~" H 3950 5625 50  0001 C CNN
-	1    3750 5625
-	1    0    0    -1  
-$EndComp
-Connection ~ 3750 5625
-Wire Wire Line
-	3750 5625 4150 5625
-$Comp
-L Connector:TestPoint TP16
-U 1 1 5FD40C16
-P 3925 5925
-F 0 "TP16" H 4100 6100 50  0000 R CNN
-F 1 "TestPoint" H 4025 6125 50  0001 R CNN
-F 2 "TestPoint:TestPoint_Pad_D1.5mm" H 4125 5925 50  0001 C CNN
-F 3 "~" H 4125 5925 50  0001 C CNN
-	1    3925 5925
-	1    0    0    -1  
-$EndComp
-Connection ~ 3925 5925
-$Comp
-L Connector:TestPoint TP14
-U 1 1 5FD40E56
-P 2800 5475
-F 0 "TP14" H 2975 5650 50  0000 R CNN
-F 1 "TestPoint" H 2900 5675 50  0001 R CNN
-F 2 "TestPoint:TestPoint_Pad_D1.5mm" H 3000 5475 50  0001 C CNN
-F 3 "~" H 3000 5475 50  0001 C CNN
-	1    2800 5475
-	1    0    0    -1  
-$EndComp
-Wire Wire Line
-	2800 5475 2625 5475
 $Comp
 L Mechanical:MountingHole H3
 U 1 1 5FD63B89
@@ -1894,4 +1808,77 @@ F 3 "~" H 9925 5075 50  0001 C CNN
 	1    9925 5075
 	1    0    0    -1  
 $EndComp
+Wire Wire Line
+	3400 5475 3950 5475
+Wire Wire Line
+	3625 5925 3950 5925
+Wire Wire Line
+	3950 6350 3950 6425
+Connection ~ 3950 6425
+Wire Wire Line
+	3950 5950 3950 5925
+Connection ~ 3950 5925
+Wire Wire Line
+	3950 5925 4100 5925
+Wire Wire Line
+	3950 5925 3950 5875
+$Comp
+L Device:C_Small C6
+U 1 1 5F8A87C4
+P 3625 6200
+F 0 "C6" H 3550 6100 50  0000 C CNN
+F 1 "220nF" H 3500 6275 50  0000 C CNN
+F 2 "Capacitor_SMD:C_0603_1608Metric" H 3625 6200 50  0001 C CNN
+F 3 "http://www.yuden.co.jp/productdata/catalog/mlcc06_e.pdf" H 3625 6200 50  0001 C CNN
+F 4 "Digikey" V 3625 6200 50  0001 C CNN "Supplier"
+F 5 "587-5958-1-ND" V 3625 6200 50  0001 C CNN "Part Number"
+F 6 "0.2" V 3625 6200 50  0001 C CNN "Price"
+	1    3625 6200
+	1    0    0    -1  
+$EndComp
+$Comp
+L Device:R R18
+U 1 1 60285095
+P 4575 6175
+F 0 "R18" H 4645 6221 50  0000 L CNN
+F 1 "2k" H 4645 6130 50  0000 L CNN
+F 2 "Resistor_SMD:R_0603_1608Metric" V 4505 6175 50  0001 C CNN
+F 3 "~" H 4575 6175 50  0001 C CNN
+F 4 "Digikey" H 4575 6175 50  0001 C CNN "Supplier"
+F 5 "118-CR0603-FX-3000ELFCT-ND" H 4575 6175 50  0001 C CNN "Part Number"
+F 6 "0.1" H 4575 6175 50  0001 C CNN "Price"
+	1    4575 6175
+	1    0    0    -1  
+$EndComp
+$Comp
+L Device:R R17
+U 1 1 6028533E
+P 4575 5675
+F 0 "R17" H 4645 5721 50  0000 L CNN
+F 1 "180R" H 4645 5630 50  0000 L CNN
+F 2 "Resistor_SMD:R_0603_1608Metric" V 4505 5675 50  0001 C CNN
+F 3 "~" H 4575 5675 50  0001 C CNN
+F 4 "Digikey" H 4575 5675 50  0001 C CNN "Supplier"
+F 5 "118-CR0603-FX-3000ELFCT-ND" H 4575 5675 50  0001 C CNN "Part Number"
+F 6 "0.1" H 4575 5675 50  0001 C CNN "Price"
+	1    4575 5675
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	4575 5475 4575 5525
+Wire Wire Line
+	3950 5475 4575 5475
+Wire Wire Line
+	4575 5825 4575 5950
+Wire Wire Line
+	4575 6325 4575 6425
+Wire Wire Line
+	4575 6425 3950 6425
+Text Label 5000 5950 2    50   ~ 0
+SiPM_REF
+Wire Wire Line
+	5000 5950 4575 5950
+Connection ~ 4575 5950
+Wire Wire Line
+	4575 5950 4575 6025
 $EndSCHEMATC

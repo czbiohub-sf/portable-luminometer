@@ -26,6 +26,12 @@ $CMP ADA4522-4
 F https://www.analog.com/media/en/technical-documentation/data-sheets/ADA4522-1_4522-2_4522-4.pdf
 $ENDCMP
 #
+$CMP ADR512
+D IC VREF SHUNT 1V SOT23-3
+K ADR510ARTZ-REEL7CT-ND
+F https://www.analog.com/media/en/technical-documentation/data-sheets/ADR510.pdf
+$ENDCMP
+#
 $CMP Harting__15210122401000
 D Generic connector, double row, 02x06, counter clockwise pin numbering scheme (similar to DIP packge numbering), script generated (kicad-library-utils/schlib/autogen/connector/)
 K connector
