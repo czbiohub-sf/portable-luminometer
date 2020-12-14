@@ -994,12 +994,10 @@ Wire Wire Line
 Wire Wire Line
 	1375 6025 1275 6025
 Wire Wire Line
-	1275 6025 1275 5075
+	1275 6025 1275 5625
 Connection ~ 1275 5075
 Wire Wire Line
 	1275 5075 1575 5075
-Text Label 1375 5625 2    50   ~ 0
-REF1.2V
 Text Notes 2850 6200 2    50   ~ 0
 1.2V
 Wire Wire Line
@@ -1881,4 +1879,9 @@ Wire Wire Line
 Connection ~ 4575 5950
 Wire Wire Line
 	4575 5950 4575 6025
+Wire Wire Line
+	1375 5625 1275 5625
+Connection ~ 1275 5625
+Wire Wire Line
+	1275 5625 1275 5075
 $EndSCHEMATC
