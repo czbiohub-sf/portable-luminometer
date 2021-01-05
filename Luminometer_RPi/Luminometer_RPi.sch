@@ -72,18 +72,6 @@ Wire Wire Line
 Connection ~ 7075 3250
 Wire Wire Line
 	7075 3250 7075 3350
-Text Label 800  2750 0    50   ~ 0
-INKY_CB
-Wire Wire Line
-	800  2750 2000 2750
-Text Label 800  2850 0    50   ~ 0
-INKY_RST
-Wire Wire Line
-	800  2850 2000 2850
-Text Label 800  2950 0    50   ~ 0
-INKY_CMD
-Wire Wire Line
-	800  2950 2000 2950
 Text Label 800  3150 0    50   ~ 0
 SPI0_MOSI
 Wire Wire Line
@@ -100,8 +88,6 @@ Text Label 8175 3075 2    50   ~ 0
 P3V3_HAT
 Text Label 8175 2700 2    50   ~ 0
 P5V_HAT
-Text Label 4400 3350 2    50   ~ 0
-INKY_~CE
 Text Label 4375 2650 2    50   ~ 0
 ADC_~DRDY
 Text Label 4400 3450 2    50   ~ 0
@@ -204,7 +190,7 @@ U 1 1 5F90ED96
 P 2900 6875
 F 0 "H8" H 3000 6921 50  0000 L CNN
 F 1 "MountingHole" H 3000 6830 50  0000 L CNN
-F 2 "MountingHole:MountingHole_2.5mm" H 2900 6875 50  0001 C CNN
+F 2 "MountingHole:MountingHole_2.7mm_M2.5" H 2900 6875 50  0001 C CNN
 F 3 "~" H 2900 6875 50  0001 C CNN
 	1    2900 6875
 	1    0    0    -1  
@@ -236,55 +222,20 @@ F 5 "732-1589-1-ND" V 7625 3075 50  0001 C CNN "Part Number"
 	1    7625 3075
 	0    1    1    0   
 $EndComp
-$Comp
-L LuminometerCustomPartLib:EG4627CT-ND SW1
-U 1 1 5F96BE09
-P 5625 5275
-F 0 "SW1" V 5579 5423 50  0000 L CNN
-F 1 "EG4627CT-ND" V 5670 5423 50  0000 L CNN
-F 2 "project_footprints:EG4627CT-ND" H 5625 5475 50  0001 C CNN
-F 3 "~" H 5625 5475 50  0001 C CNN
-	1    5625 5275
-	0    1    1    0   
-$EndComp
-$Comp
-L LuminometerCustomPartLib:EG4627CT-ND SW2
-U 1 1 5F96FDF3
-P 6525 5275
-F 0 "SW2" V 6479 5423 50  0000 L CNN
-F 1 "EG4627CT-ND" V 6570 5423 50  0000 L CNN
-F 2 "project_footprints:EG4627CT-ND" H 6525 5475 50  0001 C CNN
-F 3 "~" H 6525 5475 50  0001 C CNN
-	1    6525 5275
-	0    1    1    0   
-$EndComp
-$Comp
-L LuminometerCustomPartLib:EG4627CT-ND SW3
-U 1 1 5F970E01
-P 7400 5275
-F 0 "SW3" V 7354 5423 50  0000 L CNN
-F 1 "EG4627CT-ND" V 7445 5423 50  0000 L CNN
-F 2 "project_footprints:EG4627CT-ND" H 7400 5475 50  0001 C CNN
-F 3 "~" H 7400 5475 50  0001 C CNN
-	1    7400 5275
-	0    1    1    0   
-$EndComp
 Text Label 5625 5000 0    50   ~ 0
 B1
 Wire Wire Line
 	5625 5000 5625 5075
-Text Label 5625 5550 3    60   ~ 0
+Text Label 5625 5700 3    60   ~ 0
+GND
+Text Label 6525 5700 3    60   ~ 0
 GND
 Wire Wire Line
-	5625 5475 5625 5550
-Text Label 6525 5525 3    60   ~ 0
+	6525 5475 6525 5575
+Text Label 7400 5700 3    60   ~ 0
 GND
 Wire Wire Line
-	6525 5475 6525 5525
-Text Label 7400 5525 3    60   ~ 0
-GND
-Wire Wire Line
-	7400 5475 7400 5525
+	7400 5475 7400 5575
 Text Label 6525 5000 0    50   ~ 0
 B2
 Wire Wire Line
@@ -345,8 +296,6 @@ NoConn ~ 3200 3950
 NoConn ~ 3200 3750
 NoConn ~ 3200 3550
 Wire Wire Line
-	4400 3350 3200 3350
-Wire Wire Line
 	4375 2650 3200 2650
 NoConn ~ 3200 2350
 NoConn ~ 3200 3250
@@ -371,4 +320,95 @@ F 3 "~" H 1425 7125 50  0001 C CNN
 	1    1425 7125
 	1    0    0    -1  
 $EndComp
+$Comp
+L B3F-3152:B3F-3152 SW1
+U 1 1 5FF4AA93
+P 5625 5175
+F 0 "SW1" H 5669 5025 50  0000 L CNN
+F 1 "B3F-3152" H 5625 5175 50  0001 L BNN
+F 2 "B3F3152" H 5625 5175 50  0001 L BNN
+F 3 "" H 5625 5175 50  0001 L BNN
+	1    5625 5175
+	1    0    0    -1  
+$EndComp
+$Comp
+L B3F-3152:B3F-3152 SW2
+U 1 1 5FF4BB39
+P 6525 5175
+F 0 "SW2" H 6569 5025 50  0000 L CNN
+F 1 "B3F-3152" H 6525 5175 50  0001 L BNN
+F 2 "B3F3152" H 6525 5175 50  0001 L BNN
+F 3 "" H 6525 5175 50  0001 L BNN
+	1    6525 5175
+	1    0    0    -1  
+$EndComp
+$Comp
+L B3F-3152:B3F-3152 SW3
+U 1 1 5FF4D698
+P 7400 5175
+F 0 "SW3" H 7444 5025 50  0000 L CNN
+F 1 "B3F-3152" H 7400 5175 50  0001 L BNN
+F 2 "B3F3152" H 7400 5175 50  0001 L BNN
+F 3 "" H 7400 5175 50  0001 L BNN
+	1    7400 5175
+	1    0    0    -1  
+$EndComp
+Text Notes 4100 3350 0    49   ~ 0
+INKY ~CE
+NoConn ~ 3200 3350
+Wire Notes Line
+	3200 3350 4400 3350
+Wire Notes Line
+	2000 2750 800  2750
+Wire Notes Line
+	800  2850 2000 2850
+Wire Notes Line
+	2000 2950 800  2950
+Text Notes 800  2750 0    49   ~ 0
+INKY CB
+Text Notes 800  2850 0    49   ~ 0
+INKY RST
+Text Notes 800  2950 0    49   ~ 0
+INKY CMD
+NoConn ~ 2000 2750
+NoConn ~ 2000 2850
+NoConn ~ 2000 2950
+Wire Wire Line
+	5625 5475 5625 5575
+Wire Wire Line
+	5425 5575 5525 5575
+Connection ~ 5625 5575
+Wire Wire Line
+	5625 5575 5625 5700
+Wire Wire Line
+	5425 5475 5525 5475
+Wire Wire Line
+	5525 5475 5525 5575
+Connection ~ 5525 5575
+Wire Wire Line
+	5525 5575 5625 5575
+Wire Wire Line
+	6325 5575 6425 5575
+Connection ~ 6525 5575
+Wire Wire Line
+	6525 5575 6525 5700
+Wire Wire Line
+	6325 5475 6425 5475
+Wire Wire Line
+	6425 5475 6425 5575
+Connection ~ 6425 5575
+Wire Wire Line
+	6425 5575 6525 5575
+Wire Wire Line
+	7200 5575 7300 5575
+Connection ~ 7400 5575
+Wire Wire Line
+	7400 5575 7400 5700
+Wire Wire Line
+	7200 5475 7300 5475
+Wire Wire Line
+	7300 5475 7300 5575
+Connection ~ 7300 5575
+Wire Wire Line
+	7300 5575 7400 5575
 $EndSCHEMATC

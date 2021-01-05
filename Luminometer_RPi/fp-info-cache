@@ -1,4 +1,4 @@
-17683424361483117
+17693040548740083
 Battery
 BatteryHolder_Bulgin_BX0036_1xC
 Bulgin Battery Holder, BX0036, Battery Type C (https://www.bulgin.com/products/pub/media/bulgin/data/Battery_holders.pdf)
@@ -78581,3 +78581,45 @@ Zigbee_Module_MRF24J40MD
 0
 12
 12
+project_footprints
+EG4627CT-ND
+
+
+0
+5
+3
+project_footprints
+Harting_15120122401000
+
+
+0
+16
+12
+project_footprints
+NPTH_3mm_ID
+
+
+0
+0
+0
+project_footprints
+Raspberry_Pi_Zero_Socketed_THT_FaceUp_MountingHoles
+Raspberry Pi Zero using through hole straight pin socket, 2x20, 2.54mm pitch, https://www.raspberrypi.org/documentation/hardware/raspberrypi/mechanical/rpi_MECH_Zero_1p2.pdf
+raspberry pi zero through hole
+0
+40
+40
+project_footprints
+TE_2-534206-0
+
+
+0
+40
+40
+project_footprints
+inky_pHAT
+surface-mounted straight pin header, 2x20, 2.54mm pitch, double rows
+Surface mounted pin header SMD 2x20 2.54mm double row
+0
+40
+40
