@@ -6,4 +6,10 @@ K switch normally-open pushbutton push-button
 F ~
 $ENDCMP
 #
+$CMP SDR0503-153JL
+D FIXED IND 10MH 85MA 23.8 OHM TH
+K 811-2058-ND 1300R
+F https://www.murata-ps.com/data/magnetics/kmp_1300r.pdf
+$ENDCMP
+#
 #End Doc Library
