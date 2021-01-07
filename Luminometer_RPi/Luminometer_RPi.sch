@@ -15,7 +15,7 @@ Comment4 ""
 $EndDescr
 Text Notes 5700 4600 0    118  ~ 24
 Mounting Holes
-Text Notes 2400 1275 0    118  ~ 24
+Text Notes 1075 1250 0    118  ~ 24
 RPi GPIO
 Text Label 1050 1650 0    60   ~ 0
 P3V3_HAT
@@ -50,7 +50,7 @@ GPCLK
 Wire Wire Line
 	10125 5875 10600 5875
 Wire Wire Line
-	11150 5975 11150 5875
+	11150 6000 11150 5875
 Wire Wire Line
 	11150 5875 11100 5875
 Wire Wire Line
@@ -90,8 +90,6 @@ Text Label 4650 2850 2    50   ~ 0
 ADC_~CE
 Text Label 1050 1950 0    50   ~ 0
 GPCLK
-Text Label 11150 5975 0    50   ~ 0
-GND
 $Comp
 L raspberrypi_hat:RPi_SockerHeader J2
 U 1 1 5F98B4F4
@@ -730,7 +728,7 @@ L Device:C C?
 U 1 1 60045095
 P 2750 5225
 F 0 "C?" V 2498 5225 50  0000 C CNN
-F 1 "20uF" V 2589 5225 50  0000 C CNN
+F 1 "100uF" V 2589 5225 50  0000 C CNN
 F 2 "" H 2788 5075 50  0001 C CNN
 F 3 "~" H 2750 5225 50  0001 C CNN
 	1    2750 5225
@@ -895,12 +893,92 @@ Text Label 1050 3150 0    50   ~ 0
 BIN2
 Wire Wire Line
 	2250 3150 1050 3150
-Text Notes 1625 4600 0    118  ~ 24
+Text Notes 1050 4575 0    118  ~ 24
 Shutter Drive
-Text Notes 6425 1225 0    118  ~ 24
-Mounting Holes
-Text Notes 10000 4550 0    118  ~ 24
+Text Notes 5675 1250 0    118  ~ 24
+Buttons
+Text Notes 9850 4525 0    118  ~ 24
 Board Interconnect
-Text Notes 10025 1250 0    118  ~ 24
+Text Notes 9750 1250 0    118  ~ 24
 Audio indicator
+$Comp
+L dk_Rectangular-Connectors-Headers-Male-Pins:22-23-2021 J?
+U 1 1 601B3726
+P 10550 7100
+F 0 "J?" V 10325 7108 50  0000 C CNN
+F 1 "22-23-2021" V 10416 7108 50  0000 C CNN
+F 2 "digikey-footprints:PinHeader_1x2_P2.54mm_Drill1.02mm" H 10750 7300 60  0001 L CNN
+F 3 "https://media.digikey.com/pdf/Data%20Sheets/Molex%20PDFs/A-6373-N_Series_Dwg_2010-12-03.pdf" H 10750 7400 60  0001 L CNN
+F 4 "WM4200-ND" H 10750 7500 60  0001 L CNN "Digi-Key_PN"
+F 5 "22-23-2021" H 10750 7600 60  0001 L CNN "MPN"
+F 6 "Connectors, Interconnects" H 10750 7700 60  0001 L CNN "Category"
+F 7 "Rectangular Connectors - Headers, Male Pins" H 10750 7800 60  0001 L CNN "Family"
+F 8 "https://media.digikey.com/pdf/Data%20Sheets/Molex%20PDFs/A-6373-N_Series_Dwg_2010-12-03.pdf" H 10750 7900 60  0001 L CNN "DK_Datasheet_Link"
+F 9 "/product-detail/en/molex/22-23-2021/WM4200-ND/26667" H 10750 8000 60  0001 L CNN "DK_Detail_Page"
+F 10 "CONN HEADER VERT 2POS 2.54MM" H 10750 8100 60  0001 L CNN "Description"
+F 11 "Molex" H 10750 8200 60  0001 L CNN "Manufacturer"
+F 12 "Active" H 10750 8300 60  0001 L CNN "Status"
+	1    10550 7100
+	0    1    1    0   
+$EndComp
+Text Label 11050 6725 3    50   ~ 0
+P5V_HAT
+$Comp
+L power:GND #PWR?
+U 1 1 601C5A92
+P 11150 6000
+F 0 "#PWR?" H 11150 5750 50  0001 C CNN
+F 1 "GND" H 11300 5925 50  0000 C CNN
+F 2 "" H 11150 6000 50  0001 C CNN
+F 3 "" H 11150 6000 50  0001 C CNN
+	1    11150 6000
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:GND #PWR?
+U 1 1 601CE30E
+P 11050 7425
+F 0 "#PWR?" H 11050 7175 50  0001 C CNN
+F 1 "GND" H 10925 7325 50  0000 C CNN
+F 2 "" H 11050 7425 50  0001 C CNN
+F 3 "" H 11050 7425 50  0001 C CNN
+	1    11050 7425
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	11050 6725 11050 7100
+Wire Wire Line
+	11050 7100 10650 7100
+Wire Wire Line
+	11050 7425 11050 7200
+Wire Wire Line
+	11050 7200 10650 7200
+$Comp
+L power:PWR_FLAG #FLG?
+U 1 1 601E708A
+P 11325 7100
+F 0 "#FLG?" H 11325 7175 50  0001 C CNN
+F 1 "PWR_FLAG" H 11325 7273 50  0000 C CNN
+F 2 "" H 11325 7100 50  0001 C CNN
+F 3 "~" H 11325 7100 50  0001 C CNN
+	1    11325 7100
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	11325 7100 11050 7100
+Connection ~ 11050 7100
+$Comp
+L power:PWR_FLAG #FLG?
+U 1 1 601EB9C2
+P 11325 7200
+F 0 "#FLG?" H 11325 7275 50  0001 C CNN
+F 1 "PWR_FLAG" H 11325 7373 50  0000 C CNN
+F 2 "" H 11325 7200 50  0001 C CNN
+F 3 "~" H 11325 7200 50  0001 C CNN
+	1    11325 7200
+	-1   0    0    1   
+$EndComp
+Wire Wire Line
+	11325 7200 11050 7200
+Connection ~ 11050 7200
 $EndSCHEMATC
