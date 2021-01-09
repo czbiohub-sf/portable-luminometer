@@ -7,8 +7,7 @@ F ~
 $ENDCMP
 #
 $CMP SDR0503-153JL
-D FIXED IND 10MH 85MA 23.8 OHM TH
-K 811-2058-ND 1300R
+D FIXED IND 15MH 20MA 168 OHM SMD
 F https://www.murata-ps.com/data/magnetics/kmp_1300r.pdf
 $ENDCMP
 #

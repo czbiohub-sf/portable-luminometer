@@ -403,17 +403,14 @@ ENDDEF
 DEF SDR0503-153JL L 0 40 Y Y 1 F N
 F0 "L" -150 100 60 H V C CNN
 F1 "SDR0503-153JL" 125 -75 60 H V C CNN
-F2 "digikey-footprints:Inductor_13R106C" 200 200 60 H I L CNN
-F3 "https://www.murata-ps.com/data/magnetics/kmp_1300r.pdf" 200 300 60 H I L CNN
-F4 "811-2058-ND" 200 400 60 H I L CNN "Digi-Key_PN"
-F5 "13R106C" 200 500 60 H I L CNN "MPN"
+F2 "Luminometer_OPT101_Footprints:SDR0503-153JL" 200 200 60 H I L CNN
+F3 "" 200 300 60 H I L CNN
+F4 "SDR0503-153JLCT-ND" 200 400 60 H I L CNN "Digi-Key_PN"
+F5 "SDR0503-153JL" 200 500 60 H I L CNN "MPN"
 F6 "Inductors, Coils, Chokes" 200 600 60 H I L CNN "Category"
 F7 "Fixed Inductors" 200 700 60 H I L CNN "Family"
-F8 "https://www.murata-ps.com/data/magnetics/kmp_1300r.pdf" 200 800 60 H I L CNN "DK_Datasheet_Link"
-F9 "/product-detail/en/murata-power-solutions-inc/13R106C/811-2058-ND/1998245" 200 900 60 H I L CNN "DK_Detail_Page"
-F10 "FIXED IND 10MH 85MA 23.8 OHM TH" 200 1000 60 H I L CNN "Description"
-F11 "Murata Power Solutions Inc." 200 1100 60 H I L CNN "Manufacturer"
-F12 "Active" 200 1200 60 H I L CNN "Status"
+F8 "FIXED IND 15MH 20MA 168 OHM SMD" 200 1000 60 H I L CNN "Description"
+F9 "Bourns Inc." 200 1100 60 H I L CNN "Manufacturer"
 DRAW
 A -94 14 48 -1631 37 0 1 0 N -140 0 -47 17
 A -67 14 20 -113 1633 0 1 0 N -47 10 -87 20
