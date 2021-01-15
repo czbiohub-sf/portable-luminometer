@@ -236,11 +236,11 @@ Wire Wire Line
 Text Label 1050 1850 0    50   ~ 0
 B1
 Text Label 1050 3350 0    50   ~ 0
-B2
+B3
 Wire Wire Line
 	1050 3350 2250 3350
 Text Label 1050 3450 0    50   ~ 0
-B3
+B2
 Wire Wire Line
 	1050 3450 2250 3450
 $Comp
@@ -269,12 +269,9 @@ Wire Wire Line
 	11800 5600 12250 5600
 Wire Wire Line
 	1050 1950 2250 1950
-NoConn ~ 3450 1950
 NoConn ~ 3450 2150
 NoConn ~ 3450 2350
-NoConn ~ 3450 2450
 NoConn ~ 2250 2450
-NoConn ~ 2250 2950
 Wire Wire Line
 	4625 2050 3450 2050
 NoConn ~ 3450 1750
@@ -727,9 +724,9 @@ Wire Wire Line
 	1200 5975 1650 5975
 Wire Wire Line
 	1200 5800 1200 5975
-Text Label 4625 3450 2    50   ~ 0
+Text Label 1050 2950 0    50   ~ 0
 nFAULT
-Text Label 4625 3550 2    50   ~ 0
+Text Label 1050 3050 0    50   ~ 0
 nSLEEP
 Wire Wire Line
 	1200 6300 1200 6175
@@ -740,10 +737,6 @@ Wire Wire Line
 Wire Wire Line
 	1200 6075 1200 6175
 Connection ~ 1200 6175
-Wire Wire Line
-	4625 3550 3450 3550
-Wire Wire Line
-	4625 3450 3450 3450
 Wire Wire Line
 	3450 2950 4650 2950
 Wire Wire Line
@@ -806,19 +799,19 @@ Wire Notes Line
 	3825 7475 3925 7475
 Wire Notes Line
 	4300 7475 4425 7475
-Text Label 4650 3150 2    50   ~ 0
-AIN1
+Text Label 1050 3250 0    50   ~ 0
+AIN2
 Wire Wire Line
 	4650 3150 3450 3150
 Text Label 4650 3350 2    50   ~ 0
-AIN2
+AIN1
 Wire Wire Line
 	4650 3350 3450 3350
-Text Label 1050 3050 0    50   ~ 0
+Text Label 1050 3150 0    50   ~ 0
 BIN1
 Wire Wire Line
 	1050 3050 2250 3050
-Text Label 1050 3150 0    50   ~ 0
+Text Label 4650 3150 2    50   ~ 0
 BIN2
 Wire Wire Line
 	2250 3150 1050 3150
@@ -913,7 +906,6 @@ Connection ~ 11050 7200
 NoConn ~ 2250 1750
 Wire Wire Line
 	2250 1850 1050 1850
-NoConn ~ 2250 3250
 $Comp
 L LuminometerCustomPartLib:SDR0503-153JL L1
 U 1 1 6024F072
@@ -984,4 +976,13 @@ F 9 "Bourns Inc." H 3750 7675 60  0001 L CNN "Manufacturer"
 $EndComp
 Text Notes 2725 5975 0    49   ~ 0
 Set pull-down for nFAULT in software
+NoConn ~ 3450 3450
+Wire Wire Line
+	3450 1950 4625 1950
+Wire Wire Line
+	2250 2950 1050 2950
+NoConn ~ 3450 3550
+Wire Wire Line
+	2250 3250 1050 3250
+NoConn ~ 3450 2450
 $EndSCHEMATC

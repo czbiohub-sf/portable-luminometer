@@ -535,17 +535,6 @@ NoConn ~ 3750 5675
 Text Notes 5525 4700 0    100  ~ 20
 Analog 3V Source
 $Comp
-L power:+3V0 #PWR014
-U 1 1 5F45CB94
-P 6500 5425
-F 0 "#PWR014" H 6500 5275 50  0001 C CNN
-F 1 "+3V0" H 6515 5598 50  0000 C CNN
-F 2 "" H 6500 5425 50  0001 C CNN
-F 3 "" H 6500 5425 50  0001 C CNN
-	1    6500 5425
-	1    0    0    -1  
-$EndComp
-$Comp
 L power:+5V #PWR011
 U 1 1 5F439AEF
 P 5650 5425
@@ -1884,4 +1873,17 @@ Wire Wire Line
 Connection ~ 1275 5625
 Wire Wire Line
 	1275 5625 1275 5075
+Text Notes 4675 6550 0    59   ~ 0
+24k and 2k \nsubstituted in build
+$Comp
+L power:+3V0 #PWR014
+U 1 1 5F45CB94
+P 6500 5425
+F 0 "#PWR014" H 6500 5275 50  0001 C CNN
+F 1 "+3V0" H 6515 5598 50  0000 C CNN
+F 2 "" H 6500 5425 50  0001 C CNN
+F 3 "" H 6500 5425 50  0001 C CNN
+	1    6500 5425
+	1    0    0    -1  
+$EndComp
 $EndSCHEMATC

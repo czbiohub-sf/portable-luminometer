@@ -1884,4 +1884,6 @@ Wire Wire Line
 Connection ~ 1275 5625
 Wire Wire Line
 	1275 5625 1275 5075
+Text Notes 4675 6550 0    59   ~ 0
+24k and 2k \nsubstituted in build
 $EndSCHEMATC
