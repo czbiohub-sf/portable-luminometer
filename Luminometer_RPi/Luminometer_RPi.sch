@@ -425,7 +425,7 @@ F 4 "Z6127-ND" H 8050 1875 50  0001 C CNN "Part Number"
 $EndComp
 Text Notes 6625 1675 0    79   ~ 0
 Caps (BOM only)
-Text Label 4650 2950 2    50   ~ 0
+Text Label 4650 3150 2    50   ~ 0
 BZ
 $Comp
 L LuminometerCustomPartLib:102-2201-1-ND BZ1
@@ -726,7 +726,7 @@ Wire Wire Line
 	1200 5800 1200 5975
 Text Label 1050 2950 0    50   ~ 0
 nFAULT
-Text Label 1050 3050 0    50   ~ 0
+Text Label 4650 2950 2    50   ~ 0
 nSLEEP
 Wire Wire Line
 	1200 6300 1200 6175
@@ -807,11 +807,11 @@ Text Label 4650 3350 2    50   ~ 0
 AIN1
 Wire Wire Line
 	4650 3350 3450 3350
-Text Label 1050 3150 0    50   ~ 0
+Text Label 1050 3050 0    50   ~ 0
 BIN1
 Wire Wire Line
 	1050 3050 2250 3050
-Text Label 4650 3150 2    50   ~ 0
+Text Label 1050 3150 0    50   ~ 0
 BIN2
 Wire Wire Line
 	2250 3150 1050 3150
