@@ -235,6 +235,34 @@ X -IN_C 9-UD 400 -200 100 L 50 50 4 1 I
 ENDDRAW
 ENDDEF
 #
+# LuminometerCustomPartLib_ADR512
+#
+DEF LuminometerCustomPartLib_ADR512 VR 0 0 Y Y 1 F N
+F0 "VR" -100 125 50 H V C CNN
+F1 "LuminometerCustomPartLib_ADR512" -225 0 50 V V C CNN
+F2 "digikey-footprints:SOT-23-3" 200 200 50 H I L CNN
+F3 "https://www.analog.com/media/en/technical-documentation/data-sheets/ADR510.pdf" 200 300 60 H I L CNN
+F4 "ADR510ARTZ-REEL7CT-ND" 200 400 60 H I L CNN "Digi-Key_PN"
+F5 "ADR510ARTZ-REEL7" 200 500 60 H I L CNN "MPN"
+F6 "Integrated Circuits (ICs)" 200 600 60 H I L CNN "Category"
+F7 "PMIC - Voltage Reference" 200 700 60 H I L CNN "Family"
+F8 "https://www.analog.com/media/en/technical-documentation/data-sheets/ADR510.pdf" 200 800 60 H I L CNN "DK_Datasheet_Link"
+F9 "/product-detail/en/analog-devices-inc/ADR510ARTZ-REEL7/ADR510ARTZ-REEL7CT-ND/820440" 200 900 60 H I L CNN "DK_Detail_Page"
+F10 "IC VREF SHUNT 1V SOT23-3" 200 1000 60 H I L CNN "Description"
+F11 "Analog Devices Inc." 200 1100 60 H I L CNN "Manufacturer"
+F12 "Active" 200 1200 60 H I L CNN "Status"
+DRAW
+P 2 0 1 0 0 -50 0 -150 N
+P 2 0 1 0 0 50 0 150 N
+P 2 0 1 0 100 0 25 0 N
+P 4 0 1 0 0 50 50 -50 -50 -50 0 50 F
+P 4 0 1 0 75 75 50 50 -50 50 -75 25 N
+X ~ 1 0 200 150 D 50 50 1 1 P
+X ~ 2 0 -200 150 U 50 50 1 1 P
+X NC 3 200 0 100 L 50 50 1 1 U
+ENDDRAW
+ENDDEF
+#
 # LuminometerCustomPartLib_Harting__15210122401000
 #
 DEF LuminometerCustomPartLib_Harting__15210122401000 J 0 40 Y N 1 F N
@@ -316,39 +344,18 @@ X Paddle 5 -200 -50 100 R 50 50 1 1 N N
 ENDDRAW
 ENDDEF
 #
-# Mechanical_MountingHole_Pad
+# Mechanical_MountingHole
 #
-DEF Mechanical_MountingHole_Pad H 0 40 N N 1 F N
-F0 "H" 0 250 50 H V C CNN
-F1 "Mechanical_MountingHole_Pad" 0 175 50 H V C CNN
+DEF Mechanical_MountingHole H 0 40 Y Y 1 F N
+F0 "H" 0 200 50 H V C CNN
+F1 "Mechanical_MountingHole" 0 125 50 H V C CNN
 F2 "" 0 0 50 H I C CNN
 F3 "" 0 0 50 H I C CNN
 $FPLIST
- MountingHole*Pad*
+ MountingHole*
 $ENDFPLIST
 DRAW
-C 0 50 50 0 1 50 N
-X 1 1 0 -100 100 U 50 50 1 1 I
-ENDDRAW
-ENDDEF
-#
-# Reference_Voltage_CJ432
-#
-DEF Reference_Voltage_CJ432 U 0 20 N N 1 F N
-F0 "U" -100 100 50 H V C CNN
-F1 "Reference_Voltage_CJ432" 0 -100 50 H V C CNN
-F2 "Package_TO_SOT_SMD:SOT-23" 0 -150 50 H I C CIN
-F3 "" 0 0 50 H I C CIN
-$FPLIST
- SOT?23*
-$ENDFPLIST
-DRAW
-P 3 0 1 0 -50 0 0 0 50 0 N
-P 3 0 1 0 -30 30 30 0 -30 -30 F
-P 4 0 1 10 20 -40 30 -30 30 30 30 30 N
-X REF 1 0 100 100 D 50 50 1 1 P
-X K 2 100 0 50 L 50 50 1 1 P
-X A 3 -100 0 50 R 50 50 1 1 P
+C 0 0 50 0 1 50 N
 ENDDRAW
 ENDDEF
 #

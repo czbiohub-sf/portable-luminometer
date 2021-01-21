@@ -13,362 +13,976 @@ Comment2 ""
 Comment3 ""
 Comment4 ""
 $EndDescr
-Text Notes 1725 5475 0    118  ~ 24
+Text Notes 5700 4600 0    118  ~ 24
 Mounting Holes
-Text Notes 2150 2000 0    118  ~ 24
+Text Notes 1075 1250 0    118  ~ 24
 RPi GPIO
-Text Label 800  2250 0    60   ~ 0
+Text Label 1050 1650 0    60   ~ 0
 P3V3_HAT
 Wire Wire Line
-	2000 2250 800  2250
-Wire Wire Line
-	3200 3150 4400 3150
-Text Label 4400 3150 2    60   ~ 0
-GND
-Text Label 4400 2250 2    60   ~ 0
+	2250 1650 1050 1650
+Text Label 4650 1650 2    60   ~ 0
 P5V_HAT
 Wire Wire Line
-	3200 2250 4400 2250
-Text Label 6050 2850 0    50   ~ 0
+	3450 1650 4650 1650
+Text Label 10125 5375 0    50   ~ 0
 ADC_~CE
 Wire Wire Line
-	6050 2850 6525 2850
-Text Label 6050 2950 0    50   ~ 0
+	10125 5375 10600 5375
+Text Label 10125 5475 0    50   ~ 0
 ADC_~DRDY
 Wire Wire Line
-	6050 2950 6525 2950
-Text Label 6050 3050 0    50   ~ 0
+	10125 5475 10600 5475
+Text Label 10125 5575 0    50   ~ 0
 SPI0_SCLK
 Wire Wire Line
-	6050 3050 6525 3050
-Text Label 6050 3150 0    50   ~ 0
+	10125 5575 10600 5575
+Text Label 10125 5675 0    50   ~ 0
 SPI0_MISO
 Wire Wire Line
-	6050 3150 6525 3150
-Text Label 6050 3250 0    50   ~ 0
+	10125 5675 10600 5675
+Text Label 10125 5775 0    50   ~ 0
 SPI0_MOSI
 Wire Wire Line
-	6050 3250 6525 3250
-Text Label 6050 3350 0    50   ~ 0
+	10125 5775 10600 5775
+Text Label 10125 5875 0    50   ~ 0
 GPCLK
 Wire Wire Line
-	6050 3350 6525 3350
+	10125 5875 10600 5875
 Wire Wire Line
-	7075 3450 7075 3350
+	11150 6000 11150 5875
 Wire Wire Line
-	7075 3350 7025 3350
+	11150 5875 11100 5875
 Wire Wire Line
-	7025 3050 7075 3050
+	11100 5575 11150 5575
 Wire Wire Line
-	7075 3050 7075 3150
-Connection ~ 7075 3350
+	11150 5575 11150 5675
+Connection ~ 11150 5875
 Wire Wire Line
-	7025 3150 7075 3150
-Connection ~ 7075 3150
+	11100 5675 11150 5675
+Connection ~ 11150 5675
 Wire Wire Line
-	7075 3150 7075 3250
+	11150 5675 11150 5775
 Wire Wire Line
-	7025 3250 7075 3250
-Connection ~ 7075 3250
+	11100 5775 11150 5775
+Connection ~ 11150 5775
 Wire Wire Line
-	7075 3250 7075 3350
-Text Label 800  2750 0    50   ~ 0
-INKY_CB
-Wire Wire Line
-	800  2750 2000 2750
-Text Label 800  2850 0    50   ~ 0
-INKY_RST
-Wire Wire Line
-	800  2850 2000 2850
-Text Label 800  2950 0    50   ~ 0
-INKY_CMD
-Wire Wire Line
-	800  2950 2000 2950
-Text Label 800  3150 0    50   ~ 0
+	11150 5775 11150 5875
+Text Label 1050 2550 0    50   ~ 0
 SPI0_MOSI
 Wire Wire Line
-	800  3150 2000 3150
-Text Label 800  3250 0    50   ~ 0
+	1050 2550 2250 2550
+Text Label 1050 2650 0    50   ~ 0
 SPI0_MISO
 Wire Wire Line
-	800  3250 2000 3250
-Text Label 800  3350 0    50   ~ 0
+	1050 2650 2250 2650
+Text Label 1050 2750 0    50   ~ 0
 SPI0_SCLK
 Wire Wire Line
-	800  3350 2000 3350
-Text Label 8175 3075 2    50   ~ 0
+	1050 2750 2250 2750
+Text Label 12250 5600 2    50   ~ 0
 P3V3_HAT
-Text Label 8175 2700 2    50   ~ 0
+Text Label 12250 5225 2    50   ~ 0
 P5V_HAT
-Text Label 4400 3350 2    50   ~ 0
-INKY_~CE
-Text Label 4375 2650 2    50   ~ 0
+Text Label 4625 2050 2    50   ~ 0
 ADC_~DRDY
-Text Label 4400 3450 2    50   ~ 0
+Text Label 4650 2850 2    50   ~ 0
 ADC_~CE
-Text Label 800  2550 0    50   ~ 0
+Text Label 1050 1950 0    50   ~ 0
 GPCLK
-Text Label 7075 3450 0    50   ~ 0
-GND
 $Comp
 L raspberrypi_hat:RPi_SockerHeader J2
 U 1 1 5F98B4F4
-P 2600 2250
-F 0 "J2" H 2600 2475 50  0000 C CNN
-F 1 "RPi_SockerHeader" H 2600 2384 50  0000 C CNN
-F 2 "Connector_PinSocket_2.54mm:PinSocket_2x20_P2.54mm_Vertical" H 2600 2450 50  0001 C CNN
-F 3 "" H 1900 2250 50  0000 C CNN
-	1    2600 2250
+P 2850 1650
+F 0 "J2" H 2850 1875 50  0000 C CNN
+F 1 "RPi_SockerHeader" H 2850 1784 50  0000 C CNN
+F 2 "Connector_PinSocket_2.54mm:PinSocket_2x20_P2.54mm_Vertical" H 2850 1850 50  0001 C CNN
+F 3 "" H 2150 1650 50  0000 C CNN
+F 4 "609-3579-ND‎" H 2850 1650 50  0001 C CNN "Part Number"
+	1    2850 1650
 	1    0    0    -1  
 $EndComp
 $Comp
 L Mechanical:MountingHole H1
 U 1 1 5F990C68
-P 1625 5850
-F 0 "H1" H 1725 5896 50  0000 L CNN
-F 1 "MountingHole" H 1725 5805 50  0000 L CNN
-F 2 "MountingHole:MountingHole_3.2mm_M3" H 1625 5850 50  0001 C CNN
-F 3 "~" H 1625 5850 50  0001 C CNN
-	1    1625 5850
+P 5800 5500
+F 0 "H1" H 5900 5546 50  0000 L CNN
+F 1 "MountingHole" H 5900 5455 50  0000 L CNN
+F 2 "MountingHole:MountingHole_2.7mm_M2.5" H 5800 5500 50  0001 C CNN
+F 3 "~" H 5800 5500 50  0001 C CNN
+	1    5800 5500
 	1    0    0    -1  
 $EndComp
 $Comp
 L Mechanical:MountingHole H4
 U 1 1 5F99265B
-P 2425 5850
-F 0 "H4" H 2525 5896 50  0000 L CNN
-F 1 "MountingHole" H 2525 5805 50  0000 L CNN
-F 2 "MountingHole:MountingHole_3.2mm_M3" H 2425 5850 50  0001 C CNN
-F 3 "~" H 2425 5850 50  0001 C CNN
-	1    2425 5850
+P 5800 5900
+F 0 "H4" H 5900 5946 50  0000 L CNN
+F 1 "MountingHole" H 5900 5855 50  0000 L CNN
+F 2 "MountingHole:MountingHole_2.7mm_M2.5" H 5800 5900 50  0001 C CNN
+F 3 "~" H 5800 5900 50  0001 C CNN
+	1    5800 5900
 	1    0    0    -1  
 $EndComp
 $Comp
 L Mechanical:MountingHole H7
 U 1 1 5F992965
-P 3225 5850
-F 0 "H7" H 3325 5896 50  0000 L CNN
-F 1 "MountingHole" H 3325 5805 50  0000 L CNN
-F 2 "MountingHole:MountingHole_3.2mm_M3" H 3225 5850 50  0001 C CNN
-F 3 "~" H 3225 5850 50  0001 C CNN
-	1    3225 5850
+P 5800 6300
+F 0 "H7" H 5900 6346 50  0000 L CNN
+F 1 "MountingHole" H 5900 6255 50  0000 L CNN
+F 2 "MountingHole:MountingHole_2.7mm_M2.5" H 5800 6300 50  0001 C CNN
+F 3 "~" H 5800 6300 50  0001 C CNN
+	1    5800 6300
 	1    0    0    -1  
 $EndComp
 $Comp
 L Mechanical:MountingHole H2
 U 1 1 5F992BBE
-P 1625 6400
-F 0 "H2" H 1725 6446 50  0000 L CNN
-F 1 "MountingHole" H 1725 6355 50  0000 L CNN
-F 2 "MountingHole:MountingHole_2.5mm" H 1625 6400 50  0001 C CNN
-F 3 "~" H 1625 6400 50  0001 C CNN
-	1    1625 6400
+P 6725 5500
+F 0 "H2" H 6825 5546 50  0000 L CNN
+F 1 "MountingHole" H 6825 5455 50  0000 L CNN
+F 2 "MountingHole:MountingHole_2.5mm" H 6725 5500 50  0001 C CNN
+F 3 "~" H 6725 5500 50  0001 C CNN
+	1    6725 5500
 	1    0    0    -1  
 $EndComp
 $Comp
 L Mechanical:MountingHole H5
 U 1 1 5F993CFE
-P 2425 6400
-F 0 "H5" H 2525 6446 50  0000 L CNN
-F 1 "MountingHole" H 2525 6355 50  0000 L CNN
-F 2 "MountingHole:MountingHole_2.5mm" H 2425 6400 50  0001 C CNN
-F 3 "~" H 2425 6400 50  0001 C CNN
-	1    2425 6400
+P 6725 5925
+F 0 "H5" H 6825 5971 50  0000 L CNN
+F 1 "MountingHole" H 6825 5880 50  0000 L CNN
+F 2 "MountingHole:MountingHole_2.5mm" H 6725 5925 50  0001 C CNN
+F 3 "~" H 6725 5925 50  0001 C CNN
+	1    6725 5925
 	1    0    0    -1  
 $EndComp
 $Comp
 L Mechanical:MountingHole H3
 U 1 1 5F993F77
-P 1625 6950
-F 0 "H3" H 1725 6996 50  0000 L CNN
-F 1 "MountingHole" H 1725 6905 50  0000 L CNN
-F 2 "MountingHole:MountingHole_2.2mm_M2" H 1625 6950 50  0001 C CNN
-F 3 "~" H 1625 6950 50  0001 C CNN
-	1    1625 6950
+P 7600 5475
+F 0 "H3" H 7700 5521 50  0000 L CNN
+F 1 "MountingHole" H 7700 5430 50  0000 L CNN
+F 2 "MountingHole:MountingHole_2.2mm_M2" H 7600 5475 50  0001 C CNN
+F 3 "~" H 7600 5475 50  0001 C CNN
+	1    7600 5475
 	1    0    0    -1  
 $EndComp
 $Comp
 L Mechanical:MountingHole H6
 U 1 1 5F994304
-P 2425 6950
-F 0 "H6" H 2525 6996 50  0000 L CNN
-F 1 "MountingHole" H 2525 6905 50  0000 L CNN
-F 2 "MountingHole:MountingHole_2.2mm_M2" H 2425 6950 50  0001 C CNN
-F 3 "~" H 2425 6950 50  0001 C CNN
-	1    2425 6950
+P 7600 5925
+F 0 "H6" H 7700 5971 50  0000 L CNN
+F 1 "MountingHole" H 7700 5880 50  0000 L CNN
+F 2 "MountingHole:MountingHole_2.2mm_M2" H 7600 5925 50  0001 C CNN
+F 3 "~" H 7600 5925 50  0001 C CNN
+	1    7600 5925
 	1    0    0    -1  
 $EndComp
 $Comp
 L Mechanical:MountingHole H8
 U 1 1 5F90ED96
-P 3250 6950
-F 0 "H8" H 3350 6996 50  0000 L CNN
-F 1 "MountingHole" H 3350 6905 50  0000 L CNN
-F 2 "MountingHole:MountingHole_2.5mm" H 3250 6950 50  0001 C CNN
-F 3 "~" H 3250 6950 50  0001 C CNN
-	1    3250 6950
+P 8450 5475
+F 0 "H8" H 8550 5521 50  0000 L CNN
+F 1 "MountingHole" H 8550 5430 50  0000 L CNN
+F 2 "MountingHole:MountingHole_2.7mm_M2.5" H 8450 5475 50  0001 C CNN
+F 3 "~" H 8450 5475 50  0001 C CNN
+	1    8450 5475
 	1    0    0    -1  
 $EndComp
 $Comp
 L Device:Ferrite_Bead_Small FB1
 U 1 1 5F962070
-P 7625 2700
-F 0 "FB1" V 7388 2700 50  0000 C CNN
-F 1 "Ferrite_Bead_Small" V 7479 2700 50  0000 C CNN
-F 2 "Resistor_SMD:R_0603_1608Metric" V 7555 2700 50  0001 C CNN
-F 3 "~" H 7625 2700 50  0001 C CNN
-F 4 "Digikey" V 7625 2700 50  0001 C CNN "Supplier"
-F 5 "732-1589-1-ND" V 7625 2700 50  0001 C CNN "Part Number "
-F 6 "" V 7625 2700 50  0001 C CNN "Field6"
-	1    7625 2700
+P 11700 5225
+F 0 "FB1" V 11463 5225 50  0000 C CNN
+F 1 "Ferrite_Bead_Small" V 11554 5225 50  0000 C CNN
+F 2 "Resistor_SMD:R_0603_1608Metric" V 11630 5225 50  0001 C CNN
+F 3 "~" H 11700 5225 50  0001 C CNN
+F 4 "Digikey" V 11700 5225 50  0001 C CNN "Supplier"
+F 5 "732-1589-1-ND" V 11700 5225 50  0001 C CNN "Part Number "
+F 6 "" V 11700 5225 50  0001 C CNN "Field6"
+	1    11700 5225
 	0    1    1    0   
 $EndComp
 $Comp
 L Device:Ferrite_Bead_Small FB2
 U 1 1 5F966FB4
-P 7625 3075
-F 0 "FB2" V 7388 3075 50  0000 C CNN
-F 1 "Ferrite_Bead_Small" V 7479 3075 50  0000 C CNN
-F 2 "Resistor_SMD:R_0603_1608Metric" V 7555 3075 50  0001 C CNN
-F 3 "~" H 7625 3075 50  0001 C CNN
-F 4 "Digikey" V 7625 3075 50  0001 C CNN "Supplier"
-F 5 "732-1589-1-ND" V 7625 3075 50  0001 C CNN "Part Number"
-	1    7625 3075
+P 11700 5600
+F 0 "FB2" V 11845 5600 50  0000 C CNN
+F 1 "Ferrite_Bead_Small" V 11936 5600 50  0000 C CNN
+F 2 "Resistor_SMD:R_0603_1608Metric" V 11630 5600 50  0001 C CNN
+F 3 "~" H 11700 5600 50  0001 C CNN
+F 4 "Digikey" V 11700 5600 50  0001 C CNN "Supplier"
+F 5 "732-1589-1-ND" V 11700 5600 50  0001 C CNN "Part Number"
+	1    11700 5600
 	0    1    1    0   
 $EndComp
-$Comp
-L LuminometerCustomPartLib:EG4627CT-ND SW1
-U 1 1 5F96BE09
-P 5625 5275
-F 0 "SW1" V 5579 5423 50  0000 L CNN
-F 1 "EG4627CT-ND" V 5670 5423 50  0000 L CNN
-F 2 "project_footprints:EG4627CT-ND" H 5625 5475 50  0001 C CNN
-F 3 "~" H 5625 5475 50  0001 C CNN
-	1    5625 5275
-	0    1    1    0   
-$EndComp
-$Comp
-L LuminometerCustomPartLib:EG4627CT-ND SW2
-U 1 1 5F96FDF3
-P 6525 5275
-F 0 "SW2" V 6479 5423 50  0000 L CNN
-F 1 "EG4627CT-ND" V 6570 5423 50  0000 L CNN
-F 2 "project_footprints:EG4627CT-ND" H 6525 5475 50  0001 C CNN
-F 3 "~" H 6525 5475 50  0001 C CNN
-	1    6525 5275
-	0    1    1    0   
-$EndComp
-$Comp
-L LuminometerCustomPartLib:EG4627CT-ND SW3
-U 1 1 5F970E01
-P 7400 5275
-F 0 "SW3" V 7354 5423 50  0000 L CNN
-F 1 "EG4627CT-ND" V 7445 5423 50  0000 L CNN
-F 2 "project_footprints:EG4627CT-ND" H 7400 5475 50  0001 C CNN
-F 3 "~" H 7400 5475 50  0001 C CNN
-	1    7400 5275
-	0    1    1    0   
-$EndComp
-Text Label 5625 5000 0    50   ~ 0
+Text Label 6375 2200 0    50   ~ 0
 B1
 Wire Wire Line
-	5625 5000 5625 5075
-Text Label 5625 5550 3    60   ~ 0
-GND
-Wire Wire Line
-	5625 5475 5625 5550
-Text Label 6525 5525 3    60   ~ 0
-GND
-Wire Wire Line
-	6525 5475 6525 5525
-Text Label 7400 5525 3    60   ~ 0
-GND
-Wire Wire Line
-	7400 5475 7400 5525
-Text Label 6525 5000 0    50   ~ 0
+	8150 2675 8150 2775
+Text Label 7275 2200 0    50   ~ 0
 B2
-Wire Wire Line
-	6525 5000 6525 5075
-Text Label 7400 5000 0    50   ~ 0
+Text Label 8150 2200 0    50   ~ 0
 B3
 Wire Wire Line
-	7400 5000 7400 5075
-Text Label 1775 3850 0    50   ~ 0
+	8150 2200 8150 2275
+Text Label 1050 1850 0    50   ~ 0
 B1
-Wire Wire Line
-	1775 3850 2000 3850
-Text Label 1775 3950 0    50   ~ 0
-B2
-Wire Wire Line
-	1775 3950 2000 3950
-Text Label 1775 4050 0    50   ~ 0
+Text Label 1050 3350 0    50   ~ 0
 B3
 Wire Wire Line
-	1775 4050 2000 4050
+	1050 3350 2250 3350
+Text Label 1050 3450 0    50   ~ 0
+B2
+Wire Wire Line
+	1050 3450 2250 3450
 $Comp
 L LuminometerCustomPartLib:Harting_15110122601000 J1
 U 1 1 5F98726C
-P 6775 3100
-F 0 "J1" H 6775 3567 50  0000 C CNN
-F 1 "Harting_15110122601000" H 6775 3476 50  0000 C CNN
-F 2 "Luminometer_OPT101_Footprints:Harting_15110122601000" H 6725 3150 50  0001 C CNN
-F 3 "" H 6725 3150 50  0001 C CNN
-	1    6775 3100
+P 10850 5625
+F 0 "J1" H 10850 6092 50  0000 C CNN
+F 1 "Harting_15110122601000" H 10850 6001 50  0000 C CNN
+F 2 "Luminometer_OPT101_Footprints:Harting_15110122601000" H 10800 5675 50  0001 C CNN
+F 3 "" H 10800 5675 50  0001 C CNN
+F 4 "1195-3359-1-ND" H 10850 5625 50  0001 C CNN "Part Number"
+	1    10850 5625
 	1    0    0    -1  
 $EndComp
 Wire Wire Line
-	7025 2850 7525 2850
+	11100 5375 11600 5375
 Wire Wire Line
-	7525 2850 7525 2700
+	11600 5375 11600 5225
 Wire Wire Line
-	7725 2700 8175 2700
+	11800 5225 12250 5225
 Wire Wire Line
-	7025 2950 7525 2950
+	11100 5475 11600 5475
 Wire Wire Line
-	7525 2950 7525 3075
+	11600 5475 11600 5600
 Wire Wire Line
-	7725 3075 8175 3075
+	11800 5600 12250 5600
 Wire Wire Line
-	800  2550 2000 2550
-NoConn ~ 3200 2550
-NoConn ~ 3200 2750
-NoConn ~ 3200 2950
-NoConn ~ 3200 3050
-NoConn ~ 2000 2350
-NoConn ~ 2000 2450
-NoConn ~ 2000 3050
-NoConn ~ 2000 3550
-NoConn ~ 2000 3750
-NoConn ~ 3200 4150
-NoConn ~ 3200 4050
-NoConn ~ 3200 3950
-NoConn ~ 3200 3750
-NoConn ~ 3200 3550
+	1050 1950 2250 1950
+NoConn ~ 3450 2150
+NoConn ~ 3450 2350
+NoConn ~ 2250 2450
 Wire Wire Line
-	4400 3350 3200 3350
+	4625 2050 3450 2050
+NoConn ~ 3450 1750
+NoConn ~ 3450 2650
+NoConn ~ 3450 2250
+NoConn ~ 3450 1850
+NoConn ~ 2250 2050
+NoConn ~ 2250 2850
+NoConn ~ 2250 3550
+NoConn ~ 3450 3250
+NoConn ~ 3450 3050
 Wire Wire Line
-	4375 2650 3200 2650
-NoConn ~ 3200 2350
-NoConn ~ 3200 3250
-NoConn ~ 3200 2850
-NoConn ~ 3200 2450
-NoConn ~ 2000 2650
-NoConn ~ 2000 3450
-NoConn ~ 2000 4150
-NoConn ~ 3200 3850
-NoConn ~ 3200 3650
-Wire Wire Line
-	4400 3450 3200 3450
-NoConn ~ 2000 3650
+	4650 2850 3450 2850
 $Comp
-L Mechanical:MountingHole H9
-U 1 1 5F9FCDCE
-P 1625 7400
-F 0 "H9" H 1725 7446 50  0000 L CNN
-F 1 "MountingHole" H 1725 7355 50  0000 L CNN
-F 2 "MountingHole:MountingHole_2.7mm_M2.5" H 1625 7400 50  0001 C CNN
-F 3 "~" H 1625 7400 50  0001 C CNN
-	1    1625 7400
+L B3F-3152:B3F-3152 SW3
+U 1 1 5FF4D698
+P 8150 2375
+F 0 "SW3" H 8194 2225 50  0000 L CNN
+F 1 "B3F-3152" H 8150 2375 50  0001 L BNN
+F 2 "B3F-3152:B3F3152" H 8150 2375 50  0001 L BNN
+F 3 "" H 8150 2375 50  0001 L BNN
+F 4 "B3F-3152" H 8150 2375 50  0001 C CNN "Part Number"
+	1    8150 2375
 	1    0    0    -1  
 $EndComp
+Text Notes 4350 2750 0    49   ~ 0
+INKY ~CE
+NoConn ~ 3450 2750
+Wire Notes Line
+	3450 2750 4650 2750
+Wire Notes Line
+	2250 2150 1050 2150
+Wire Notes Line
+	1050 2250 2250 2250
+Wire Notes Line
+	2250 2350 1050 2350
+Text Notes 1050 2150 0    49   ~ 0
+INKY CB
+Text Notes 1050 2250 0    49   ~ 0
+INKY RST
+Text Notes 1050 2350 0    49   ~ 0
+INKY CMD
+NoConn ~ 2250 2150
+NoConn ~ 2250 2250
+NoConn ~ 2250 2350
+Connection ~ 7275 2775
+Wire Wire Line
+	7275 2775 7275 2900
+Wire Wire Line
+	7175 2675 7175 2775
+Connection ~ 7175 2775
+Wire Wire Line
+	7175 2775 7275 2775
+Wire Wire Line
+	7950 2775 8050 2775
+Connection ~ 8150 2775
+Wire Wire Line
+	8150 2775 8150 2900
+Wire Wire Line
+	7950 2675 8050 2675
+Wire Wire Line
+	8050 2675 8050 2775
+Connection ~ 8050 2775
+Wire Wire Line
+	8050 2775 8150 2775
+Text Notes 5725 5200 0    79   ~ 0
+PCB outer
+Text Notes 6650 5200 0    79   ~ 0
+S. Mount
+Text Notes 7525 5200 0    79   ~ 0
+S. Shafts
+Text Notes 8375 5200 0    79   ~ 0
+Tube Holder
+$Comp
+L LuminometerCustomPartLib:Z6127-ND #BC1
+U 1 1 5FF74D27
+P 6225 1875
+F 0 "#BC1" H 6365 1921 50  0000 L CNN
+F 1 "Z6127-ND" H 6365 1830 50  0000 L CNN
+F 2 "" H 6225 1875 50  0001 C CNN
+F 3 "" H 6225 1875 50  0001 C CNN
+F 4 "Z6127-ND" H 6225 1875 50  0001 C CNN "Part Number"
+	1    6225 1875
+	1    0    0    -1  
+$EndComp
+$Comp
+L LuminometerCustomPartLib:Z6127-ND #BC2
+U 1 1 5FF751D3
+P 7150 1875
+F 0 "#BC2" H 7290 1921 50  0000 L CNN
+F 1 "Z6127-ND" H 7290 1830 50  0000 L CNN
+F 2 "" H 7150 1875 50  0001 C CNN
+F 3 "" H 7150 1875 50  0001 C CNN
+F 4 "Z6127-ND" H 7150 1875 50  0001 C CNN "Part Number"
+	1    7150 1875
+	1    0    0    -1  
+$EndComp
+$Comp
+L LuminometerCustomPartLib:Z6127-ND #BC3
+U 1 1 5FF754E7
+P 8050 1875
+F 0 "#BC3" H 8190 1921 50  0000 L CNN
+F 1 "Z6127-ND" H 8190 1830 50  0000 L CNN
+F 2 "" H 8050 1875 50  0001 C CNN
+F 3 "" H 8050 1875 50  0001 C CNN
+F 4 "Z6127-ND" H 8050 1875 50  0001 C CNN "Part Number"
+	1    8050 1875
+	1    0    0    -1  
+$EndComp
+Text Notes 6625 1675 0    79   ~ 0
+Caps (BOM only)
+Text Label 4650 3150 2    50   ~ 0
+BZ
+$Comp
+L LuminometerCustomPartLib:102-2201-1-ND BZ1
+U 1 1 5FF8CB01
+P 10850 2225
+F 0 "BZ1" H 10850 2690 50  0000 C CNN
+F 1 "102-2201-1-ND" H 10850 2599 50  0000 C CNN
+F 2 "Luminometer_OPT101_Footprints:102-2201-1-ND" H 10850 2225 50  0001 C CNN
+F 3 "" H 10850 2225 50  0001 C CNN
+F 4 "102-2201-1-ND" H 10850 2225 50  0001 C CNN "Part Number"
+	1    10850 2225
+	1    0    0    -1  
+$EndComp
+$Comp
+L Device:R R1
+U 1 1 5FF8E309
+P 10825 3050
+F 0 "R1" V 10618 3050 50  0000 C CNN
+F 1 "180R" V 10709 3050 50  0000 C CNN
+F 2 "Resistor_SMD:R_0603_1608Metric" V 10755 3050 50  0001 C CNN
+F 3 "~" H 10825 3050 50  0001 C CNN
+F 4 "311-180DCT-ND" V 10825 3050 50  0001 C CNN "Part Number"
+	1    10825 3050
+	0    1    1    0   
+$EndComp
+$Comp
+L power:GND #PWR0101
+U 1 1 5FF929C1
+P 3750 2575
+F 0 "#PWR0101" H 3750 2325 50  0001 C CNN
+F 1 "GND" H 3900 2500 50  0000 C CNN
+F 2 "" H 3750 2575 50  0001 C CNN
+F 3 "" H 3750 2575 50  0001 C CNN
+	1    3750 2575
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	3750 2575 3750 2550
+Wire Wire Line
+	3750 2550 3450 2550
+$Comp
+L power:GND #PWR0102
+U 1 1 5FF96A19
+P 6375 2900
+F 0 "#PWR0102" H 6375 2650 50  0001 C CNN
+F 1 "GND" H 6525 2825 50  0000 C CNN
+F 2 "" H 6375 2900 50  0001 C CNN
+F 3 "" H 6375 2900 50  0001 C CNN
+	1    6375 2900
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:GND #PWR0103
+U 1 1 5FF96F18
+P 7275 2900
+F 0 "#PWR0103" H 7275 2650 50  0001 C CNN
+F 1 "GND" H 7425 2825 50  0000 C CNN
+F 2 "" H 7275 2900 50  0001 C CNN
+F 3 "" H 7275 2900 50  0001 C CNN
+	1    7275 2900
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:GND #PWR0104
+U 1 1 5FF972B4
+P 8150 2900
+F 0 "#PWR0104" H 8150 2650 50  0001 C CNN
+F 1 "GND" H 8300 2825 50  0000 C CNN
+F 2 "" H 8150 2900 50  0001 C CNN
+F 3 "" H 8150 2900 50  0001 C CNN
+	1    8150 2900
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:GND #PWR0105
+U 1 1 5FF9763F
+P 11350 3350
+F 0 "#PWR0105" H 11350 3100 50  0001 C CNN
+F 1 "GND" H 11500 3275 50  0000 C CNN
+F 2 "" H 11350 3350 50  0001 C CNN
+F 3 "" H 11350 3350 50  0001 C CNN
+	1    11350 3350
+	1    0    0    -1  
+$EndComp
+Text Label 10425 3050 0    50   ~ 0
+BZ
+Wire Wire Line
+	10425 3050 10675 3050
+$Comp
+L dk_Transistors-Bipolar-BJT-Single:BC817-25LT1G Q1
+U 1 1 5FFA1299
+P 11250 3050
+F 0 "Q1" H 11438 3103 60  0000 L CNN
+F 1 "BC817-25LT1G" H 11438 2997 60  0000 L CNN
+F 2 "digikey-footprints:SOT-23-3" H 11450 3250 60  0001 L CNN
+F 3 "https://www.onsemi.com/pub/Collateral/BC817-16LT1-D.PDF" H 11450 3350 60  0001 L CNN
+F 4 "BC817-25LT1GOSCT-ND" H 11450 3450 60  0001 L CNN "Part Number"
+F 5 "BC817-25LT1G" H 11450 3550 60  0001 L CNN "MPN"
+F 6 "Discrete Semiconductor Products" H 11450 3650 60  0001 L CNN "Category"
+F 7 "Transistors - Bipolar (BJT) - Single" H 11450 3750 60  0001 L CNN "Family"
+F 8 "https://www.onsemi.com/pub/Collateral/BC817-16LT1-D.PDF" H 11450 3850 60  0001 L CNN "DK_Datasheet_Link"
+F 9 "/product-detail/en/on-semiconductor/BC817-25LT1G/BC817-25LT1GOSCT-ND/917829" H 11450 3950 60  0001 L CNN "DK_Detail_Page"
+F 10 "TRANS NPN 45V 0.5A SOT23" H 11450 4050 60  0001 L CNN "Description"
+F 11 "ON Semiconductor" H 11450 4150 60  0001 L CNN "Manufacturer"
+F 12 "Active" H 11450 4250 60  0001 L CNN "Status"
+	1    11250 3050
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	11050 3050 10975 3050
+Wire Wire Line
+	11350 3350 11350 3250
+Wire Wire Line
+	11350 2850 11350 2625
+Wire Wire Line
+	11350 2325 11250 2325
+Text Label 9925 2325 0    50   ~ 0
+P5V_HAT
+Wire Wire Line
+	9925 2325 10350 2325
+$Comp
+L Device:D D1
+U 1 1 5FFB7109
+P 10850 2625
+F 0 "D1" H 10850 2841 50  0000 C CNN
+F 1 "D" H 10850 2750 50  0000 C CNN
+F 2 "Diode_SMD:D_0603_1608Metric" H 10850 2625 50  0001 C CNN
+F 3 "~" H 10850 2625 50  0001 C CNN
+F 4 "TS4148CRZGCT-ND" H 10850 2625 50  0001 C CNN "Part Number"
+	1    10850 2625
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	11000 2625 11350 2625
+Connection ~ 11350 2625
+Wire Wire Line
+	11350 2625 11350 2325
+Wire Wire Line
+	10700 2625 10350 2625
+Wire Wire Line
+	10350 2625 10350 2325
+Connection ~ 10350 2325
+Wire Wire Line
+	10350 2325 10450 2325
+Text Label 1425 6575 0    50   ~ 0
+nSLEEP
+$Comp
+L power:GND #PWR0106
+U 1 1 5FFE6418
+P 1300 6900
+F 0 "#PWR0106" H 1300 6650 50  0001 C CNN
+F 1 "GND" H 1150 6800 50  0000 C CNN
+F 2 "" H 1300 6900 50  0001 C CNN
+F 3 "" H 1300 6900 50  0001 C CNN
+	1    1300 6900
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	1425 6575 1750 6575
+Text Label 1550 6175 0    50   ~ 0
+AIN1
+Text Label 1550 6275 0    50   ~ 0
+AIN2
+Text Label 1550 6375 0    50   ~ 0
+BIN1
+Text Label 1550 6475 0    50   ~ 0
+BIN2
+Wire Wire Line
+	1550 6175 1750 6175
+Wire Wire Line
+	1750 6275 1550 6275
+Wire Wire Line
+	1550 6375 1750 6375
+Wire Wire Line
+	1750 6475 1550 6475
+Wire Wire Line
+	3150 6175 2650 6175
+Wire Wire Line
+	2650 6375 3150 6375
+Text Label 2950 6575 2    50   ~ 0
+nFAULT
+Wire Wire Line
+	2950 6575 2650 6575
+Text Label 2250 5225 3    50   ~ 0
+P5V_HAT
+$Comp
+L power:GND #PWR0108
+U 1 1 60038BEA
+P 2150 7125
+F 0 "#PWR0108" H 2150 6875 50  0001 C CNN
+F 1 "GND" H 2000 7025 50  0000 C CNN
+F 2 "" H 2150 7125 50  0001 C CNN
+F 3 "" H 2150 7125 50  0001 C CNN
+	1    2150 7125
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	2150 7125 2150 7050
+Wire Wire Line
+	2250 6975 2250 7050
+Wire Wire Line
+	2250 7050 2150 7050
+Connection ~ 2150 7050
+Wire Wire Line
+	2150 7050 2150 6975
+Text Label 1300 5350 3    50   ~ 0
+P5V_HAT
+Wire Wire Line
+	2675 5775 2675 5625
+$Comp
+L power:GND #PWR0109
+U 1 1 60044AD9
+P 2675 5775
+F 0 "#PWR0109" H 2675 5525 50  0001 C CNN
+F 1 "GND" H 2525 5675 50  0000 C CNN
+F 2 "" H 2675 5775 50  0001 C CNN
+F 3 "" H 2675 5775 50  0001 C CNN
+	1    2675 5775
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	2675 5625 2600 5625
+$Comp
+L Device:C C3
+U 1 1 60045095
+P 2450 5625
+F 0 "C3" V 2198 5625 50  0000 C CNN
+F 1 "47uF" V 2289 5625 50  0000 C CNN
+F 2 "Capacitor_SMD:C_0603_1608Metric" H 2488 5475 50  0001 C CNN
+F 3 "" H 2450 5625 50  0001 C CNN
+F 4 "478-11180-1-ND" V 2450 5625 50  0001 C CNN "Part Number"
+	1    2450 5625
+	0    1    1    0   
+$EndComp
+Wire Wire Line
+	2250 5625 2250 5875
+Connection ~ 2250 5625
+Wire Wire Line
+	2300 5625 2250 5625
+Wire Wire Line
+	2250 5225 2250 5625
+$Comp
+L Device:C C1
+U 1 1 6005EF5B
+P 1300 5850
+F 0 "C1" H 1185 5804 50  0000 R CNN
+F 1 "10nF" H 1185 5895 50  0000 R CNN
+F 2 "Capacitor_SMD:C_0603_1608Metric" H 1338 5700 50  0001 C CNN
+F 3 "~" H 1300 5850 50  0001 C CNN
+F 4 "478-12682-1-ND" H 1300 5850 50  0001 C CNN "Part Number"
+	1    1300 5850
+	-1   0    0    1   
+$EndComp
+Wire Wire Line
+	1300 5350 1300 5700
+Wire Wire Line
+	1300 6075 1750 6075
+Wire Wire Line
+	1300 6000 1300 6075
+Text Label 1050 2950 0    50   ~ 0
+nFAULT
+Text Label 4650 2950 2    50   ~ 0
+nSLEEP
+Wire Wire Line
+	1300 6900 1300 6775
+Wire Wire Line
+	1300 6775 1750 6775
+Wire Wire Line
+	1750 6675 1300 6675
+Wire Wire Line
+	1300 6675 1300 6775
+Connection ~ 1300 6775
+Wire Wire Line
+	3450 2950 4650 2950
+Wire Wire Line
+	3550 6175 3875 6175
+Wire Wire Line
+	4275 6175 4400 6175
+Wire Wire Line
+	4400 6175 4400 6275
+Wire Wire Line
+	4400 6275 2650 6275
+Wire Wire Line
+	3550 6375 3850 6375
+Wire Wire Line
+	4250 6375 4400 6375
+Wire Wire Line
+	4400 6375 4400 6475
+Wire Wire Line
+	4400 6475 2650 6475
+Text Notes 3200 6950 0    49   ~ 0
+Beware polarity: inductors need to be \nin series but with opposite orientations. 
+Text Notes 4074 7225 3    49   ~ 0
+100
+Wire Notes Line
+	4250 7325 4250 7275
+Wire Notes Line
+	4200 7325 4250 7325
+Wire Notes Line
+	4200 7275 4200 7325
+Wire Notes Line
+	4250 7275 4200 7275
+Wire Notes Line
+	4300 7525 4300 7100
+Wire Notes Line
+	3925 7525 4300 7525
+Wire Notes Line
+	3925 7100 3925 7525
+Wire Notes Line
+	4300 7100 3925 7100
+Text Notes 3725 7400 1    49   ~ 0
+100
+Wire Notes Line
+	3500 7300 3500 7350
+Wire Notes Line
+	3550 7300 3500 7300
+Wire Notes Line
+	3550 7350 3550 7300
+Wire Notes Line
+	3500 7350 3550 7350
+Wire Notes Line
+	3450 7100 3450 7525
+Wire Notes Line
+	3825 7100 3450 7100
+Wire Notes Line
+	3825 7525 3825 7100
+Wire Notes Line
+	3450 7525 3825 7525
+Wire Notes Line
+	3450 7325 3300 7325
+Wire Notes Line
+	3825 7325 3925 7325
+Wire Notes Line
+	4300 7325 4425 7325
+Text Label 1050 3250 0    50   ~ 0
+AIN2
+Wire Wire Line
+	4650 3150 3450 3150
+Text Label 4650 3350 2    50   ~ 0
+AIN1
+Wire Wire Line
+	4650 3350 3450 3350
+Text Label 1050 3050 0    50   ~ 0
+BIN1
+Wire Wire Line
+	1050 3050 2250 3050
+Text Label 1050 3150 0    50   ~ 0
+BIN2
+Wire Wire Line
+	2250 3150 1050 3150
+Text Notes 1050 4575 0    118  ~ 24
+Shutter Drive
+Text Notes 5675 1250 0    118  ~ 24
+Buttons
+Text Notes 9850 4525 0    118  ~ 24
+Board Interconnect
+Text Notes 9750 1250 0    118  ~ 24
+Audio indicator
+$Comp
+L dk_Rectangular-Connectors-Headers-Male-Pins:22-23-2021 J3
+U 1 1 601B3726
+P 10550 7100
+F 0 "J3" V 10325 7108 50  0000 C CNN
+F 1 "22-23-2021" V 10416 7108 50  0000 C CNN
+F 2 "digikey-footprints:PinHeader_1x2_P2.54mm_Drill1.02mm" H 10750 7300 60  0001 L CNN
+F 3 "https://media.digikey.com/pdf/Data%20Sheets/Molex%20PDFs/A-6373-N_Series_Dwg_2010-12-03.pdf" H 10750 7400 60  0001 L CNN
+F 4 "WM4200-ND" H 10750 7500 60  0001 L CNN "Part Number"
+F 5 "22-23-2021" H 10750 7600 60  0001 L CNN "MPN"
+F 6 "Connectors, Interconnects" H 10750 7700 60  0001 L CNN "Category"
+F 7 "Rectangular Connectors - Headers, Male Pins" H 10750 7800 60  0001 L CNN "Family"
+F 8 "https://media.digikey.com/pdf/Data%20Sheets/Molex%20PDFs/A-6373-N_Series_Dwg_2010-12-03.pdf" H 10750 7900 60  0001 L CNN "DK_Datasheet_Link"
+F 9 "/product-detail/en/molex/22-23-2021/WM4200-ND/26667" H 10750 8000 60  0001 L CNN "DK_Detail_Page"
+F 10 "CONN HEADER VERT 2POS 2.54MM" H 10750 8100 60  0001 L CNN "Description"
+F 11 "Molex" H 10750 8200 60  0001 L CNN "Manufacturer"
+F 12 "Active" H 10750 8300 60  0001 L CNN "Status"
+	1    10550 7100
+	0    1    1    0   
+$EndComp
+Text Label 11050 6725 3    50   ~ 0
+P5V_HAT
+$Comp
+L power:GND #PWR0110
+U 1 1 601C5A92
+P 11150 6000
+F 0 "#PWR0110" H 11150 5750 50  0001 C CNN
+F 1 "GND" H 11300 5925 50  0000 C CNN
+F 2 "" H 11150 6000 50  0001 C CNN
+F 3 "" H 11150 6000 50  0001 C CNN
+	1    11150 6000
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:GND #PWR0111
+U 1 1 601CE30E
+P 11050 7425
+F 0 "#PWR0111" H 11050 7175 50  0001 C CNN
+F 1 "GND" H 10925 7325 50  0000 C CNN
+F 2 "" H 11050 7425 50  0001 C CNN
+F 3 "" H 11050 7425 50  0001 C CNN
+	1    11050 7425
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	11050 6725 11050 7100
+Wire Wire Line
+	11050 7100 10650 7100
+Wire Wire Line
+	11050 7425 11050 7200
+Wire Wire Line
+	11050 7200 10650 7200
+$Comp
+L power:PWR_FLAG #FLG0101
+U 1 1 601E708A
+P 11325 7100
+F 0 "#FLG0101" H 11325 7175 50  0001 C CNN
+F 1 "PWR_FLAG" H 11325 7273 50  0000 C CNN
+F 2 "" H 11325 7100 50  0001 C CNN
+F 3 "~" H 11325 7100 50  0001 C CNN
+	1    11325 7100
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	11325 7100 11050 7100
+Connection ~ 11050 7100
+NoConn ~ 2250 1750
+Wire Wire Line
+	2250 1850 1050 1850
+$Comp
+L LuminometerCustomPartLib:SDR0503-153JL L1
+U 1 1 6024F072
+P 3350 6175
+F 0 "L1" H 3350 6422 60  0000 C CNN
+F 1 "SDR0503-153JL" H 3350 6316 60  0000 C CNN
+F 2 "Luminometer_OPT101_Footprints:SDR0503-153JL" H 3550 6375 60  0001 L CNN
+F 3 "https://www.murata-ps.com/data/magnetics/kmp_1300r.pdf" H 3550 6475 60  0001 L CNN
+F 4 "SDR0503-153JLCT-ND" H 3550 6575 60  0001 L CNN "Digi-Key_PN"
+F 5 "SDR0503-153JL" H 3550 6675 60  0001 L CNN "MPN"
+F 6 "Inductors, Coils, Chokes" H 3550 6775 60  0001 L CNN "Category"
+F 7 "Fixed Inductors" H 3550 6875 60  0001 L CNN "Family"
+F 8 "FIXED IND 15MH 20MA 168 OHM SMD" H 3550 7175 60  0001 L CNN "Description"
+F 9 "Bourns Inc." H 3550 7275 60  0001 L CNN "Manufacturer"
+	1    3350 6175
+	1    0    0    -1  
+$EndComp
+$Comp
+L LuminometerCustomPartLib:SDR0503-153JL L4
+U 1 1 6024FD79
+P 4075 6175
+F 0 "L4" H 4075 5955 60  0000 C CNN
+F 1 "SDR0503-153JL" H 4075 6061 60  0000 C CNN
+F 2 "Luminometer_OPT101_Footprints:SDR0503-153JL" H 4275 6375 60  0001 L CNN
+F 3 "https://www.murata-ps.com/data/magnetics/kmp_1300r.pdf" H 4275 6475 60  0001 L CNN
+F 4 "SDR0503-153JLCT-ND" H 4275 6575 60  0001 L CNN "Digi-Key_PN"
+F 5 "SDR0503-153JL" H 4275 6675 60  0001 L CNN "MPN"
+F 6 "Inductors, Coils, Chokes" H 4275 6775 60  0001 L CNN "Category"
+F 7 "Fixed Inductors" H 4275 6875 60  0001 L CNN "Family"
+F 8 "FIXED IND 15MH 20MA 168 OHM SMD" H 4275 7175 60  0001 L CNN "Description"
+F 9 "Bourns Inc." H 4275 7275 60  0001 L CNN "Manufacturer"
+	1    4075 6175
+	-1   0    0    1   
+$EndComp
+$Comp
+L LuminometerCustomPartLib:SDR0503-153JL L3
+U 1 1 602507E4
+P 4050 6375
+F 0 "L3" H 4025 6625 60  0000 C CNN
+F 1 "SDR0503-153JL" H 4000 6525 60  0000 C CNN
+F 2 "Luminometer_OPT101_Footprints:SDR0503-153JL" H 4250 6575 60  0001 L CNN
+F 3 "https://www.murata-ps.com/data/magnetics/kmp_1300r.pdf" H 4250 6675 60  0001 L CNN
+F 4 "SDR0503-153JLCT-ND" H 4250 6775 60  0001 L CNN "Digi-Key_PN"
+F 5 "SDR0503-153JL" H 4250 6875 60  0001 L CNN "MPN"
+F 6 "Inductors, Coils, Chokes" H 4250 6975 60  0001 L CNN "Category"
+F 7 "Fixed Inductors" H 4250 7075 60  0001 L CNN "Family"
+F 8 "FIXED IND 15MH 20MA 168 OHM SMD" H 4250 7375 60  0001 L CNN "Description"
+F 9 "Bourns Inc." H 4250 7475 60  0001 L CNN "Manufacturer"
+	1    4050 6375
+	-1   0    0    1   
+$EndComp
+$Comp
+L LuminometerCustomPartLib:SDR0503-153JL L2
+U 1 1 60251B10
+P 3350 6375
+F 0 "L2" H 3350 6125 60  0000 C CNN
+F 1 "SDR0503-153JL" H 3350 6225 60  0000 C CNN
+F 2 "Luminometer_OPT101_Footprints:SDR0503-153JL" H 3550 6575 60  0001 L CNN
+F 3 "https://www.murata-ps.com/data/magnetics/kmp_1300r.pdf" H 3550 6675 60  0001 L CNN
+F 4 "SDR0503-153JLCT-ND" H 3550 6775 60  0001 L CNN "Digi-Key_PN"
+F 5 "SDR0503-153JL" H 3550 6875 60  0001 L CNN "MPN"
+F 6 "Inductors, Coils, Chokes" H 3550 6975 60  0001 L CNN "Category"
+F 7 "Fixed Inductors" H 3550 7075 60  0001 L CNN "Family"
+F 8 "FIXED IND 15MH 20MA 168 OHM SMD" H 3550 7375 60  0001 L CNN "Description"
+F 9 "Bourns Inc." H 3550 7475 60  0001 L CNN "Manufacturer"
+	1    3350 6375
+	1    0    0    -1  
+$EndComp
+Text Notes 3175 5800 0    49   ~ 0
+Set pull-down for nFAULT in software
+NoConn ~ 3450 3450
+Wire Wire Line
+	2250 2950 1050 2950
+NoConn ~ 3450 3550
+Wire Wire Line
+	2250 3250 1050 3250
+NoConn ~ 3450 2450
+NoConn ~ 3450 1950
+$Comp
+L LuminometerCustomPartLib:DRV8833PWP U1
+U 1 1 6022DBB4
+P 2250 6475
+F 0 "U1" H 2000 7050 60  0000 C CNN
+F 1 "DRV8833PWP" H 1750 5950 60  0000 C CNN
+F 2 "digikey-footprints:TSSOP-16-1EP_W4.40mm" H 2450 6675 60  0001 L CNN
+F 3 "http://www.ti.com/general/docs/suppproductinfo.tsp?distId=10&gotoUrl=http%3A%2F%2Fwww.ti.com%2Flit%2Fgpn%2Fdrv8833" H 2450 6775 60  0001 L CNN
+F 4 "296-29434-1-ND" H 2450 6875 60  0001 L CNN "Digi-Key_PN"
+F 5 "DRV8833PWPR" H 2450 6975 60  0001 L CNN "MPN"
+F 6 "Integrated Circuits (ICs)" H 2450 7075 60  0001 L CNN "Category"
+F 7 "PMIC - Full, Half-Bridge Drivers" H 2450 7175 60  0001 L CNN "Family"
+F 8 "http://www.ti.com/general/docs/suppproductinfo.tsp?distId=10&gotoUrl=http%3A%2F%2Fwww.ti.com%2Flit%2Fgpn%2Fdrv8833" H 2450 7275 60  0001 L CNN "DK_Datasheet_Link"
+F 9 "/product-detail/en/texas-instruments/DRV8833PWPR/296-29434-1-ND/2743171" H 2450 7375 60  0001 L CNN "DK_Detail_Page"
+F 10 "IC MOTOR DRIVER PAR 16HTSSOP" H 2450 7475 60  0001 L CNN "Description"
+F 11 "Texas Instruments" H 2450 7575 60  0001 L CNN "Manufacturer"
+F 12 "Active" H 2450 7675 60  0001 L CNN "Status"
+	1    2250 6475
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	2650 6775 2775 6775
+Wire Wire Line
+	6375 2200 6375 2275
+$Comp
+L B3F-3152:B3F-3152 SW1
+U 1 1 5FF4AA93
+P 6375 2375
+F 0 "SW1" H 6419 2225 50  0000 L CNN
+F 1 "B3F-3152" H 6375 2375 50  0001 L BNN
+F 2 "B3F-3152:B3F3152" H 6375 2375 50  0001 L BNN
+F 3 "" H 6375 2375 50  0001 L BNN
+F 4 "B3F-3152" H 6375 2375 50  0001 C CNN "Part Number"
+	1    6375 2375
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	7075 2675 7175 2675
+Wire Wire Line
+	7075 2775 7175 2775
+Wire Wire Line
+	7275 2200 7275 2275
+Wire Wire Line
+	7275 2675 7275 2775
+$Comp
+L B3F-3152:B3F-3152 SW2
+U 1 1 5FF4BB39
+P 7275 2375
+F 0 "SW2" H 7319 2225 50  0000 L CNN
+F 1 "B3F-3152" H 7275 2375 50  0001 L BNN
+F 2 "B3F-3152:B3F3152" H 7275 2375 50  0001 L BNN
+F 3 "" H 7275 2375 50  0001 L BNN
+F 4 "B3F-3152" H 7275 2375 50  0001 C CNN "Part Number"
+	1    7275 2375
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	6375 2675 6375 2900
+NoConn ~ 6175 2675
+NoConn ~ 6175 2775
+Wire Wire Line
+	2775 6775 2775 6850
+$Comp
+L Device:C C2
+U 1 1 6002622D
+P 2775 7000
+F 0 "C2" V 2523 7000 50  0000 C CNN
+F 1 "2.2uF" V 2614 7000 50  0000 C CNN
+F 2 "Capacitor_SMD:C_0603_1608Metric" H 2813 6850 50  0001 C CNN
+F 3 "~" H 2775 7000 50  0001 C CNN
+F 4 "445-5157-1-ND" V 2775 7000 50  0001 C CNN "Part Number"
+	1    2775 7000
+	-1   0    0    1   
+$EndComp
+Wire Wire Line
+	2775 7150 2775 7225
+$Comp
+L power:GND #PWR0107
+U 1 1 6002574D
+P 2775 7225
+F 0 "#PWR0107" H 2775 6975 50  0001 C CNN
+F 1 "GND" H 2625 7125 50  0000 C CNN
+F 2 "" H 2775 7225 50  0001 C CNN
+F 3 "" H 2775 7225 50  0001 C CNN
+	1    2775 7225
+	1    0    0    -1  
+$EndComp
+Connection ~ 11050 7200
+Wire Wire Line
+	11325 7200 11050 7200
+$Comp
+L power:PWR_FLAG #FLG0102
+U 1 1 601EB9C2
+P 11325 7200
+F 0 "#FLG0102" H 11325 7275 50  0001 C CNN
+F 1 "PWR_FLAG" H 11325 7373 50  0000 C CNN
+F 2 "" H 11325 7200 50  0001 C CNN
+F 3 "~" H 11325 7200 50  0001 C CNN
+	1    11325 7200
+	-1   0    0    1   
+$EndComp
+NoConn ~ 2525 8875
 $EndSCHEMATC
