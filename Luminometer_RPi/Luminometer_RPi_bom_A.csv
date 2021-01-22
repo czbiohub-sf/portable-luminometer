@@ -1,21 +1,30 @@
-Component,Description,Part,References,Value,Footprint,Quantity Per PCB,Build Quantity,Datasheet
-1,"Ferrite bead, small symbol",Ferrite_Bead_Small,FB1 FB2,Ferrite_Bead_Small,R_0603_1608Metric,2,12,~
-2,,Harting_15110122601000,J1,Harting_15110122601000,Harting_15110122601000,1,6,
-3,,RPi_SockerHeader,J2,RPi_SockerHeader,PinSocket_2x20_P2.54mm_Vertical,1,6,
-4,"Push button switch, generic, two pins",EG4627CT-ND,SW1 SW2 SW3,EG4627CT-ND,EG4627CT-ND,3,18,~
+Component,Description,Part,References,Value,Footprint,Quantity Per PCB,Build Quantity,Datasheet,Part Number,Supplier,Part Number ,Category,Status,Family,MPN,DK_Datasheet_Link,DK_Detail_Page,Manufacturer,Digi-Key_PN
+1,,102-2201-1-ND,BZ1,102-2201-1-ND,102-2201-1-ND,1,6,,102-2201-1-ND,,,,,,,,,,
+2,Unpolarized capacitor,C,C1,10nF,C_0603_1608Metric,1,6,~,478-12682-1-ND,,,,,,,,,,
+3,Unpolarized capacitor,C,C2,2.2uF,C_0603_1608Metric,1,6,~,445-5157-1-ND,,,,,,,,,,
+4,Unpolarized capacitor,C,C3,47uF,C_0603_1608Metric,1,6,,478-11180-1-ND,,,,,,,,,,
+5,Diode,D,D1,D,D_0603_1608Metric,1,6,~,TS4148CRZGCT-ND,,,,,,,,,,
+6,"Ferrite bead, small symbol",Ferrite_Bead_Small,FB1 FB2,Ferrite_Bead_Small,R_0603_1608Metric,2,12,~,732-1589-1-ND,Digikey,732-1589-1-ND,,,,,,,,
+7,CONN HEADER VERT 2POS 2.54MM,22-23-2021,J3,22-23-2021,PinHeader_1x2_P2.54mm_Drill1.02mm,1,6,https://media.digikey.com/pdf/Data%20Sheets/Molex%20PDFs/A-6373-N_Series_Dwg_2010-12-03.pdf,WM4200-ND,,,"Connectors, Interconnects",Active,"Rectangular Connectors - Headers, Male Pins",22-23-2021,https://media.digikey.com/pdf/Data%20Sheets/Molex%20PDFs/A-6373-N_Series_Dwg_2010-12-03.pdf,/product-detail/en/molex/22-23-2021/WM4200-ND/26667,Molex,
+8,,Harting_15110122601000,J1,Harting_15110122601000,Harting_15110122601000,1,6,,1195-3359-1-ND,,,,,,,,,,
+9,FIXED IND 15MH 20MA 168 OHM SMD,SDR0503-153JL,L1 L2 L3 L4,SDR0503-153JL,SDR0503-153JL,4,24,https://www.murata-ps.com/data/magnetics/kmp_1300r.pdf,,,,"Inductors, Coils, Chokes",,Fixed Inductors,SDR0503-153JL,,,Bourns Inc.,SDR0503-153JLCT-ND
+10,TRANS NPN 45V 0.5A SOT23,BC817-25LT1G,Q1,BC817-25LT1G,SOT-23-3,1,6,https://www.onsemi.com/pub/Collateral/BC817-16LT1-D.PDF,BC817-25LT1GOSCT-ND,,,Discrete Semiconductor Products,Active,Transistors - Bipolar (BJT) - Single,BC817-25LT1G,https://www.onsemi.com/pub/Collateral/BC817-16LT1-D.PDF,/product-detail/en/on-semiconductor/BC817-25LT1G/BC817-25LT1GOSCT-ND/917829,ON Semiconductor,
+11,Resistor,R,R1,180R,R_0603_1608Metric,1,6,~,311-180DCT-ND,,,,,,,,,,
+12,,B3F-3152,SW1 SW2 SW3,B3F-3152,B3F3152,3,18,,B3F-3152,,,,,,,,,,
+13,IC MOTOR DRIVER PAR 16HTSSOP,DRV8833PWP,U1,DRV8833PWP,TSSOP-16-1EP_W4.40mm,1,6,http://www.ti.com/general/docs/suppproductinfo.tsp?distId=10&gotoUrl=http%3A%2F%2Fwww.ti.com%2Flit%2Fgpn%2Fdrv8833,,,,Integrated Circuits (ICs),Active,"PMIC - Full, Half-Bridge Drivers",DRV8833PWPR,http://www.ti.com/general/docs/suppproductinfo.tsp?distId=10&gotoUrl=http%3A%2F%2Fwww.ti.com%2Flit%2Fgpn%2Fdrv8833,/product-detail/en/texas-instruments/DRV8833PWPR/296-29434-1-ND/2743171,Texas Instruments,296-29434-1-ND
 
 
 
 
 
-Component Groups:,4
-Component Count:,7
-Fitted Components:,7
+Component Groups:,13
+Component Count:,19
+Fitted Components:,19
 Number of PCBs:,6
-Total components:,42
+Total components:,114
 Schematic Version:,A
 Schematic Date:,
-PCB Variant:,default
-BoM Date:,"Wednesday, October 28, 2020 at 10:44:03 PM"
+PCB Variant:,[u'default']
+BoM Date:,"Friday, January 22, 2021 at 03:14:50 PM"
 Schematic Source:,Luminometer_RPi.sch
 KiCad Version:,Eeschema (5.1.5-0)
