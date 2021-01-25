@@ -1,0 +1,31 @@
+EESchema-LIBRARY Version 2.3
+#encoding utf-8
+#(c) SnapEDA 2016 (snapeda.com)
+#This work is licensed under a Creative Commons Attribution-ShareAlike 4.0 International License (CC BY-SA) with Design Exception 1.0
+#
+# B3F-3152
+#
+DEF B3F-3152 SW 0 40 N N 1 L N
+F0 "SW" 100 -250 50 V V L BNN
+F1 "B3F-3152" 0 0 50 H I L BNN
+F2 "B3F3152" 0 0 50 H I L BNN
+F3 "" 0 0 50 H I L BNN
+DRAW
+P 2 0 0 10 0 -225 0 -175 N
+P 2 0 0 10 0 -175 -50 -25 N
+P 2 0 0 10 0 -25 0 25 N
+P 2 0 0 12 -200 -200 -200 -100 N
+P 2 0 0 12 -200 -100 -200 0 N
+P 2 0 0 5 -200 -100 -400 -100 N
+P 2 0 0 5 -400 -100 -400 -200 N
+P 2 0 0 5 -450 -200 -350 -200 N
+P 2 0 0 5 -425 -225 -375 -225 N
+P 2 0 0 5 -405 -250 -393 -250 N
+X ~ 1 0 -300 100 U 40 40 0 0 P 
+X ~ 2 0 100 100 D 40 40 0 0 P 
+X ~ GND@2 -200 -300 100 U 40 40 0 0 W 
+X ~ GND@1 -200 -400 100 U 40 40 0 0 W 
+ENDDRAW
+ENDDEF
+#
+# End Library

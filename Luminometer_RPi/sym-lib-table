@@ -2,4 +2,5 @@
   (lib (name raspberrypi_hat)(type Legacy)(uri ${KIPRJMOD}/project_components/raspberrypi_hat.lib)(options "")(descr ""))
   (lib (name LuminometerCustomPartLib)(type Legacy)(uri ${KIPRJMOD}/project_components/LuminometerCustomPartLib.lib)(options "")(descr ""))
   (lib (name 2-534206-0)(type Legacy)(uri ${KIPRJMOD}/project_components/2-534206-0.lib)(options "")(descr ""))
+  (lib (name Luminometer_RPi-rescue)(type Legacy)(uri ${KIPRJMOD}/Luminometer_RPi-rescue.lib)(options "")(descr ""))
 )

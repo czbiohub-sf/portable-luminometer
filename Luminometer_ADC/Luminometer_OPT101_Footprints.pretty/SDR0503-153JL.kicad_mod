@@ -1,4 +1,4 @@
-(module SDR0503-153JL (layer F.Cu) (tedit 5FF9382D)
+(module SDR0503-153JL (layer F.Cu) (tedit 600EF1FF)
   (fp_text reference REF** (at 0 -7.5) (layer F.SilkS)
     (effects (font (size 1 1) (thickness 0.15)))
   )
@@ -12,7 +12,7 @@
     (options (clearance outline) (anchor rect))
     (primitives
     ))
-  (model ${KIPRJMOD}/sdr0503.stp
+  (model "${KIPRJMOD}/3D models/sdr0503.stp"
     (at (xyz 0 0 0))
     (scale (xyz 1 1 1))
     (rotate (xyz -90 0 90))
