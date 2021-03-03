@@ -22,6 +22,14 @@ BTN_1 = 3
 BTN_2 = 26
 BTN_3 = 19
 
+AIN1 = 16
+AIN2 = 13
+BIN1 = 5
+BIN2 = 6
+
+FREQ = 100000
+DUTY = 100
+
 # Sampling rate of the ADC (488 kHz CLKIN, OSR = 4096, global chop mode. See ADS131m08 datasheet 8.4.2.2)
 SAMPLE_TIME_S = 0.050
 
@@ -89,9 +97,21 @@ if __name__ == "__main__":
 		# Wait for button-press,then wait a delay before starting the measurement
 		print('Waiting for button 3 press...')
 		GPIO.setup(BTN_3, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+		GPIO.setup(AIN1, GPIO.OUT)
+		GPIO.setup(AIN2, GPIO.OUT)
+		GPIO.setup(BIN1, GPIO.OUT)
+		GPIO.setup(BIN2, GPIO.OUT)
+		GPIO.output(AIN1, GPIO.LOW)
+		GPIO.output(AIN2, GPIO.LOW)
+		GPIO.output(BIN1, GPIO.LOW)
+		GPIO.output(BIN2, GPIO.LOW)
+		shutter = GPIO.PWM(AIN2, FREQ)
 		GPIO.wait_for_edge(BTN_3, GPIO.FALLING)
 		print(f'Button pressed. Waiting for {delayTime_seconds} seconds...')
 		time.sleep(delayTime_seconds)
+
+		GPIO.output(AIN1, GPIO.HIGH)
+		shutter.start(DUTY)
 
 		# Start logging incoming data
 		GPIO.add_event_detect(adc_reader._DRDY, GPIO.FALLING, callback=cb)
@@ -103,6 +123,8 @@ if __name__ == "__main__":
 		except KeyboardInterrupt:
 			pass
 		finally:
+			GPIO.output(AIN1, GPIO.LOW)
+			shutter.stop()
 			t1 = time.time()
 			GPIO.cleanup()
 
