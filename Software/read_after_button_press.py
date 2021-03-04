@@ -18,9 +18,9 @@ from ads131m08_reader import ADS131M08Reader, bytes_to_readable
 
 
 # Device user input pushbuttons, BCM pins
-BTN_1 = 3
-BTN_2 = 26
-BTN_3 = 19
+BTN_1 = 13
+BTN_2 = 19
+BTN_3 = 26
 
 # Sampling rate of the ADC (488 kHz CLKIN, OSR = 4096, global chop mode. See ADS131m08 datasheet 8.4.2.2)
 SAMPLE_TIME_S = 0.050
@@ -87,9 +87,8 @@ if __name__ == "__main__":
 
 
 		# Wait for button-press,then wait a delay before starting the measurement
-		print('Waiting for button 3 press...')
-		GPIO.setup(BTN_3, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-		GPIO.wait_for_edge(BTN_3, GPIO.FALLING)
+		GPIO.setup(BTN_1, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+		GPIO.wait_for_edge(BTN_1, GPIO.FALLING)
 		print(f'Button pressed. Waiting for {delayTime_seconds} seconds...')
 		time.sleep(delayTime_seconds)
 
