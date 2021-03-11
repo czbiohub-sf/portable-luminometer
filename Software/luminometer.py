@@ -16,12 +16,15 @@ import csv
 import argparse
 import RPi.GPIO as GPIO
 from typing import List
+from statistics import mean, stdev
 
 from consts import *
 from ads131m08_reader import ADS131M08Reader, bytes_to_readable, CRCError
 
 # Sampling rate of the ADC (488 kHz CLKIN, OSR = 4096, global chop mode. See ADS131m08 datasheet 8.4.2.2)
 SAMPLE_TIME_S = 0.050
+SHUTTER_ACTUATION_TIME = 0.04
+FM_PER_V = 5000
 
 # Device user input pushbuttons, BCM pins
 BTN_1 = 3
@@ -120,7 +123,7 @@ class Luminometer():
 		print(bytes_to_readable(d)[0])
 		print()
 
-	def measure(self, measure_time=11, shutter_time=1)-> List[float]:
+	def measure(self, measure_time:int = 11, shutter_time: int = 1)-> List[float]:
 		"""
 		Arguments:
 		shutter_time is interval between open/close events, in seconds
@@ -139,57 +142,94 @@ class Luminometer():
 		_|-|_|-|_|-|_
 
 		"""
-		
+		self.shutterA.close()
+		self.shutterB.close()
+		time.sleep(0.5)
+
 		# The actual number of samples is taken as the ceiling of however many 
 		# full open and closed periods it takes to complete the measurement
 		self.shutter_samples = int(math.ceil(shutter_time/SAMPLE_TIME_S))
+		# Number of shutter-open periods
 		self.nSamples = int(math.floor(measure_time/(2*shutter_time)))
+		# Number of shutter closed periods
 		self.nDark = self.nSamples + 1
-
 		# Raw samples are continous and include open and closed periods
 		self.nRawSamples = self.shutter_samples*(self.nSamples + self.nDark)
 
-		self.rawdataA = self.rawDataB = self.nRawSamples*[None]
-		self.dataA = self.dataB = (self.nSamples+self.nDark)*[None]
+		self.rawdataA = self.nRawSamples*[None]
+		self.rawdataB = self.nRawSamples*[None]
 
 		# Counters
 		self._rsc = self._sc = self._errs = 0
 
 		# Start logging incoming data
-		GPIO.add_event_detect(self._adc._DRDY, GPIO.FALLING, callback=self._cb)
+		GPIO.add_event_detect(self._adc._DRDY, GPIO.FALLING, callback=self._cb_adc_data_ready)
 
 		self.t0 = time.time()
 		try:
+			sampleCount = 0
+
+			# Start data acquisition loop
 			while self._rsc < self.nRawSamples:
-				pass
+
+				# Do this once each time a full cycle (closed-open-closed) has completed:
+				if (self._sc > sampleCount) and (((self._sc -1) % 2)==0) and (self._sc > 2):
+					print("")
+					self.dataA = self.gateTrace(self.rawdataA[:self._rsc], self.shutter_samples, 10)
+					print(f"Sensor A after {int(self._sc/2)} cycles: {FM_PER_V*mean(self.dataA):.4f} fM")
+
+					self.dataB = self.gateTrace(self.rawdataB[:self._rsc], self.shutter_samples, 10)
+					print(f"Sensor B after {int(self._sc/2)} cycles: {FM_PER_V*mean(self.dataB):.4f} fM")
+					sampleCount = self._sc
+
+			
+			self.dataA = self.gateTrace(self.rawdataA, self.shutter_samples, 10)
+			self.dataB = self.gateTrace(self.rawdataB, self.shutter_samples, 10)
+
+			self.resultA = mean(self.dataA)
+			self.resultB = mean(self.dataB)
+			self.semA = stdev(self.dataA)/math.sqrt(self.nSamples)
+			self.semB = stdev(self.dataB)/math.sqrt(self.nSamples)
+
+			print("")
+			print(f"Sensor A final result: {FM_PER_V*self.resultA:.4f} fM +/- {FM_PER_V*self.semA:.4f} (s.e.m.) ")
+			print(f"Sensor B final result: {FM_PER_V*self.resultB:.4f} fM +/- {FM_PER_V*self.semB:.4f} (s.e.m.) ")
+
+		
 		except KeyboardInterrupt:
-			pass
+			self.writeToFile('Interrupted_')
 		finally:
 			self.t1 = time.time()
 
 		print(f"\n{self._rsc} samples in {self.t1 - self.t0} seconds. Sample rate of {self._rsc / (self.t1 - self.t0)} Hz")
 		print(f"{self._errs} CRC Errors encountered.")
 
-	def _cb(self, channel):
+		return [self.resultA, self.resultB]
+
+	def _cb_adc_data_ready(self, channel):
 		# Callback function executed when data ready is asserted from ADC
 		
 		# Read sensor
 		d = self._adc.read()
 		
-		if (self._rsc + 1) <= self.nRawSamples:
+		if  self._rsc < self.nRawSamples:
 			self.rawdataA[self._rsc] = d[0]
-			self.rawDataB[self._rsc] = d[1]
+			self.rawdataB[self._rsc] = d[1]
 		
 			try:
 				# Close shutters
 				if self._rsc % (2*self.shutter_samples) == 0:
 					#self.shutterA.close()
 					self.shutterB.close()
+					time.sleep(SHUTTER_ACTUATION_TIME)
+					self.shutterB.brake()
 
 				# Open shutters
 				elif self._rsc % self.shutter_samples == 0:
 					#self.shutterA.open()
 					self.shutterB.open()
+					time.sleep(SHUTTER_ACTUATION_TIME)
+					self.shutterB.brake()
 
 			except CRCError:
 				errs += 1
@@ -198,16 +238,48 @@ class Luminometer():
 			self._rsc += 1
 			self._sc = int(math.floor(self._rsc/self.shutter_samples))
 
-			print(f"CH0: {d[0]} \t CH1: {d[1]}")
+			#print(f"CH0: {d[0]} \t CH1: {d[1]}")
+
+		return
 
 	def writeToFile(self, title):
 
 		with open(title + '.csv', 'w', newline='') as csvFile:
 			csvWriter = csv.writer(csvFile)
 			for i in range(self.nRawSamples):
-				csvWriter.writerow([self.rawdataA[i], self.rawDataB[i]])
+				csvWriter.writerow((self.rawdataA[i], self.rawdataB[i]))
 
+		with open(title + '_gated' + '.csv', 'w', newline='') as csvFile:
+			csvWriter = csv.writer(csvFile)
+			for i in range(len(self.dataA)):
+				csvWriter.writerow((self.dataA[i], self.dataB[i]))
 
+	def gateTrace(self, rawData: List[float], gateSize: int, excludeSize: int = 0) -> List[float]:
+		# Helper method that computes the mean of each even chunk of data, subtracted by the mean of the flanking odd
+		# chunks of data. The chunk size is specified by gateSize, and the total size of the rawData should be an odd
+		# multiple of gateSize, so that every even chunk has two flanking odd chunks.
+
+		# The function will disregard raw data that does not consist of a complete odd multiple of the gateSize.
+
+		nPeriods = int(len(rawData) / gateSize)
+
+		if nPeriods < 3:
+			print("Raw data size must be greater than three times gateSize!")
+			return [0.0]
+
+		# Process only up the last odd-numbered period
+		if nPeriods % 2 == 0:
+			nPeriods = nPeriods -1
+
+		samples = []
+
+		for i in range(gateSize, gateSize*nPeriods, 2*gateSize):
+			sample = mean(rawData[(i+excludeSize):i+(gateSize-1)])
+			darkBefore = mean(rawData[(i-gateSize+excludeSize):(i-1)])
+			darkAfter = mean(rawData[(i+gateSize+excludeSize):(i+2*gateSize - 1)])
+			samples.append( sample - 0.5*(darkBefore + darkAfter))
+
+		return samples 
 
 if __name__ == "__main__":
 
@@ -222,8 +294,8 @@ if __name__ == "__main__":
 	integrationTime_seconds = args.integration
 	title = args.title
 
-	shutterA = LumiShutter(AIN1, AIN2, NFAULT, NSLEEP)
-	shutterB = LumiShutter(BIN1, BIN2, NFAULT, NSLEEP)
+	shutterA = LumiShutter(AIN2, AIN1, NFAULT, NSLEEP)
+	shutterB = LumiShutter(BIN2, BIN1, NFAULT, NSLEEP)
 
 	Luminometer = Luminometer(shutterA, shutterB)
 
