@@ -25,6 +25,7 @@ from ads131m08_reader import ADS131M08Reader, bytes_to_readable, CRCError
 SAMPLE_TIME_S = 0.050
 SHUTTER_ACTUATION_TIME = 0.04
 FM_PER_V = 5000
+SKIP_SAMPLES = 10
 
 # Device user input pushbuttons, BCM pins
 BTN_1 = 3
@@ -175,11 +176,14 @@ class Luminometer():
 				# Do this once each time a full cycle (closed-open-closed) has completed:
 				if (self._sc > sampleCount) and (((self._sc -1) % 2)==0) and (self._sc > 2):
 					print("")
-					self.dataA = self.gateTrace(self.rawdataA[:self._rsc], self.shutter_samples, 10)
+					self.dataA = self.gateTrace(self.rawdataA[:self._rsc], self.shutter_samples, SKIP_SAMPLES)
 					print(f"Sensor A after {int(self._sc/2)} cycles: {FM_PER_V*mean(self.dataA):.4f} fM")
+					print(f"Sensor A raw: {self.rawdataA[self._rsc-1]:.4f}")
 
-					self.dataB = self.gateTrace(self.rawdataB[:self._rsc], self.shutter_samples, 10)
+					self.dataB = self.gateTrace(self.rawdataB[:self._rsc], self.shutter_samples, SKIP_SAMPLES)
 					print(f"Sensor B after {int(self._sc/2)} cycles: {FM_PER_V*mean(self.dataB):.4f} fM")
+					print(f"Sensor B raw: {self.rawdataB[self._rsc-1]:.4f}")
+
 					sampleCount = self._sc
 
 			
