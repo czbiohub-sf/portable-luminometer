@@ -19,6 +19,7 @@ from typing import List
 from statistics import mean, stdev
 
 from consts import *
+from lumiscreen import LumiScreen
 from ads131m08_reader import ADS131M08Reader, bytes_to_readable, CRCError
 
 # Sampling rate of the ADC (488 kHz CLKIN, OSR = 4096, global chop mode. See ADS131m08 datasheet 8.4.2.2)
@@ -41,6 +42,8 @@ NSLEEP = 1
 NFAULT = 0
 
 CE = 1
+
+
 
 class LumiShutter():
 	# Uses RPi BCM pinout
@@ -91,10 +94,13 @@ class LumiShutter():
 
 class Luminometer():
 
-	def __init__(self, shutterA, shutterB):
+	def __init__(self, shutterA, shutterB, screen):
 
 		self._adc = ADS131M08Reader()
 		self._adc.setup_adc(CE, channels=[0,1])
+		self._display = screen
+
+		self._display.welcome()
 
 		self.shutterA = shutterA
 		self.shutterB = shutterB
@@ -124,7 +130,7 @@ class Luminometer():
 		print(bytes_to_readable(d)[0])
 		print()
 
-	def measure(self, measure_time:int = 11, shutter_time: int = 1)-> List[float]:
+	def measure(self, measure_time:int = 30, shutter_time: int = 2)-> List[float]:
 		"""
 		Arguments:
 		shutter_time is interval between open/close events, in seconds
@@ -176,6 +182,7 @@ class Luminometer():
 				# Do this once each time a full cycle (closed-open-closed) has completed:
 				if (self._sc > sampleCount) and (((self._sc -1) % 2)==0) and (self._sc > 2):
 					print("")
+
 					self.dataA = self.gateTrace(self.rawdataA[:self._rsc], self.shutter_samples, SKIP_SAMPLES)
 					print(f"Sensor A after {int(self._sc/2)} cycles: {FM_PER_V*mean(self.dataA):.4f} fM")
 					print(f"Sensor A raw: {self.rawdataA[self._rsc-1]:.4f}")
@@ -183,6 +190,8 @@ class Luminometer():
 					self.dataB = self.gateTrace(self.rawdataB[:self._rsc], self.shutter_samples, SKIP_SAMPLES)
 					print(f"Sensor B after {int(self._sc/2)} cycles: {FM_PER_V*mean(self.dataB):.4f} fM")
 					print(f"Sensor B raw: {self.rawdataB[self._rsc-1]:.4f}")
+
+					self._display.displayResult(FM_PER_V*mean(self.dataA), FM_PER_V*mean(self.dataB))\
 
 					sampleCount = self._sc
 
@@ -207,6 +216,8 @@ class Luminometer():
 
 		print(f"\n{self._rsc} samples in {self.t1 - self.t0} seconds. Sample rate of {self._rsc / (self.t1 - self.t0)} Hz")
 		print(f"{self._errs} CRC Errors encountered.")
+
+		GPIO.remove_event_detect(self._adc._DRDY)
 
 		return [self.resultA, self.resultB]
 
@@ -285,6 +296,30 @@ class Luminometer():
 
 		return samples 
 
+
+	def measureUponButtonPress(self, startButton:int = BTN_3, stopButton:int = BTN_2):
+		
+		GPIO.setup(startButton, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+		GPIO.setup(stopButton, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+		GPIO.add_event_detect(stopButton, GPIO.FALLING, bouncetime=200)
+		GPIO.add_event_detect(startButton, GPIO.FALLING, bouncetime=200)
+		
+		time.sleep(.2)
+
+		try:
+			while(GPIO.event_detected(stopButton) == False):
+				print("Waiting for button press...")
+				time.sleep(1)
+				if GPIO.event_detected(startButton):
+					self.measure()
+		except KeyboardInterrupt:
+			pass
+		finally:
+			GPIO.remove_event_detect(stopButton)
+			GPIO.remove_event_detect(startButton)
+			self._display.displayMessage("Goodbye!")
+
+
 if __name__ == "__main__":
 
 	# Parse command line args
@@ -300,10 +335,13 @@ if __name__ == "__main__":
 
 	shutterA = LumiShutter(AIN2, AIN1, NFAULT, NSLEEP)
 	shutterB = LumiShutter(BIN2, BIN1, NFAULT, NSLEEP)
+	screen = LumiScreen()
+	Luminometer = Luminometer(shutterA, shutterB, screen)
 
-	Luminometer = Luminometer(shutterA, shutterB)
+	#Luminometer.measure(integrationTime_seconds, shutterTime)
+	
+	Luminometer.measureUponButtonPress()
 
-	Luminometer.measure(integrationTime_seconds, shutterTime)
 	Luminometer.writeToFile(title)
 	GPIO.cleanup()
 
