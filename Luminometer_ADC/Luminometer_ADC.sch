@@ -225,20 +225,6 @@ F 3 "" H 3950 6575 50  0001 C CNN
 	1    3950 6575
 	1    0    0    -1  
 $EndComp
-$Comp
-L Device:R R5
-U 1 1 5F32F48A
-P 3950 5200
-F 0 "R5" H 4020 5246 50  0000 L CNN
-F 1 "300R" H 4020 5155 50  0000 L CNN
-F 2 "Resistor_SMD:R_0603_1608Metric" V 3880 5200 50  0001 C CNN
-F 3 "~" H 3950 5200 50  0001 C CNN
-F 4 "Digikey" H 3950 5200 50  0001 C CNN "Supplier"
-F 5 "118-CR0603-FX-3000ELFCT-ND" H 3950 5200 50  0001 C CNN "Part Number"
-F 6 "0.1" H 3950 5200 50  0001 C CNN "Price"
-	1    3950 5200
-	1    0    0    -1  
-$EndComp
 NoConn ~ 3750 6150
 Text Label 7675 5750 2    50   ~ 0
 MOSI
@@ -614,7 +600,7 @@ Wire Wire Line
 Wire Wire Line
 	3400 6425 3625 6425
 Text Notes 3875 5275 1    50   ~ 0
-2mA
+3.3 mA
 Wire Wire Line
 	3625 6100 3625 5925
 Wire Wire Line
@@ -743,69 +729,67 @@ Text Notes 1075 1275 0    100  ~ 20
 Precision Bias source
 Text Notes 4425 6025 2    50   ~ 0
 4uV p-p
-Text Notes 3900 5450 2    50   ~ 0
-4uV p-p
-Text Label 1600 1925 2    50   ~ 0
+Text Label 1725 1900 2    50   ~ 0
 REF1.2V
 Wire Wire Line
-	1600 1925 1675 1925
+	1725 1900 1800 1900
 $Comp
 L Device:R R1
 U 1 1 607E3CD3
-P 1675 3000
-F 0 "R1" H 1606 3046 50  0000 R CNN
-F 1 "1k" V 1675 3025 50  0000 R CNN
-F 2 "Resistor_SMD:R_0603_1608Metric" V 1605 3000 50  0001 C CNN
-F 3 "http://www.vishaypg.com/docs/63060/VSMP.pdf" H 1675 3000 50  0001 C CNN
-F 4 "Y1636-1K-ND" H 1675 3000 50  0001 C CNN "Part Number"
-F 5 "Digikey" H 1675 3000 50  0001 C CNN "Supplier"
-F 6 "11.63" H 1675 3000 50  0001 C CNN "Price"
-	1    1675 3000
+P 1800 2975
+F 0 "R1" H 1731 3021 50  0000 R CNN
+F 1 "1k" V 1800 3000 50  0000 R CNN
+F 2 "Resistor_SMD:R_0603_1608Metric" V 1730 2975 50  0001 C CNN
+F 3 "http://www.vishaypg.com/docs/63060/VSMP.pdf" H 1800 2975 50  0001 C CNN
+F 4 "Y1636-1K-ND" H 1800 2975 50  0001 C CNN "Part Number"
+F 5 "Digikey" H 1800 2975 50  0001 C CNN "Supplier"
+F 6 "11.63" H 1800 2975 50  0001 C CNN "Price"
+	1    1800 2975
 	1    0    0    -1  
 $EndComp
 $Comp
 L Device:C_Small C2
 U 1 1 607E42DA
-P 1950 3150
-F 0 "C2" V 1813 3150 50  0000 C CNN
-F 1 "220nF" V 1722 3150 50  0000 C CNN
-F 2 "Capacitor_SMD:C_0603_1608Metric" H 1950 3150 50  0001 C CNN
-F 3 "http://www.yuden.co.jp/productdata/catalog/mlcc06_e.pdf" H 1950 3150 50  0001 C CNN
-F 4 "Digikey" V 1950 3150 50  0001 C CNN "Supplier"
-F 5 "587-5958-1-ND" V 1950 3150 50  0001 C CNN "Part Number"
-F 6 "0.2" V 1950 3150 50  0001 C CNN "Price"
-	1    1950 3150
+P 2075 3125
+F 0 "C2" V 1938 3125 50  0000 C CNN
+F 1 "220nF" V 1847 3125 50  0000 C CNN
+F 2 "Capacitor_SMD:C_0603_1608Metric" H 2075 3125 50  0001 C CNN
+F 3 "http://www.yuden.co.jp/productdata/catalog/mlcc06_e.pdf" H 2075 3125 50  0001 C CNN
+F 4 "Digikey" V 2075 3125 50  0001 C CNN "Supplier"
+F 5 "587-5958-1-ND" V 2075 3125 50  0001 C CNN "Part Number"
+F 6 "0.2" V 2075 3125 50  0001 C CNN "Price"
+	1    2075 3125
 	0    -1   -1   0   
 $EndComp
 Wire Wire Line
-	2050 3150 2275 3150
-Text Label 2325 2025 0    50   ~ 0
+	2175 3125 2400 3125
+Text Label 2450 2000 0    50   ~ 0
 BIAS
 Wire Wire Line
-	2325 2025 2275 2025
+	2450 2000 2400 2000
 Wire Wire Line
-	1675 3150 1850 3150
+	1800 3125 1975 3125
 Wire Wire Line
-	1875 1675 1875 1725
+	2000 1650 2000 1700
 $Comp
 L power:GNDA #PWR05
 U 1 1 60A57804
-P 1875 2325
-F 0 "#PWR05" H 1875 2075 50  0001 C CNN
-F 1 "GNDA" H 1880 2152 50  0000 C CNN
-F 2 "" H 1875 2325 50  0001 C CNN
-F 3 "" H 1875 2325 50  0001 C CNN
-	1    1875 2325
+P 2000 2300
+F 0 "#PWR05" H 2000 2050 50  0001 C CNN
+F 1 "GNDA" H 2005 2127 50  0000 C CNN
+F 2 "" H 2000 2300 50  0001 C CNN
+F 3 "" H 2000 2300 50  0001 C CNN
+	1    2000 2300
 	-1   0    0    -1  
 $EndComp
 Text Notes 4950 2100 0    39   ~ 0
 0.6 mA
 Text Notes 4925 3125 0    39   ~ 0
 0.6 mA
-Text Notes 4625 1850 0    39   ~ 0
-10Hz
-Text Notes 4650 3350 0    39   ~ 0
-10Hz
+Text Notes 4625 1500 0    39   ~ 0
+40Hz
+Text Notes 4600 3725 0    39   ~ 0
+40Hz
 Wire Wire Line
 	9775 1450 9675 1450
 NoConn ~ 9675 1550
@@ -840,17 +824,17 @@ $EndComp
 $Comp
 L power:GNDA #PWR03
 U 1 1 5F7FBDBB
-P 1675 3200
-F 0 "#PWR03" H 1675 2950 50  0001 C CNN
-F 1 "GNDA" H 1680 3027 50  0000 C CNN
-F 2 "" H 1675 3200 50  0001 C CNN
-F 3 "" H 1675 3200 50  0001 C CNN
-	1    1675 3200
+P 1800 3175
+F 0 "#PWR03" H 1800 2925 50  0001 C CNN
+F 1 "GNDA" H 1805 3002 50  0000 C CNN
+F 2 "" H 1800 3175 50  0001 C CNN
+F 3 "" H 1800 3175 50  0001 C CNN
+	1    1800 3175
 	-1   0    0    -1  
 $EndComp
 Wire Wire Line
-	1675 3150 1675 3200
-Connection ~ 1675 3150
+	1800 3125 1800 3175
+Connection ~ 1800 3125
 $Comp
 L Device:R R12
 U 1 1 5F20AEC9
@@ -870,12 +854,12 @@ L Device:R R6
 U 1 1 5F65E9B0
 P 4700 2025
 F 0 "R6" V 4800 2075 50  0000 C CNN
-F 1 "100k" V 4700 2025 50  0000 C CNN
+F 1 "25k" V 4700 2025 50  0000 C CNN
 F 2 "Resistor_SMD:R_0603_1608Metric" V 4630 2025 50  0001 C CNN
-F 3 "https://www.vishay.com/docs/28779/tnpue3.pdf" H 4700 2025 50  0001 C CNN
+F 3 "http://www.vishay.com/docs/60030/plt.pdf" H 4700 2025 50  0001 C CNN
 F 4 "Digikey" V 4700 2025 50  0001 C CNN "Supplier"
-F 5 "541-3308-1-ND " V 4700 2025 50  0001 C CNN "Part Number"
-F 6 "5.16" V 4700 2025 50  0001 C CNN "Price"
+F 5 "PLT0603-25KACT-ND" V 4700 2025 50  0001 C CNN "Part Number"
+F 6 "4.42" V 4700 2025 50  0001 C CNN "Price"
 	1    4700 2025
 	0    -1   -1   0   
 $EndComp
@@ -896,42 +880,26 @@ $EndComp
 Connection ~ 2625 5475
 Wire Wire Line
 	2625 5400 2625 5475
-$Comp
-L Device:R R2
-U 1 1 5F69DF2B
-P 1975 2725
-F 0 "R2" V 1860 2725 50  0000 C CNN
-F 1 "24k" V 1975 2725 50  0000 C CNN
-F 2 "Resistor_SMD:R_0603_1608Metric" V 1905 2725 50  0001 C CNN
-F 3 "https://www.vishay.com/docs/60030/plt.pdf" H 1975 2725 50  0001 C CNN
-F 4 "PLT0603Z2402LBTS-ND" V 1975 2725 50  0001 C CNN "Part Number"
-F 5 "Digikey" V 1975 2725 50  0001 C CNN "Supplier"
-F 6 "9.36" V 1975 2725 50  0001 C CNN "Price"
-	1    1975 2725
-	0    -1   -1   0   
-$EndComp
 Wire Wire Line
-	2125 2725 2275 2725
-Connection ~ 2275 2725
+	2250 2700 2400 2700
+Connection ~ 2400 2700
 Wire Wire Line
-	1825 2725 1675 2725
-Connection ~ 1675 2725
-Text Notes 575  2275 0    39   ~ 0
+	1950 2700 1800 2700
+Connection ~ 1800 2700
+Text Notes 550  2225 0    39   ~ 0
 Choose an R value to \nselect SiPM over-voltage
-Text Notes 575  2500 0    39   ~ 0
-26k—>32.4V—>V_over = 5.5V 
-Text Notes 575  2375 0    39   ~ 0
+Text Notes 550  2650 0    39   ~ 0
+26k—>32.4V—>V_over = 5.9
+Text Notes 550  2325 0    39   ~ 0
 Vout = 1.2*(1 + R2/R1)
-Text Notes 575  2750 0    39   ~ 0
-24k—>30V  —>V_over = 3.1V
-Text Notes 575  2875 0    39   ~ 0
-23k—>28.8V—>V_over = 1.9V
-Text Notes 575  2625 0    39   ~ 0
-25k—>31.2V—>V_over = 4.3V
+Text Notes 550  2900 0    39   ~ 0
+24k—>30V  —>V_over = 3.5V
+Text Notes 550  2775 0    39   ~ 0
+25k—>31.2V—>V_over = 4.7 V
 Wire Wire Line
-	2275 2025 2275 2725
+	2400 2000 2400 2700
 Wire Wire Line
-	1675 2125 1675 2725
+	1800 2100 1800 2700
 $Comp
 L LuminometerCustomPartLib:ADA4522-4 U5
 U 1 1 5FC129AF
@@ -951,22 +919,22 @@ Connection ~ 4900 2850
 $Comp
 L LuminometerCustomPartLib:ADA4522-1 U2
 U 1 1 5FC2A34C
-P 1975 2025
-F 0 "U2" H 1975 2300 50  0000 L CNN
-F 1 "ADA4522-1" H 1975 2225 50  0000 L CNN
-F 2 "Package_SO:SOIC-8_3.9x4.9mm_P1.27mm" H 2025 2075 50  0001 C CNN
-F 3 "https://www.analog.com/media/en/technical-documentation/data-sheets/ADA4522-1_4522-2_4522-4.pdf" H 2025 2175 50  0001 C CNN
-F 4 "Digikey" H 1975 2025 50  0001 C CNN "Supplier"
-F 5 "ADA4522-1ARZ-ND" H 1975 2025 50  0001 C CNN "Part Number"
-F 6 "2.83" H 1975 2025 50  0001 C CNN "Price"
-	1    1975 2025
+P 2100 2000
+F 0 "U2" H 2100 2275 50  0000 L CNN
+F 1 "ADA4522-1" H 2100 2200 50  0000 L CNN
+F 2 "Package_SO:SOIC-8_3.9x4.9mm_P1.27mm" H 2150 2050 50  0001 C CNN
+F 3 "https://www.analog.com/media/en/technical-documentation/data-sheets/ADA4522-1_4522-2_4522-4.pdf" H 2150 2150 50  0001 C CNN
+F 4 "Digikey" H 2100 2000 50  0001 C CNN "Supplier"
+F 5 "ADA4522-1ARZ-ND" H 2100 2000 50  0001 C CNN "Part Number"
+F 6 "2.83" H 2100 2000 50  0001 C CNN "Price"
+	1    2100 2000
 	1    0    0    -1  
 $EndComp
-Connection ~ 2275 2025
+Connection ~ 2400 2000
 Wire Wire Line
-	2275 2725 2275 3150
+	2400 2700 2400 3125
 Wire Wire Line
-	1675 2725 1675 2850
+	1800 2700 1800 2825
 $Comp
 L power:+5V #PWR07
 U 1 1 5FD3EA05
@@ -1040,9 +1008,9 @@ Connection ~ 7950 3550
 Wire Wire Line
 	7950 3650 7950 3775
 Connection ~ 7950 3650
-Text Notes 1850 2675 0    39   ~ 0
+Text Notes 1975 2650 0    39   ~ 0
 Low drift
-Text Notes 1725 3025 0    39   ~ 0
+Text Notes 1850 3000 0    39   ~ 0
 Low drift
 $Comp
 L LuminometerCustomPartLib:+34V #PWR06
@@ -1058,12 +1026,12 @@ $EndComp
 $Comp
 L LuminometerCustomPartLib:+34V #PWR04
 U 1 1 5FF03625
-P 1875 1675
-F 0 "#PWR04" H 1675 1475 50  0001 C CNN
-F 1 "+34V" H 1890 1848 50  0000 C CNN
-F 2 "" H 1875 1675 50  0001 C CNN
-F 3 "" H 1875 1675 50  0001 C CNN
-	1    1875 1675
+P 2000 1650
+F 0 "#PWR04" H 1800 1450 50  0001 C CNN
+F 1 "+34V" H 2015 1823 50  0000 C CNN
+F 2 "" H 2000 1650 50  0001 C CNN
+F 3 "" H 2000 1650 50  0001 C CNN
+	1    2000 1650
 	1    0    0    -1  
 $EndComp
 Wire Wire Line
@@ -1124,16 +1092,16 @@ Text Label 9700 1750 0    50   ~ 0
 $Comp
 L Connector:TestPoint TP1
 U 1 1 6011E75C
-P 2425 2725
-F 0 "TP1" H 2483 2843 50  0000 L CNN
-F 1 "TestPoint" H 2483 2752 50  0000 L CNN
-F 2 "TestPoint:TestPoint_Pad_D1.5mm" H 2625 2725 50  0001 C CNN
-F 3 "~" H 2625 2725 50  0001 C CNN
-	1    2425 2725
+P 2550 2700
+F 0 "TP1" H 2608 2818 50  0000 L CNN
+F 1 "TestPoint" H 2608 2727 50  0000 L CNN
+F 2 "TestPoint:TestPoint_Pad_D1.5mm" H 2750 2700 50  0001 C CNN
+F 3 "~" H 2750 2700 50  0001 C CNN
+	1    2550 2700
 	0    1    1    0   
 $EndComp
 Wire Wire Line
-	2425 2725 2275 2725
+	2550 2700 2400 2700
 $Comp
 L Connector:TestPoint TP4
 U 1 1 6015B5FD
@@ -1433,20 +1401,6 @@ F 5 "587-6315-1-ND" H 4700 3475 50  0001 C CNN "Part Number"
 F 6 "0.19" H 4700 3475 50  0001 C CNN "Price"
 	1    4700 3475
 	0    -1   1    0   
-$EndComp
-$Comp
-L Device:R R7
-U 1 1 5F84C2C9
-P 4700 3125
-F 0 "R7" V 4800 3175 50  0000 C CNN
-F 1 "100k" V 4700 3125 50  0000 C CNN
-F 2 "Resistor_SMD:R_0603_1608Metric" V 4630 3125 50  0001 C CNN
-F 3 "https://www.vishay.com/docs/28779/tnpue3.pdf" H 4700 3125 50  0001 C CNN
-F 4 "Digikey" V 4700 3125 50  0001 C CNN "Supplier"
-F 5 "541-3308-1-ND " V 4700 3125 50  0001 C CNN "Part Number"
-F 6 "5.16" V 4700 3125 50  0001 C CNN "Price"
-	1    4700 3125
-	0    -1   -1   0   
 $EndComp
 $Comp
 L Device:R R9
@@ -1828,12 +1782,12 @@ L Device:R R18
 U 1 1 60285095
 P 4575 6175
 F 0 "R18" H 4645 6221 50  0000 L CNN
-F 1 "2k" H 4645 6130 50  0000 L CNN
+F 1 "1k" H 4645 6130 50  0000 L CNN
 F 2 "Resistor_SMD:R_0603_1608Metric" V 4505 6175 50  0001 C CNN
 F 3 "~" H 4575 6175 50  0001 C CNN
 F 4 "Digikey" H 4575 6175 50  0001 C CNN "Supplier"
-F 5 "118-CR0603-FX-3000ELFCT-ND" H 4575 6175 50  0001 C CNN "Part Number"
-F 6 "0.1" H 4575 6175 50  0001 C CNN "Price"
+F 5 "Y1636-1K-ND" H 4575 6175 50  0001 C CNN "Part Number"
+F 6 "11.75" H 4575 6175 50  0001 C CNN "Price"
 	1    4575 6175
 	1    0    0    -1  
 $EndComp
@@ -1873,8 +1827,8 @@ Wire Wire Line
 Connection ~ 1275 5625
 Wire Wire Line
 	1275 5625 1275 5075
-Text Notes 4675 6550 0    59   ~ 0
-24k and 2k \nsubstituted in build
+Text Notes 4400 6700 0    59   ~ 0
+24k and 2k \nsubstituted in build mod
 $Comp
 L power:+3V0 #PWR014
 U 1 1 5F45CB94
@@ -1885,5 +1839,61 @@ F 2 "" H 6500 5425 50  0001 C CNN
 F 3 "" H 6500 5425 50  0001 C CNN
 	1    6500 5425
 	1    0    0    -1  
+$EndComp
+$Comp
+L Device:R R5
+U 1 1 6068301B
+P 3950 5200
+F 0 "R5" H 4020 5246 50  0000 L CNN
+F 1 "180R" H 4020 5155 50  0000 L CNN
+F 2 "Resistor_SMD:R_0603_1608Metric" V 3880 5200 50  0001 C CNN
+F 3 "~" H 3950 5200 50  0001 C CNN
+F 4 "Digikey" H 3950 5200 50  0001 C CNN "Supplier"
+F 5 "118-CR0603-FX-3000ELFCT-ND" H 3950 5200 50  0001 C CNN "Part Number"
+F 6 "0.1" H 3950 5200 50  0001 C CNN "Price"
+	1    3950 5200
+	1    0    0    -1  
+$EndComp
+Text Notes 5200 6100 2    50   ~ 0
+2.03 V
+Text Notes 4550 5450 2    50   ~ 0
+2 mA
+Text Notes 3700 5600 3    50   ~ 0
+1.3 mA
+Text Notes 4450 2000 2    50   ~ 0
+2.03 V
+Text Notes 4450 3250 2    50   ~ 0
+2.03 V
+Text Notes 550  2425 0    39   ~ 0
+Vover = Vout - SiPMRef - Vbreakdown
+Text Notes 550  2550 0    39   ~ 0
+Vbreakdown = 24.5 V
+$Comp
+L Device:R R7
+U 1 1 606E83EF
+P 4700 3125
+F 0 "R7" V 4800 3175 50  0000 C CNN
+F 1 "25k" V 4700 3125 50  0000 C CNN
+F 2 "Resistor_SMD:R_0603_1608Metric" V 4630 3125 50  0001 C CNN
+F 3 "http://www.vishay.com/docs/60030/plt.pdf" H 4700 3125 50  0001 C CNN
+F 4 "Digikey" V 4700 3125 50  0001 C CNN "Supplier"
+F 5 "PLT0603-25KACT-ND" V 4700 3125 50  0001 C CNN "Part Number"
+F 6 "4.42" V 4700 3125 50  0001 C CNN "Price"
+	1    4700 3125
+	0    -1   -1   0   
+$EndComp
+$Comp
+L Device:R R2
+U 1 1 606EA245
+P 2100 2700
+F 0 "R2" V 2000 2725 50  0000 C CNN
+F 1 "25k" V 2100 2700 50  0000 C CNN
+F 2 "Resistor_SMD:R_0603_1608Metric" V 2030 2700 50  0001 C CNN
+F 3 "http://www.vishay.com/docs/60030/plt.pdf" H 2100 2700 50  0001 C CNN
+F 4 "Digikey" V 2100 2700 50  0001 C CNN "Supplier"
+F 5 "PLT0603-25KACT-ND" V 2100 2700 50  0001 C CNN "Part Number"
+F 6 "4.42" V 2100 2700 50  0001 C CNN "Price"
+	1    2100 2700
+	0    -1   -1   0   
 $EndComp
 $EndSCHEMATC

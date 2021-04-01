@@ -10,10 +10,7 @@ Sensor Datasheet
 	https://www.mouser.com/datasheet/2/308/MICROC-SERIES-D-1811553.pdf
 
 """
-import time
-import math
-import csv
-import argparse
+import time, math, csv, argparse
 import RPi.GPIO as GPIO
 from typing import List
 from statistics import mean, stdev
@@ -21,10 +18,12 @@ from statistics import mean, stdev
 from consts import *
 from lumiscreen import LumiScreen
 from ads131m08_reader import ADS131M08Reader, bytes_to_readable, CRCError
+import concurrent.futures
+
 
 # Sampling rate of the ADC (488 kHz CLKIN, OSR = 4096, global chop mode. See ADS131m08 datasheet 8.4.2.2)
 SAMPLE_TIME_S = 0.050
-SHUTTER_ACTUATION_TIME = 0.04
+SHUTTER_ACTUATION_TIME = 0.03
 FM_PER_V = 5000
 SKIP_SAMPLES = 10
 
@@ -33,8 +32,10 @@ BTN_1 = 3
 BTN_2 = 26
 BTN_3 = 19
 
+# Correct pins!
 AIN1 = 16
 AIN2 = 13
+
 BIN1 = 5
 BIN2 = 6
 
@@ -43,7 +44,8 @@ NFAULT = 0
 
 CE = 1
 
-
+class HBridgeFault(Exception):
+    pass
 
 class LumiShutter():
 	# Uses RPi BCM pinout
@@ -58,39 +60,44 @@ class LumiShutter():
 			self._sleepPin = int(sleepPin)
 		except TypeError:
 			print('Pin value not convertible to integer!')
-			pass
+			raise
 
 		GPIO.setmode(GPIO.BCM)
 		GPIO.setup(self._fwdPin, GPIO.OUT, initial = 0)
 		GPIO.setup(self._revPin, GPIO.OUT, initial = 0)
 		GPIO.setup(self._sleepPin, GPIO.OUT, initial = 1)
 		GPIO.setup(self._faultPin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-		
-		self.readFault()
+		GPIO.output(self._sleepPin, 1)
+
+		# Set up edge detection for this channel. Passing on exception because two shutters
+		# share the same driver chip, and will have the same pin. RuntimeError is raised
+		# if you try to add event detect twice to the same pin. 
+		try:
+			GPIO.add_event_detect(self._faultPin, GPIO.FALLING, callback=self._faultDetected)
+		except RuntimeError as rt:
+			pass
+
 
 	def open(self):
-		if not self.readFault():
-			GPIO.output([self._fwdPin,self._revPin], (1,0))
+		print("Opening shutter")
+		GPIO.output([self._fwdPin,self._revPin], (1,0))
 
 	def close(self):
-		if not self.readFault():
-			GPIO.output([self._fwdPin, self._revPin], (0,1))
+		print('Closing shutter')
+		GPIO.output([self._fwdPin, self._revPin], (0,1))
 
 	def rest(self):
 		GPIO.output([self._fwdPin, self._revPin], (0,0))
-		self.readFault()
 
 	def brake(self):
 		GPIO.output([self._fwdPin, self._revPin], (1,1))
-		self.readFault()
 
-	def readFault(self):
-		# Returns true if there is a fault
-		if GPIO.input(self._faultPin):
-			return False
-		else:
-			print('H-bridge fault detected!')
-			return True
+	def _faultDetected(self, channel):
+		# Callback for handling an H-bridge fault pin event
+		# Ref datasheet:
+		# https://www.ti.com/lit/ds/symlink/drv8833.pdf?ts=1617084507643&ref_url=https%253A%252F%252Fwww.google.com%252F
+		print('H-bridge fault detected!')
+		raise HBridgeFault
 
 class Luminometer():
 
@@ -99,7 +106,6 @@ class Luminometer():
 		self._adc = ADS131M08Reader()
 		self._adc.setup_adc(CE, channels=[0,1])
 		self._display = screen
-
 		self._display.welcome()
 
 		self.shutterA = shutterA
@@ -151,7 +157,7 @@ class Luminometer():
 		"""
 		self.shutterA.close()
 		self.shutterB.close()
-		time.sleep(0.5)
+		time.sleep(0.25)
 
 		# The actual number of samples is taken as the ceiling of however many 
 		# full open and closed periods it takes to complete the measurement
@@ -176,24 +182,30 @@ class Luminometer():
 		try:
 			sampleCount = 0
 
-			# Start data acquisition loop
-			while self._rsc < self.nRawSamples:
+			with concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor:
 
-				# Do this once each time a full cycle (closed-open-closed) has completed:
-				if (self._sc > sampleCount) and (((self._sc -1) % 2)==0) and (self._sc > 2):
-					print("")
+				# Start data acquisition loop
+				while self._rsc < self.nRawSamples:
 
-					self.dataA = self.gateTrace(self.rawdataA[:self._rsc], self.shutter_samples, SKIP_SAMPLES)
-					print(f"Sensor A after {int(self._sc/2)} cycles: {FM_PER_V*mean(self.dataA):.4f} fM")
-					print(f"Sensor A raw: {self.rawdataA[self._rsc-1]:.4f}")
+					# Do this once each time a full cycle (closed-open-closed) has completed:
+					if (self._sc > sampleCount) and ((self._sc % 2)==0) and (self._sc > 2):
+						print("")
+						print(f"Measure: sample count = {self._sc}")
 
-					self.dataB = self.gateTrace(self.rawdataB[:self._rsc], self.shutter_samples, SKIP_SAMPLES)
-					print(f"Sensor B after {int(self._sc/2)} cycles: {FM_PER_V*mean(self.dataB):.4f} fM")
-					print(f"Sensor B raw: {self.rawdataB[self._rsc-1]:.4f}")
+						self.dataA = self.gateTrace(self.rawdataA[:self._rsc], self.shutter_samples, SKIP_SAMPLES)
+						print(f"Sensor A after {int(self._sc/2)} cycles: {FM_PER_V*mean(self.dataA):.4f} fM")
+						print(f"Sensor A raw: {self.rawdataA[self._rsc-1]:.4f}")
 
-					self._display.displayResult(FM_PER_V*mean(self.dataA), FM_PER_V*mean(self.dataB))\
+						self.dataB = self.gateTrace(self.rawdataB[:self._rsc], self.shutter_samples, SKIP_SAMPLES)
+						print(f"Sensor B after {int(self._sc/2)} cycles: {FM_PER_V*mean(self.dataB):.4f} fM")
+						print(f"Sensor B raw: {self.rawdataB[self._rsc-1]:.4f}")
 
-					sampleCount = self._sc
+						start = time.time()
+
+						future = executor.submit(self._display.displayResult, FM_PER_V*mean(self.dataA), FM_PER_V*mean(self.dataB))
+						#self._display.displayResult(FM_PER_V*mean(self.dataA), FM_PER_V*mean(self.dataB))
+						print(f"Display time: {time.time() - start}")
+						sampleCount += 1
 
 			
 			self.dataA = self.gateTrace(self.rawdataA, self.shutter_samples, 10)
@@ -223,38 +235,45 @@ class Luminometer():
 
 	def _cb_adc_data_ready(self, channel):
 		# Callback function executed when data ready is asserted from ADC
-		
-		# Read sensor
-		d = self._adc.read()
-		
+		# The callback also opens and closes the shutter, in order to stay synchronized 
+		# with the data readout.
+
+		try:
+			# Read sensor
+			d = self._adc.read()
+
+		except CRCError:
+			errs += 1
+			return
+	
 		if  self._rsc < self.nRawSamples:
 			self.rawdataA[self._rsc] = d[0]
 			self.rawdataB[self._rsc] = d[1]
-		
-			try:
-				# Close shutters
-				if self._rsc % (2*self.shutter_samples) == 0:
-					#self.shutterA.close()
+
+			# Close shutters
+			if self._rsc % (2*self.shutter_samples) == 0:
+				try:
+					self.shutterA.close()
 					self.shutterB.close()
 					time.sleep(SHUTTER_ACTUATION_TIME)
 					self.shutterB.brake()
 
-				# Open shutters
-				elif self._rsc % self.shutter_samples == 0:
-					#self.shutterA.open()
+				except HBridgeFault:
+					self._display.queueMessage('H-BRIDGE FAULT', True)
+
+			# Open shutters
+			elif self._rsc % self.shutter_samples == 0:
+				try:
+					self.shutterA.open()
 					self.shutterB.open()
 					time.sleep(SHUTTER_ACTUATION_TIME)
 					self.shutterB.brake()
 
-			except CRCError:
-				errs += 1
-				return
+				except HBridgeFault:
+					self._display.queueMessage('H-BRIDGE FAULT', True)
 
 			self._rsc += 1
 			self._sc = int(math.floor(self._rsc/self.shutter_samples))
-
-			#print(f"CH0: {d[0]} \t CH1: {d[1]}")
-
 		return
 
 	def writeToFile(self, title):
@@ -286,6 +305,8 @@ class Luminometer():
 		if nPeriods % 2 == 0:
 			nPeriods = nPeriods -1
 
+		print(f"Gate trace: nPeriods = {nPeriods}")
+
 		samples = []
 
 		for i in range(gateSize, gateSize*nPeriods, 2*gateSize):
@@ -297,8 +318,11 @@ class Luminometer():
 		return samples 
 
 
-	def measureUponButtonPress(self, startButton:int = BTN_3, stopButton:int = BTN_2):
-		
+	def measureUponButtonPress(self, iTime: int = 30, sTime: int = 2):
+		startButton = BTN_3
+		stopButton = BTN_2
+
+		self._display.queueMessage("Press to measure", True)
 		GPIO.setup(startButton, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 		GPIO.setup(stopButton, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 		GPIO.add_event_detect(stopButton, GPIO.FALLING, bouncetime=200)
@@ -309,18 +333,22 @@ class Luminometer():
 		try:
 			while(GPIO.event_detected(stopButton) == False):
 				print("Waiting for button press...")
-				time.sleep(1)
+				time.sleep(.1)
 				if GPIO.event_detected(startButton):
-					self.measure()
+					print('Button pressed')
+					self._display.queueMessage("Measuring", True)
+					self.measure(iTime)
 		except KeyboardInterrupt:
 			pass
 		finally:
 			GPIO.remove_event_detect(stopButton)
 			GPIO.remove_event_detect(startButton)
-			self._display.displayMessage("Goodbye!")
+			self._display.queueMessage("Goodbye!", True)
 
 
 if __name__ == "__main__":
+
+	GPIO.setmode(GPIO.BCM)
 
 	# Parse command line args
 	parser = argparse.ArgumentParser()
@@ -333,15 +361,19 @@ if __name__ == "__main__":
 	integrationTime_seconds = args.integration
 	title = args.title
 
-	shutterA = LumiShutter(AIN2, AIN1, NFAULT, NSLEEP)
-	shutterB = LumiShutter(BIN2, BIN1, NFAULT, NSLEEP)
+	shutterA = LumiShutter(AIN1, AIN2, NFAULT, NSLEEP)
+	shutterB = LumiShutter(BIN1, BIN2, NFAULT, NSLEEP)
 	screen = LumiScreen()
 	Luminometer = Luminometer(shutterA, shutterB, screen)
 
-	#Luminometer.measure(integrationTime_seconds, shutterTime)
-	
-	Luminometer.measureUponButtonPress()
+	try:
+		Luminometer.measure(integrationTime_seconds, shutterTime)
+		#Luminometer.measureUponButtonPress(integrationTime_seconds, shutterTime)
+		Luminometer.writeToFile(title)
 
-	Luminometer.writeToFile(title)
-	GPIO.cleanup()
+	except KeyboardInterrupt:
+		pass
+
+	finally:
+		GPIO.cleanup()
 
