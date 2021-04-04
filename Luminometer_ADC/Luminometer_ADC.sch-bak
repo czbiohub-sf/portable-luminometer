@@ -314,17 +314,6 @@ F 3 "~" H 8425 5850 50  0001 C CNN
 	1    8425 5850
 	0    1    -1   0   
 $EndComp
-$Comp
-L power:PWR_FLAG #FLG04
-U 1 1 5F65080C
-P 10575 3050
-F 0 "#FLG04" H 10575 3125 50  0001 C CNN
-F 1 "PWR_FLAG" V 10575 3177 50  0001 L CNN
-F 2 "" H 10575 3050 50  0001 C CNN
-F 3 "~" H 10575 3050 50  0001 C CNN
-	1    10575 3050
-	0    1    1    0   
-$EndComp
 Connection ~ 10575 3050
 $Comp
 L LuminometerCustomPartLib:MICROFC−60035−SMT SiPM1
@@ -433,8 +422,6 @@ Wire Wire Line
 	4800 1650 4900 1650
 Wire Wire Line
 	4900 1650 4900 2025
-Wire Wire Line
-	6650 2250 6350 2250
 Connection ~ 6150 2250
 $Comp
 L LuminometerCustomPartLib:MICROFC−60035−SMT SiPM2
@@ -488,8 +475,6 @@ Wire Wire Line
 	6150 2850 6150 3125
 Text Label 6650 2850 0    50   ~ 0
 ADC1P
-Wire Wire Line
-	6650 2850 6350 2850
 Connection ~ 6150 2850
 Text Label 4825 2850 2    50   ~ 0
 ADC1N
@@ -599,8 +584,6 @@ Wire Wire Line
 	3400 5900 3400 6425
 Wire Wire Line
 	3400 6425 3625 6425
-Text Notes 3875 5275 1    50   ~ 0
-3.3 mA
 Wire Wire Line
 	3625 6100 3625 5925
 Wire Wire Line
@@ -880,20 +863,6 @@ $EndComp
 Connection ~ 2625 5475
 Wire Wire Line
 	2625 5400 2625 5475
-$Comp
-L Device:R R2
-U 1 1 5F69DF2B
-P 2100 2700
-F 0 "R2" V 1985 2700 50  0000 C CNN
-F 1 "24k" V 2100 2700 50  0000 C CNN
-F 2 "Resistor_SMD:R_0603_1608Metric" V 2030 2700 50  0001 C CNN
-F 3 "https://www.vishay.com/docs/60030/plt.pdf" H 2100 2700 50  0001 C CNN
-F 4 "PLT0603Z2402LBTS-ND" V 2100 2700 50  0001 C CNN "Part Number"
-F 5 "Digikey" V 2100 2700 50  0001 C CNN "Supplier"
-F 6 "9.36" V 2100 2700 50  0001 C CNN "Price"
-	1    2100 2700
-	0    -1   -1   0   
-$EndComp
 Wire Wire Line
 	2250 2700 2400 2700
 Connection ~ 2400 2700
@@ -1117,34 +1086,6 @@ $EndComp
 Wire Wire Line
 	2550 2700 2400 2700
 $Comp
-L Connector:TestPoint TP4
-U 1 1 6015B5FD
-P 6350 2250
-F 0 "TP4" H 6400 2200 50  0000 R CNN
-F 1 "TestPoint" H 6400 2125 50  0000 R CNN
-F 2 "TestPoint:TestPoint_Pad_D1.5mm" H 6550 2250 50  0001 C CNN
-F 3 "~" H 6550 2250 50  0001 C CNN
-	1    6350 2250
-	-1   0    0    1   
-$EndComp
-Connection ~ 6350 2250
-Wire Wire Line
-	6350 2250 6150 2250
-$Comp
-L Connector:TestPoint TP5
-U 1 1 6016B831
-P 6350 2850
-F 0 "TP5" H 6400 2800 50  0000 R CNN
-F 1 "TestPoint" H 6600 2725 50  0000 R CNN
-F 2 "TestPoint:TestPoint_Pad_D1.5mm" H 6550 2850 50  0001 C CNN
-F 3 "~" H 6550 2850 50  0001 C CNN
-	1    6350 2850
-	1    0    0    -1  
-$EndComp
-Connection ~ 6350 2850
-Wire Wire Line
-	6350 2850 6150 2850
-$Comp
 L Connector:TestPoint TP3
 U 1 1 601F5B7D
 P 5175 3125
@@ -1174,39 +1115,6 @@ Wire Wire Line
 	5150 2025 5425 2025
 Wire Wire Line
 	9700 1750 9675 1750
-$Comp
-L Connector:TestPoint TP7
-U 1 1 60294FBB
-P 7725 5750
-F 0 "TP7" H 7875 5800 50  0000 R CNN
-F 1 "TestPoint" H 7875 5950 50  0001 R CNN
-F 2 "TestPoint:TestPoint_Pad_D1.5mm" H 7925 5750 50  0001 C CNN
-F 3 "~" H 7925 5750 50  0001 C CNN
-	1    7725 5750
-	1    0    0    -1  
-$EndComp
-$Comp
-L Connector:TestPoint TP8
-U 1 1 603C23F1
-P 7350 5650
-F 0 "TP8" H 7500 5700 50  0000 R CNN
-F 1 "TestPoint" H 7450 5850 50  0001 R CNN
-F 2 "TestPoint:TestPoint_Pad_D1.5mm" H 7550 5650 50  0001 C CNN
-F 3 "~" H 7550 5650 50  0001 C CNN
-	1    7350 5650
-	1    0    0    -1  
-$EndComp
-$Comp
-L Connector:TestPoint TP9
-U 1 1 604221BF
-P 7725 5350
-F 0 "TP9" H 7900 5525 50  0000 R CNN
-F 1 "TestPoint" H 7825 5550 50  0001 R CNN
-F 2 "TestPoint:TestPoint_Pad_D1.5mm" H 7925 5350 50  0001 C CNN
-F 3 "~" H 7925 5350 50  0001 C CNN
-	1    7725 5350
-	1    0    0    -1  
-$EndComp
 Wire Wire Line
 	10375 2800 10375 2750
 Connection ~ 10375 2750
@@ -1214,29 +1122,8 @@ Wire Wire Line
 	10375 3000 10375 3050
 Wire Wire Line
 	8425 5850 8350 5850
-$Comp
-L Connector:TestPoint TP6
-U 1 1 60322601
-P 7350 5450
-F 0 "TP6" H 7500 5500 50  0000 R CNN
-F 1 "TestPoint" H 7450 5650 50  0001 R CNN
-F 2 "TestPoint:TestPoint_Pad_D1.5mm" H 7550 5450 50  0001 C CNN
-F 3 "~" H 7550 5450 50  0001 C CNN
-	1    7350 5450
-	1    0    0    -1  
-$EndComp
 Text Label 7675 5550 2    50   ~ 0
 SCLK
-Wire Wire Line
-	7350 5450 7850 5450
-Wire Wire Line
-	7275 5450 7350 5450
-Connection ~ 7350 5450
-Wire Wire Line
-	7850 5650 7350 5650
-Wire Wire Line
-	7350 5650 7275 5650
-Connection ~ 7350 5650
 $Comp
 L LuminometerCustomPartLib:Harting__15210122401000 J1
 U 1 1 60D4F0B3
@@ -1266,32 +1153,6 @@ Connection ~ 8625 5375
 Wire Wire Line
 	8625 5375 8625 5300
 Wire Wire Line
-	7675 5350 7725 5350
-Connection ~ 7725 5350
-Wire Wire Line
-	7725 5350 7850 5350
-Wire Wire Line
-	7675 5550 7725 5550
-$Comp
-L Connector:TestPoint TP10
-U 1 1 6105CABB
-P 7725 5550
-F 0 "TP10" H 7875 5600 50  0000 R CNN
-F 1 "TestPoint" H 7825 5750 50  0001 R CNN
-F 2 "TestPoint:TestPoint_Pad_D1.5mm" H 7925 5550 50  0001 C CNN
-F 3 "~" H 7925 5550 50  0001 C CNN
-	1    7725 5550
-	1    0    0    -1  
-$EndComp
-Connection ~ 7725 5550
-Wire Wire Line
-	7725 5550 7850 5550
-Wire Wire Line
-	7675 5750 7725 5750
-Wire Wire Line
-	7725 5750 7850 5750
-Connection ~ 7725 5750
-Wire Wire Line
 	8350 5550 8350 5650
 Wire Wire Line
 	8350 5650 8350 5750
@@ -1304,8 +1165,6 @@ Wire Wire Line
 	8350 5850 8350 5950
 Wire Wire Line
 	9675 2050 9975 2050
-Wire Wire Line
-	10575 3050 10575 3300
 $Comp
 L power:GNDA #PWR021
 U 1 1 615AD359
@@ -1336,32 +1195,6 @@ Text Notes 5675 1900 0    39   ~ 0
 Precision
 Text Notes 5675 3300 0    39   ~ 0
 Precision
-$Comp
-L Connector:TestPoint TP11
-U 1 1 616E4924
-P 10575 3300
-F 0 "TP11" H 10750 3475 50  0000 R CNN
-F 1 "TestPoint" H 10675 3500 50  0001 R CNN
-F 2 "TestPoint:TestPoint_Pad_D1.5mm" H 10775 3300 50  0001 C CNN
-F 3 "~" H 10775 3300 50  0001 C CNN
-	1    10575 3300
-	0    1    1    0   
-$EndComp
-Connection ~ 10575 3300
-Wire Wire Line
-	10575 3300 10575 3550
-$Comp
-L Connector:TestPoint TP12
-U 1 1 616EA733
-P 10575 3550
-F 0 "TP12" H 10750 3725 50  0000 R CNN
-F 1 "TestPoint" H 10675 3750 50  0001 R CNN
-F 2 "TestPoint:TestPoint_Pad_D1.5mm" H 10775 3550 50  0001 C CNN
-F 3 "~" H 10775 3550 50  0001 C CNN
-	1    10575 3550
-	0    1    1    0   
-$EndComp
-Connection ~ 10575 3550
 Text Notes 9625 5100 2    50   ~ 0
 PCB
 Text Notes 9625 5525 2    50   ~ 0
@@ -1370,24 +1203,8 @@ Text Notes 9600 5975 2    50   ~ 0
 Shutter flags
 Text Label 7300 5850 2    50   ~ 0
 GPCLK
-$Comp
-L Connector:TestPoint TP13
-U 1 1 617DDD42
-P 7350 5850
-F 0 "TP13" H 7500 5900 50  0000 R CNN
-F 1 "TestPoint" H 7500 6050 50  0001 R CNN
-F 2 "TestPoint:TestPoint_Pad_D1.5mm" H 7550 5850 50  0001 C CNN
-F 3 "~" H 7550 5850 50  0001 C CNN
-	1    7350 5850
-	1    0    0    -1  
-$EndComp
 Text Label 9775 1450 0    50   ~ 0
 GPCLK
-Wire Wire Line
-	7300 5850 7350 5850
-Wire Wire Line
-	7350 5850 7850 5850
-Connection ~ 7350 5850
 $Comp
 L Device:C_Small C8
 U 1 1 5F8183AF
@@ -1681,7 +1498,7 @@ U 1 1 5FD63B89
 P 9925 5925
 F 0 "H3" H 10025 5971 50  0000 L CNN
 F 1 "MountingHole" H 9675 5800 50  0000 L CNN
-F 2 "MountingHole:MountingHole_2.2mm_M2" H 9925 5925 50  0001 C CNN
+F 2 "MountingHole:MountingHole_2.7mm" H 9925 5925 50  0001 C CNN
 F 3 "~" H 9925 5925 50  0001 C CNN
 	1    9925 5925
 	1    0    0    -1  
@@ -1692,7 +1509,7 @@ U 1 1 5FDB2C55
 P 10325 5925
 F 0 "H6" H 10450 5975 50  0000 C CNN
 F 1 "MountingHole" H 10475 5800 50  0000 C CNN
-F 2 "MountingHole:MountingHole_2.2mm_M2" H 10325 5925 50  0001 C CNN
+F 2 "MountingHole:MountingHole_2.7mm" H 10325 5925 50  0001 C CNN
 F 3 "~" H 10325 5925 50  0001 C CNN
 	1    10325 5925
 	1    0    0    -1  
@@ -1703,7 +1520,7 @@ U 1 1 5FD83D7B
 P 9925 5475
 F 0 "H2" H 10025 5521 50  0000 L CNN
 F 1 "MountingHole" H 9675 5350 50  0000 L CNN
-F 2 "MountingHole:MountingHole_2.7mm_M2.5" H 9925 5475 50  0001 C CNN
+F 2 "MountingHole:MountingHole_2.1mm" H 9925 5475 50  0001 C CNN
 F 3 "~" H 9925 5475 50  0001 C CNN
 	1    9925 5475
 	1    0    0    -1  
@@ -1714,7 +1531,7 @@ U 1 1 5FD83D85
 P 10300 5475
 F 0 "H5" H 10400 5521 50  0000 L CNN
 F 1 "MountingHole" H 10100 5625 50  0000 L CNN
-F 2 "MountingHole:MountingHole_2.7mm_M2.5" H 10300 5475 50  0001 C CNN
+F 2 "MountingHole:MountingHole_2.1mm" H 10300 5475 50  0001 C CNN
 F 3 "~" H 10300 5475 50  0001 C CNN
 	1    10300 5475
 	1    0    0    -1  
@@ -1791,6 +1608,127 @@ F 6 "0.2" V 3625 6200 50  0001 C CNN "Price"
 	1    3625 6200
 	1    0    0    -1  
 $EndComp
+Wire Wire Line
+	4575 5475 4575 5525
+Wire Wire Line
+	3950 5475 4575 5475
+Wire Wire Line
+	4575 5825 4575 5950
+Wire Wire Line
+	4575 6325 4575 6425
+Wire Wire Line
+	4575 6425 3950 6425
+Text Label 5000 5950 2    50   ~ 0
+SiPM_REF
+Wire Wire Line
+	5000 5950 4575 5950
+Connection ~ 4575 5950
+Wire Wire Line
+	4575 5950 4575 6025
+Wire Wire Line
+	1375 5625 1275 5625
+Connection ~ 1275 5625
+Wire Wire Line
+	1275 5625 1275 5075
+$Comp
+L power:+3V0 #PWR014
+U 1 1 5F45CB94
+P 6500 5425
+F 0 "#PWR014" H 6500 5275 50  0001 C CNN
+F 1 "+3V0" H 6515 5598 50  0000 C CNN
+F 2 "" H 6500 5425 50  0001 C CNN
+F 3 "" H 6500 5425 50  0001 C CNN
+	1    6500 5425
+	1    0    0    -1  
+$EndComp
+Text Notes 4450 2000 2    50   ~ 0
+2.03 V
+Text Notes 4450 3250 2    50   ~ 0
+2.03 V
+Text Notes 550  2425 0    39   ~ 0
+Vover = Vout - SiPMRef - Vbreakdown
+Text Notes 550  2550 0    39   ~ 0
+Vbreakdown = 24.5 V
+$Comp
+L Device:R R7
+U 1 1 606E83EF
+P 4700 3125
+F 0 "R7" V 4800 3175 50  0000 C CNN
+F 1 "25k" V 4700 3125 50  0000 C CNN
+F 2 "Resistor_SMD:R_0603_1608Metric" V 4630 3125 50  0001 C CNN
+F 3 "http://www.vishay.com/docs/60030/plt.pdf" H 4700 3125 50  0001 C CNN
+F 4 "Digikey" V 4700 3125 50  0001 C CNN "Supplier"
+F 5 "PLT0603-25KACT-ND" V 4700 3125 50  0001 C CNN "Part Number"
+F 6 "4.42" V 4700 3125 50  0001 C CNN "Price"
+	1    4700 3125
+	0    -1   -1   0   
+$EndComp
+$Comp
+L Device:R R2
+U 1 1 606EA245
+P 2100 2700
+F 0 "R2" V 2000 2725 50  0000 C CNN
+F 1 "25k" V 2100 2700 50  0000 C CNN
+F 2 "Resistor_SMD:R_0603_1608Metric" V 2030 2700 50  0001 C CNN
+F 3 "http://www.vishay.com/docs/60030/plt.pdf" H 2100 2700 50  0001 C CNN
+F 4 "Digikey" V 2100 2700 50  0001 C CNN "Supplier"
+F 5 "PLT0603-25KACT-ND" V 2100 2700 50  0001 C CNN "Part Number"
+F 6 "4.42" V 2100 2700 50  0001 C CNN "Price"
+	1    2100 2700
+	0    -1   -1   0   
+$EndComp
+$Comp
+L power:PWR_FLAG #FLG04
+U 1 1 5F65080C
+P 10575 3050
+F 0 "#FLG04" H 10575 3125 50  0001 C CNN
+F 1 "PWR_FLAG" V 10575 3177 50  0001 L CNN
+F 2 "" H 10575 3050 50  0001 C CNN
+F 3 "~" H 10575 3050 50  0001 C CNN
+	1    10575 3050
+	0    1    1    0   
+$EndComp
+Wire Wire Line
+	7275 5450 7850 5450
+Wire Wire Line
+	7275 5650 7850 5650
+Wire Wire Line
+	7675 5350 7850 5350
+Wire Wire Line
+	7675 5550 7850 5550
+Wire Wire Line
+	7675 5750 7850 5750
+Wire Wire Line
+	7300 5850 7850 5850
+Wire Wire Line
+	10575 3050 10575 3550
+Wire Wire Line
+	6150 2250 6650 2250
+Wire Wire Line
+	6150 2850 6650 2850
+$Comp
+L Connector:TestPoint TP2
+U 1 1 60762B08
+P 1650 3125
+F 0 "TP2" V 1550 3225 50  0000 L CNN
+F 1 "TestPoint" V 1475 3225 50  0000 L CNN
+F 2 "TestPoint:TestPoint_Pad_D1.5mm" H 1850 3125 50  0001 C CNN
+F 3 "~" H 1850 3125 50  0001 C CNN
+	1    1650 3125
+	0    -1   -1   0   
+$EndComp
+Wire Wire Line
+	1650 3125 1800 3125
+Text Notes 3700 5600 3    50   ~ 0
+1.3 mA
+Text Notes 3875 5275 1    50   ~ 0
+3.3 mA
+Text Notes 4400 6700 0    59   ~ 0
+24k and 2k \nsubstituted in build mod
+Text Notes 4550 5450 2    50   ~ 0
+2 mA
+Text Notes 5200 6100 2    50   ~ 0
+2.03 V
 $Comp
 L Device:R R18
 U 1 1 60285095
@@ -1814,86 +1752,23 @@ F 1 "180R" H 4645 5630 50  0000 L CNN
 F 2 "Resistor_SMD:R_0603_1608Metric" V 4505 5675 50  0001 C CNN
 F 3 "~" H 4575 5675 50  0001 C CNN
 F 4 "Digikey" H 4575 5675 50  0001 C CNN "Supplier"
-F 5 "118-CR0603-FX-3000ELFCT-ND" H 4575 5675 50  0001 C CNN "Part Number"
-F 6 "0.1" H 4575 5675 50  0001 C CNN "Price"
+F 5 "RG1608N-181-W-T1" H 4575 5675 50  0001 C CNN "Part Number"
+F 6 "0.8" H 4575 5675 50  0001 C CNN "Price"
 	1    4575 5675
-	1    0    0    -1  
-$EndComp
-Wire Wire Line
-	4575 5475 4575 5525
-Wire Wire Line
-	3950 5475 4575 5475
-Wire Wire Line
-	4575 5825 4575 5950
-Wire Wire Line
-	4575 6325 4575 6425
-Wire Wire Line
-	4575 6425 3950 6425
-Text Label 5000 5950 2    50   ~ 0
-SiPM_REF
-Wire Wire Line
-	5000 5950 4575 5950
-Connection ~ 4575 5950
-Wire Wire Line
-	4575 5950 4575 6025
-Wire Wire Line
-	1375 5625 1275 5625
-Connection ~ 1275 5625
-Wire Wire Line
-	1275 5625 1275 5075
-Text Notes 4400 6700 0    59   ~ 0
-24k and 2k \nsubstituted in build mod
-$Comp
-L power:+3V0 #PWR014
-U 1 1 5F45CB94
-P 6500 5425
-F 0 "#PWR014" H 6500 5275 50  0001 C CNN
-F 1 "+3V0" H 6515 5598 50  0000 C CNN
-F 2 "" H 6500 5425 50  0001 C CNN
-F 3 "" H 6500 5425 50  0001 C CNN
-	1    6500 5425
 	1    0    0    -1  
 $EndComp
 $Comp
 L Device:R R5
-U 1 1 6068301B
+U 1 1 607BDC97
 P 3950 5200
 F 0 "R5" H 4020 5246 50  0000 L CNN
 F 1 "180R" H 4020 5155 50  0000 L CNN
 F 2 "Resistor_SMD:R_0603_1608Metric" V 3880 5200 50  0001 C CNN
 F 3 "~" H 3950 5200 50  0001 C CNN
 F 4 "Digikey" H 3950 5200 50  0001 C CNN "Supplier"
-F 5 "118-CR0603-FX-3000ELFCT-ND" H 3950 5200 50  0001 C CNN "Part Number"
-F 6 "0.1" H 3950 5200 50  0001 C CNN "Price"
+F 5 "RG1608N-181-W-T1" H 3950 5200 50  0001 C CNN "Part Number"
+F 6 "0.8" H 3950 5200 50  0001 C CNN "Price"
 	1    3950 5200
 	1    0    0    -1  
-$EndComp
-Text Notes 5200 6100 2    50   ~ 0
-2.03 V
-Text Notes 4550 5450 2    50   ~ 0
-2 mA
-Text Notes 3700 5600 3    50   ~ 0
-1.3 mA
-Text Notes 4450 2000 2    50   ~ 0
-2.03 V
-Text Notes 4450 3250 2    50   ~ 0
-2.03 V
-Text Notes 550  2425 0    39   ~ 0
-Vover = Vout - SiPMRef - Vbreakdown
-Text Notes 550  2550 0    39   ~ 0
-Vbreakdown = 24.5 V
-$Comp
-L Device:R R7
-U 1 1 606E83EF
-P 4700 3125
-F 0 "R7" V 4800 3175 50  0000 C CNN
-F 1 "25k" V 4700 3125 50  0000 C CNN
-F 2 "Resistor_SMD:R_0603_1608Metric" V 4630 3125 50  0001 C CNN
-F 3 "http://www.vishay.com/docs/60030/plt.pdf" H 4700 3125 50  0001 C CNN
-F 4 "Digikey" V 4700 3125 50  0001 C CNN "Supplier"
-F 5 "PLT0603-25KACT-ND" V 4700 3125 50  0001 C CNN "Part Number"
-F 6 "4.42" V 4700 3125 50  0001 C CNN "Price"
-	1    4700 3125
-	0    -1   -1   0   
 $EndComp
 $EndSCHEMATC
