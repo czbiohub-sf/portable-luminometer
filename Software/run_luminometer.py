@@ -1,11 +1,12 @@
 
-from luminometer import Luminometer
-from lumiscreen import LumiScreen
+from .luminometer import Luminometer, LumiShutter, LumiBuzzer, HBridgeFault
+from .lumiscreen import LumiScreen
 import time
 import concurrent.futures
 import queue
 
-q = queue.Queue()
+display_q = queue.Queue(maxsize=2)
+shutter_q queue.Queue(maxsize=2)
 
 if __name__ == "__main__":
 
@@ -29,11 +30,11 @@ if __name__ == "__main__":
 	try:
 		Luminometer.measure(integrationTime_seconds, shutterTime)
 		#Luminometer.measureUponButtonPress(integrationTime_seconds, shutterTime)
-		Luminometer.writeToFile(title)
 
 	except KeyboardInterrupt:
 		pass
 
 	finally:
+		Luminometer.writeToFile(title)
 		GPIO.cleanup()
 

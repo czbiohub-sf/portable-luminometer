@@ -14,39 +14,10 @@ import time, math, csv, argparse
 import RPi.GPIO as GPIO
 from typing import List
 from statistics import mean, stdev
-
 from adc_constants import *
+from luminometer_constants import *
 from ads131m08_reader import ADS131M08Reader, bytes_to_readable, CRCError
 
-
-# Sampling rate of the ADC (488 kHz CLKIN, OSR = 4096, global chop mode. See ADS131m08 datasheet 8.4.2.2)
-SAMPLE_TIME_S = 0.050
-SHUTTER_ACTUATION_TIME = 0.05
-FM_PER_V = 20000
-SKIP_SAMPLES = 3
-
-# BCM pins
-# Luminometer pushbuttons
-BTN_1 = 3
-BTN_2 = 26
-BTN_3 = 19
-
-# H-bridge inputs (channel A)
-AIN1 = 16
-AIN2 = 13
-# H-bridge inputs (channel B)
-BIN1 = 5
-BIN2 = 6
-# H-bridge logical I/O
-NSLEEP = 1
-NFAULT = 0
-
-# Audio element
-BUZZ = 12
-FREQ = 4000
-
-# SPI Device number
-CE = 1
 
 class HBridgeFault(Exception):
     pass
@@ -66,8 +37,6 @@ class LumiBuzzer():
 		self._pwm.start(50)
 		time.sleep(duration_s)
 		self._pwm.stop()
-
-
 
 class LumiShutter():
 	# Uses RPi BCM pinout
@@ -123,17 +92,17 @@ class LumiShutter():
 
 class Luminometer():
 
-	def __init__(self, shutterA, shutterB, screen, buzzer):
+	def __init__(self):
 
 		self._adc = ADS131M08Reader()
 		self._adc.setup_adc(CE, channels=[0,1])
-		self._display = screen
-		self._display.welcome()
+		self._display = LumiScreen()
+		self.shutterA = LumiShutter(AIN1, AIN2, NFAULT, NSLEEP)
+		self.shutterB = LumiShutter(BIN1, BIN2, NFAULT, NSLEEP)
+		self._buzzer = LumiBuzzer(BUZZ)
+		self.adc_status_print()
 
-		self.shutterA = shutterA
-		self.shutterB = shutterB
-		self._buzzer = buzzer
-
+	def adc_status_print(self):
 		print("ID")
 		d = self._adc.read_register(ID_ADDR)
 		print(bytes_to_readable(d)[0])
