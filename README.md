@@ -10,6 +10,12 @@ This repository contains the design details for an ultra-low cost luminescence r
 
 ## Contents
 
+### Luminometer
+* __Luminometer__ - 
+* __LumiScreen__ - 
+* __LumiBuzzer__ - 
+
+### ADC Driver
 `gpclk_config/` - contains the `dt-blob.dts` file required to run the ADC. See the README for instructions on setting up the Raspberry Pi.
 
 `adc_reader.py` - defines the `ADCReader` abstract base class, includes the basic operations for ADC drivers for this project
@@ -20,15 +26,6 @@ This repository contains the design details for an ultra-low cost luminescence r
 
 `crc.py` - defines the CRC functions for communications with the ADC.
 
-
-* __Luminometer__ - 
-* __LumiScreen__ - 
-* __LumiBuzzer__ - 
-
-## Dependencies
-
-TicStepper :: smbus2 (I2C communication)<br>
-TicStepper :: pyserial (Serial communication)<br>
 
 ## Installation and Use
 ### Installing Module
