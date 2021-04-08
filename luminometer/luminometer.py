@@ -33,7 +33,7 @@ from ads131m08_reader import ADS131M08Reader, bytes_to_readable, CRCError
 - Add detail to display messages (s.e.m. and/or SNR, measurement duration)
 """
 
-display_q = queue.Queue(maxsize=2)
+display_q = queue.Queue(maxsize=1)
 shutter_q = queue.Queue(maxsize=2)
 measure_q = queue.Queue(maxsize=1)
 
@@ -247,7 +247,10 @@ class Luminometer():
 		with self._measureLock:
 
 			# Close shutters
-			shutter_q.put('close')
+			try:
+				shutter_q.put('close')
+			except queue.Full():
+				pass
 
 			self._resetBuffers(measure_time, shutter_time)
 
@@ -325,11 +328,17 @@ class Luminometer():
 
 			# Close shutters
 			if self._rsc % (2*self.shutter_samples) == 0:
-				shutter_q.put('close')
+				try:
+					shutter_q.put_nowait('close')
+				except queue.Full():
+					pass
 
 			# Open shutters
 			elif self._rsc % self.shutter_samples == 0:
-				shutter_q.put('open')
+				try:
+					shutter_q.put_nowait('open')
+				except queue.Full():
+					pass
 
 			self._rsc += 1
 			self._sc = int(math.floor(self._rsc/self.shutter_samples))
@@ -427,7 +436,7 @@ class Luminometer():
 
 	def run(self):
 
-		with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
+		with concurrent.futures.ThreadPoolExecutor(max_workers=None) as executor:
 
 			# Start a future for thread to submit work through the queue
 			future_result = { \

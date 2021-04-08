@@ -7,10 +7,6 @@ This repository contains the design details for a handheld, ultra-low cost lumin
 
 The device accepts 1-2 PCR tubes and reads the level of luminescence from them using a sensor that is read out by a 24-bit analog-to-digital converter. The device includes a shutter system that repeatedly blocks and unblocks the signal from reaching the sensor, thereby continuously performing dark measurements in order to stabilize the baseline of the measurement against drift. Results are displayed on a low-power, e-ink screen.
 
-## Setup
-
-- Follow the instructions in `gpclk_configi/README.md`
-
 ## Contents
 
 ### Luminometer
@@ -36,7 +32,10 @@ The device accepts 1-2 PCR tubes and reads the level of luminescence from them u
 2. Download / clone this repository
 3. Navigate to the base of the repository
 4. Install setuptools (__pip install setuptools__)
-5. Install module (__pip install .__)
+5. Install wheel (__pip install wheel__)
+6. Install module (__pip install .__)
+7. Follow the instructions in `gpclk_configi/README.md`
+
 
 NOTE: Developers may want to install the module with __pip install -e__ . So that changes they make to the module are immediately reflected when subsequently imported.
 

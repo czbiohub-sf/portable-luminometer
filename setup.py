@@ -1,7 +1,7 @@
 import setuptools
 
 setuptools.setup(
-    name="ulc_luminometer",
+    name="luminometer",
     version="0.0.1",
     author="Paul Lebel",
     author_email="plebel@alumni.stanford.edu",
