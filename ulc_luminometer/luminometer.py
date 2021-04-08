@@ -249,7 +249,7 @@ class Luminometer():
 			# Close shutters
 			shutter_q.put('close')
 
-			self._resetBuffers(self, measure_time, shutter_time)
+			self._resetBuffers(measure_time, shutter_time)
 
 			self.t0 = time.time()
 
@@ -431,8 +431,8 @@ class Luminometer():
 
 			# Start a future for thread to submit work through the queue
 			future_result = { \
-				executor.submit(Luminometer.shutterA.actuate('close')): 'SHUTTER A CLOSED', \
-				executor.submit(Luminometer.shutterB.actuate('close')): 'SHUTTER B CLOSED'  \
+				executor.submit(Luminometer.shutterA.actuate, 'close'): 'SHUTTER A CLOSED', \
+				executor.submit(Luminometer.shutterB.actuate, 'close'): 'SHUTTER B CLOSED'  \
 				}
 
 
