@@ -6,7 +6,7 @@ setuptools.setup(
     author="Paul Lebel",
     author_email="plebel@alumni.stanford.edu",
     description="Software to control a low-cost, high-sensitivity luminometer.",
-    url="https://github.com/czbiohub/ulc_luminometer",
+    url="https://github.com/czbiohub/ulc-tube-reader",
     install_requires=[
         'Pillow',
         'RPi.GPIO == 0.7.0',
