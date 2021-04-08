@@ -31,15 +31,16 @@ class LumiScreen():
 		self.displayMessage(message)
 
 	def displayMessage(self, message):
-		with self._lock:
-			w, h = self._smallFont.getsize(message)
-			x = (self._inky.WIDTH / 2) - (w / 2)
-			y = (self._inky.HEIGHT / 2) - (h / 2)
-			img = Image.new("P", (self._inky.WIDTH, self._inky.HEIGHT))
-			draw = ImageDraw.Draw(img)
-			draw.text((x, y), message, self._inky.BLACK, self._smallFont)
-			self._inky.set_image(img.rotate(180))
-			self._inky.show(message)
+		if not self._lock.locked():
+			with self._lock:
+				w, h = self._smallFont.getsize(message)
+				x = (self._inky.WIDTH / 2) - (w / 2)
+				y = (self._inky.HEIGHT / 2) - (h / 2)
+				img = Image.new("P", (self._inky.WIDTH, self._inky.HEIGHT))
+				draw = ImageDraw.Draw(img)
+				draw.text((x, y), message, self._inky.BLACK, self._smallFont)
+				self._inky.set_image(img.rotate(180))
+				self._inky.show(message)
 
 	def welcome(self):
 		self.displayMessage('WELCOME!')
