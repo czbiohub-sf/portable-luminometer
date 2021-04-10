@@ -176,6 +176,16 @@ class Luminometer():
 
 		if duration > BTN_1_HOLD_TO_POWERDOWN_S:
 			self._powerOn = False
+			print('Powering off')
+
+			try:
+				display_q.put('\tPowering off')
+			except queue.Full:
+				pass
+
+			time.sleep(5)
+			os.system('sudo poweroff')
+
 		elif not self._measureLock.locked():
 			try:
 				measure_q.put_nowait('dark')
@@ -278,8 +288,7 @@ class Luminometer():
 							print(f"Sensor B after {int(self._sc/2)} cycles: {FM_PER_V*mean(self.dataB):.4f} fM")
 							print(f"Sensor B raw: {self.rawdataB[self._rsc-1]:.4f}")
 
-							resultString =  f"{FM_PER_V*mean(self.dataA):.4f} \t {FM_PER_V*mean(self.dataB):.4f}"
-
+							resultString =  f"{FM_PER_V*mean(self.dataA):.4f}\t{FM_PER_V*mean(self.dataB):.4f}"
 							try:
 								display_q.put_nowait(resultString)
 							except queue.Full:
@@ -295,8 +304,15 @@ class Luminometer():
 					self.semA = stdev(self.dataA)/math.sqrt(self.nSamples)
 					self.semB = stdev(self.dataB)/math.sqrt(self.nSamples)
 
-					print(f"\nSensor A final result: {FM_PER_V*self.resultA:.4f} fM +/- {FM_PER_V*self.semA:.4f} (s.e.m.) ")
-					print(f"\nSensor B final result: {FM_PER_V*self.resultB:.4f} fM +/- {FM_PER_V*self.semB:.4f} (s.e.m.) ")
+					print(f"\nSensor A final result: {FM_PER_V*self.resultA:.4f} +/- {FM_PER_V*self.semA:.4f} (s.e.m.) ")
+					print(f"\nSensor B final result: {FM_PER_V*self.resultB:.4f} +/- {FM_PER_V*self.semB:.4f} (s.e.m.) ")
+
+					# display_q.put(\
+					# 	"Final result:", \
+					# 	f"Sensor A: {FM_PER_V*self.resultA:.4f} +/- {FM_PER_V*self.semA:.4f} (s.e.m.)", \
+					# 	f"Sensor B: {FM_PER_V*self.resultB:.4f} +/- {FM_PER_V*self.semB:.4f} (s.e.m.)", \
+					# 	"")
+
 
 					self.buzzer.buzz()
 				
@@ -409,102 +425,77 @@ class Luminometer():
 
 		return samples 
 
-	def measureUponButtonPress(self, iTime: int = 30, sTime: int = 2):
-		startButton = BTN_3
-		stopButton = BTN_2
-
-		self.display.displayMessage("Press to measure", True)
-		GPIO.setup(startButton, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-		GPIO.setup(stopButton, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-		GPIO.add_event_detect(stopButton, GPIO.FALLING, bouncetime=200)
-		GPIO.add_event_detect(startButton, GPIO.FALLING, bouncetime=200)
-		
-		time.sleep(.2)
-
-		try:
-			while(GPIO.event_detected(stopButton) == False):
-				print("Waiting for button press...")
-				time.sleep(.1)
-				if GPIO.event_detected(startButton):
-					print('Button pressed')
-					self.display.displayMessage("Measuring", True)
-					self.measure(iTime)
-		except KeyboardInterrupt:
-			pass
-		finally:
-			GPIO.remove_event_detect(stopButton)
-			GPIO.remove_event_detect(startButton)
-			self.display.displayMessage("Goodbye!", True)
-
 
 	def run(self):
+		try:
 
-		with concurrent.futures.ThreadPoolExecutor(max_workers=None) as executor:
+			with concurrent.futures.ThreadPoolExecutor(max_workers=None) as executor:
 
-			# Start a future for thread to submit work through the queue
-			future_result = { \
-				executor.submit(Luminometer.shutterA.actuate, 'close'): 'SHUTTER A CLOSED', \
-				executor.submit(Luminometer.shutterB.actuate, 'close'): 'SHUTTER B CLOSED'  \
-				}
+				# Start a future for thread to submit work through the queue
+				future_result = { \
+					executor.submit(Luminometer.shutterA.actuate, 'close'): 'SHUTTER A CLOSED', \
+					executor.submit(Luminometer.shutterB.actuate, 'close'): 'SHUTTER B CLOSED'  \
+					}
 
 
-			# Main realtime loop:
-			while self._powerOn:
+				# Main realtime loop:
+				while self._powerOn:
 
-				# print('System running. Waiting for button pushes...')
+					# print('System running. Waiting for button pushes...')
 
-				# Check for status of the futures which are currently working
-				done, not_done = concurrent.futures.wait(future_result, timeout=0.05, \
-					return_when=concurrent.futures.FIRST_COMPLETED)
-				
-				# Shutter queue has size 2 and will not add additional items to the queue
-				while not measure_q.empty():
-					try:
-						measureType = measure_q.get_nowait()
-					except queue.Empty:
-						pass
+					# Check for status of the futures which are currently working
+					done, not_done = concurrent.futures.wait(future_result, timeout=0.05, \
+						return_when=concurrent.futures.FIRST_COMPLETED)
+					
+					# Shutter queue has size 2 and will not add additional items to the queue
+					while not measure_q.empty():
+						try:
+							measureType = measure_q.get_nowait()
+						except queue.Empty:
+							pass
 
-					future_result[executor.submit(self.measure, 30, 1, measureType)] = measureType
+						future_result[executor.submit(self.measure, 30, 1, measureType)] = measureType
 
-				# Shutter queue has size 2 and will not add additional items to the queue
-				while not shutter_q.empty():
+					# Shutter queue has size 2 and will not add additional items to the queue
+					while not shutter_q.empty():
 
-					# Fetch an action from the queue
-					try:
-						action = shutter_q.get_nowait()
-					except queue.Empty:
-						pass
+						# Fetch an action from the queue
+						try:
+							action = shutter_q.get_nowait()
+						except queue.Empty:
+							pass
 
-					# Submit shutter actions
-					future_result[executor.submit(self.shutterA.actuate, action)] = "Shutter A: " + action
-					future_result[executor.submit(self.shutterB.actuate, action)] = "Shutter B: " + action
+						# Submit shutter actions
+						future_result[executor.submit(self.shutterA.actuate, action)] = "Shutter A: " + action
+						future_result[executor.submit(self.shutterB.actuate, action)] = "Shutter B: " + action
 
-				# Display queue has size 2 and will not add additional items to the queue
-				# If there is an incoming message, start a new future
-				while not display_q.empty():
+					# Display queue has size 2 and will not add additional items to the queue
+					# If there is an incoming message, start a new future
+					while not display_q.empty():
 
-					# Fetch a job from the queue
-					try:
-						message = display_q.get_nowait()
-					except queue.Empty:
-						pass
+						# Fetch a job from the queue
+						try:
+							message = display_q.get_nowait()
+						except queue.Empty:
+							pass
 
-					# Start the load operation and mark the future with its URL
-					future_result[executor.submit(self.display.displayMessage, message)] = "Message displayed: " + message
+						# Start the load operation and mark the future with its URL
+						future_result[executor.submit(self.display.displayMessage, message)] = "Message displayed: " + message
 
-				# Process any completed futures
-				for future in done:
-					result = future_result[future]
-					try:
-						data = future.result()
-					except Exception as exc:
-						print('%r generated an exception: %s' % (result, exc))
-					else:
-						print(data)
+					# Process any completed futures
+					for future in done:
+						result = future_result[future]
+						try:
+							data = future.result()
+						except Exception as exc:
+							print('%r generated an exception: %s' % (result, exc))
+						else:
+							print(data)
 
-					# Remove the now completed future
-					del future_result[future]
-
+						# Remove the now completed future
+						del future_result[future]
+		except KeyboardInterrupt:
+			pass
 
 if __name__ == "__main__":
 
@@ -526,6 +517,5 @@ if __name__ == "__main__":
 		print(f'Encountered exception: {exc}')
 	finally:
 		GPIO.cleanup()
-		# os.system('sudo halt')
 
 
