@@ -21,7 +21,7 @@ from statistics import mean, stdev
 
 from adc_constants import *
 from luminometer_constants import *
-from lumiscreen import LumiScreen
+from lumiscreen import LumiScreen, LumiMode
 from ads131m08_reader import ADS131M08Reader, bytes_to_readable, CRCError
 
 """
@@ -32,10 +32,6 @@ from ads131m08_reader import ADS131M08Reader, bytes_to_readable, CRCError
 - Write auto-exposure function
 - Add detail to display messages (s.e.m. and/or SNR, measurement duration)
 """
-
-display_q = queue.Queue(maxsize=1)
-shutter_q = queue.Queue(maxsize=1)
-measure_q = queue.Queue(maxsize=1)
 
 
 class HBridgeFault(Exception):
@@ -52,9 +48,9 @@ class LumiBuzzer():
 		GPIO.setup(buzzPin, GPIO.OUT)
 		self._pwm = GPIO.PWM(self._buzzPin, FREQ)
 
-	def buzz(self, duration_s: float = 0.2):
+	def buzz(self):
 		self._pwm.start(50)
-		time.sleep(duration_s)
+		time.sleep(BUZZ_S)
 		self._pwm.stop()
 
 class LumiShutter():
@@ -84,7 +80,7 @@ class LumiShutter():
 		# if you try to add event detect twice to the same pin. 
 		try:
 			GPIO.add_event_detect(self._faultPin, GPIO.FALLING, callback=self._faultDetected)
-		except RuntimeError as rt:
+		except RuntimeError:
 			pass
 
 		self._lock = threading.Lock()
@@ -133,10 +129,16 @@ class Luminometer():
 
 	def __init__(self):
 
-		self._adc = ADS131M08Reader()
-		self._adc.setup_adc(SPI_CE, channels=[0,1])
+		try:
+			self._adc = ADS131M08Reader()
+			self._adc.setup_adc(SPI_CE, channels=[0,1])
+			self._simulate = False
+		except Exception as e:
+			print("Error creating ADC reader!")
+			print(e)
+			self._simulate = True
+
 		self.display = LumiScreen()
-		self.display.displayMessage('WELCOME')
 		self.shutterA = LumiShutter(AIN1, AIN2, NFAULT, NSLEEP)
 		self.shutterB = LumiShutter(BIN1, BIN2, NFAULT, NSLEEP)
 		self.buzzer = LumiBuzzer(BUZZ)
@@ -145,22 +147,40 @@ class Luminometer():
 		self._btn3 = BTN_3
 		self._powerOn = True
 		self._measuring = False
+		self._darkIsStored = False
+		self._measurementIsDone = False
+		self._darkRef = [0.0, 0.0]
 
-		self.adc_status_print()
+		try: 
+			self.adc_status_print()
+		except Exception as e:
+			print('Could not print ADC status!')
+
 		self._crcErrs = 0
 		self._measureLock = threading.Lock()
 
-		# Set up listeners for button pushes
+		# Set up channels for button pushes
 		GPIO.setup(self._btn1, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 		GPIO.setup(self._btn2, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 		GPIO.setup(self._btn3, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 
+		# Add callback for button pushes
 		GPIO.add_event_detect(self._btn1, GPIO.FALLING, callback=self._btn1_callback, bouncetime=200)
 		GPIO.add_event_detect(self._btn2, GPIO.FALLING, callback=self._btn2_callback, bouncetime=200)
 		GPIO.add_event_detect(self._btn3, GPIO.FALLING, callback=self._btn3_callback, bouncetime=200)
 
-		# Start handling incoming data
-		GPIO.add_event_detect(self._adc._DRDY, GPIO.FALLING, callback=self._cb_adc_data_ready)
+		# Start handling incoming ADC data
+		if self._simulate:
+			print("SIMULATION MODE: Starting timer callback")
+			self._cbTimer = threading.Timer(SAMPLE_TIME_S, self._cb_adc_data_ready, args=DRDY)
+			self._cbTimer.start()
+		else:
+			GPIO.add_event_detect(self._adc._DRDY, GPIO.FALLING, callback=self._cb_adc_data_ready)
+
+		# Create thread-safe queues for hardware jobs
+		self._display_q = queue.Queue(maxsize=1)
+		self._shutter_q = queue.Queue(maxsize=1)
+		self._measure_q = queue.Queue(maxsize=1)
 
 	def _btn1_callback(self, channel):
 		# Handle presses to button 1
@@ -179,32 +199,35 @@ class Luminometer():
 			print('Powering off')
 
 			try:
-				display_q.put('\tPowering off')
+				self._display_q.put((LumiMode.TITLE, 'Powering off'))
 			except queue.Full:
 				pass
 
-			time.sleep(5)
-			os.system('sudo poweroff')
-
 		elif not self._measureLock.locked():
 			try:
-				measure_q.put_nowait('dark')
+				self._measure_q.put_nowait((DEF_DARK_TIME,True))
 			except queue.Full:
 				print('\nAlready busy measuring')
 
 	def _btn2_callback(self, channel):
 		# Handle presses to button 2
-		try:
-			if not self._measureLock.locked():
-				measure_q.put_nowait('reference')
-		except queue.Full:
-			print('\nAlready busy measuring')
+		startTime = time.time()
+		while not GPIO.input(channel):
+			pass
+
+		duration = time.time() - startTime
+		print(f"Not implemented")
+		# try:
+		# 	if not self._measureLock.locked():
+		# 		self._measure_q.put_nowait('reference')
+		# except queue.Full:
+		# 	print('\nAlready busy measuring')
 	
 	def _btn3_callback(self, channel):
 		# Handle presses to button 3
 		try:
 			if not self._measureLock.locked():
-				measure_q.put_nowait('measure')
+				self._measure_q.put_nowait((0,False))
 		except queue.Full:
 			print('\nAlready busy measuring')
 
@@ -234,12 +257,14 @@ class Luminometer():
 		print(bytes_to_readable(d)[0])
 		print()
 
-	def measure(self, measure_time:int = 30, shutter_time: int = 2, measurementType: str = 'measure'):
+	def measure(self, \
+		measure_time: int = 30, \
+		dark: bool = False):
 		"""
 		Arguments:
-		shutter_time is interval between open/close events, in seconds
 		measure_time is the duration of the entire measurement, in seconds
-		measurementType is a string specifying 'dark', 'reference', or 'measure'
+		dark is a boolean specifying whether to store the current measurement as 'dark' reference;
+		to be subtractred from all future (non-dark) measurements.
 
 		Outputs to command line and display: A +/- s.e.m.
 											 B +/- s.e.m.
@@ -250,7 +275,7 @@ class Luminometer():
 		subtracted by the mean of its flanking closed periods. It will always start
 		and end a measurement with shutter-closed periods.
 
-		Ex. If the measure_time is set to 7 seconds and the shutter_time to 1 second, then 
+		Ex. If the measure_time is set to 7 seconds and the SHUTTER_PERIOD is 1 second, then 
 		there will be 3 shutter-open periods and 4 shutter-closed periods.
 
 		_|-|_|-|_|-|_
@@ -259,15 +284,22 @@ class Luminometer():
 		if not self._measuring:
 			with self._measureLock:
 
+				# Confirm to user that a dark measurement is being performed
+				if dark:
+					try:
+						self._display_q.put((LumiMode.TITLE, 'DARK REF IN PROGRESS'))
+					except queue.Full:
+						pass
+
 				# Close shutters
 				try:
-					shutter_q.put('close')
+					self._shutter_q.put('close')
 				except queue.Full:
 					pass
 
-				self._resetBuffers(measure_time, shutter_time)
+				self._resetBuffers(measure_time)
 
-				self.t0 = time.time()
+				t0 = time.time()
 
 				try:
 					self._measuring = True
@@ -281,38 +313,49 @@ class Luminometer():
 							print(f"\nMeasure: sample count = {self._sc}")
 
 							self.dataA = self.gateTrace(self.rawdataA[:self._rsc], self.shutter_samples, SKIP_SAMPLES)
+							self.dataA -= self._darkRef[0]
 							print(f"Sensor A after {int(self._sc/2)} cycles: {FM_PER_V*mean(self.dataA):.4f} fM")
 							print(f"Sensor A raw: {self.rawdataA[self._rsc-1]:.4f}")
 
 							self.dataB = self.gateTrace(self.rawdataB[:self._rsc], self.shutter_samples, SKIP_SAMPLES)
+							self.dataB -= self._darkRef[1]
 							print(f"Sensor B after {int(self._sc/2)} cycles: {FM_PER_V*mean(self.dataB):.4f} fM")
 							print(f"Sensor B raw: {self.rawdataB[self._rsc-1]:.4f}")
 
-							resultString =  f"{FM_PER_V*mean(self.dataA):.4f}\t{FM_PER_V*mean(self.dataB):.4f}"
+							self.semA = stdev(self.dataA)/math.sqrt(self.nSamples)
+							self.semB = stdev(self.dataB)/math.sqrt(self.nSamples)
+
+							duration_s = time.time() - t0
+
+							# Update display with intermediate results
 							try:
-								display_q.put_nowait(resultString)
+								self._display_q.put_nowait((\
+									LumiMode.RESULT, \
+									self._darkIsStored,\
+									self._measurementIsDone,\
+									self.dataA,\
+									self.semA,\
+									self.dataB,\
+									self.semB,\
+									duration_s))
 							except queue.Full:
 								print('\nDisplay queue full. Could not display result')
 
 							sampleCount += 1
 
-					self.dataA = self.gateTrace(self.rawdataA, self.shutter_samples, 10)
-					self.dataB = self.gateTrace(self.rawdataB, self.shutter_samples, 10)
-
+					self.dataA = self.gateTrace(self.rawdataA, self.shutter_samples)
+					self.dataB = self.gateTrace(self.rawdataB, self.shutter_samples)
 					self.resultA = mean(self.dataA)
 					self.resultB = mean(self.dataB)
 					self.semA = stdev(self.dataA)/math.sqrt(self.nSamples)
 					self.semB = stdev(self.dataB)/math.sqrt(self.nSamples)
 
+					if dark:
+						self._darkRef = [self.dataA, self.dataB]
+						self._darkIsStored = True
+
 					print(f"\nSensor A final result: {FM_PER_V*self.resultA:.4f} +/- {FM_PER_V*self.semA:.4f} (s.e.m.) ")
 					print(f"\nSensor B final result: {FM_PER_V*self.resultB:.4f} +/- {FM_PER_V*self.semB:.4f} (s.e.m.) ")
-
-					# display_q.put(\
-					# 	"Final result:", \
-					# 	f"Sensor A: {FM_PER_V*self.resultA:.4f} +/- {FM_PER_V*self.semA:.4f} (s.e.m.)", \
-					# 	f"Sensor B: {FM_PER_V*self.resultB:.4f} +/- {FM_PER_V*self.semB:.4f} (s.e.m.)", \
-					# 	"")
-
 
 					self.buzzer.buzz()
 				
@@ -320,10 +363,10 @@ class Luminometer():
 					self.writeToFile('Interrupted_')
 					print(f'\nException occured during measurement: {exc}')
 				finally:
-					self.t1 = time.time()
+					t1 = time.time()
 					self._measuring = False
 
-				print(f"\n{self._rsc} samples in {self.t1 - self.t0} seconds. Sample rate of {self._rsc / (self.t1 - self.t0)} Hz")
+				print(f"\n{self._rsc} samples in {self.t1 - self.t0} seconds. Sample rate of {self._rsc / (t1 - t0)} Hz")
 				print(f"{self._crcErrs} CRC Errors encountered.")
 
 			return
@@ -333,29 +376,35 @@ class Luminometer():
 		# The callback also queues the shutter actions, in order to stay synchronized 
 		# with the data readout.
 
-		try:
-			# Read sensor
-			d = self._adc.read()
+		if self._simulate:
+			# Simulation mode
+			d = [0.0, 0.0]
 
-		except CRCError:
-			self._crcErrs += 1
-			return
+		else:
+			try:
+				# Read sensor
+				d = self._adc.read()
+
+			# ADC communication error
+			except CRCError:
+				self._crcErrs += 1
+				return
 	
-		if  self._measuring and (self._rsc < self.nRawSamples):
+		if self._measuring and (self._rsc < self.nRawSamples):
 			self.rawdataA[self._rsc] = d[0]
 			self.rawdataB[self._rsc] = d[1]
 
 			# Close shutters
 			if self._rsc % (2*self.shutter_samples) == 0:
 				try:
-					shutter_q.put_nowait('close')
+					self._shutter_q.put_nowait('close')
 				except queue.Full:
 					pass
 
 			# Open shutters
 			elif self._rsc % self.shutter_samples == 0:
 				try:
-					shutter_q.put_nowait('open')
+					self._shutter_q.put_nowait('open')
 				except queue.Full:
 					pass
 
@@ -363,14 +412,16 @@ class Luminometer():
 			self._sc = int(math.floor(self._rsc/self.shutter_samples))
 		return
 
-	def _resetBuffers(self, measure_time:int = 30, shutter_time: int = 2):
+	def _resetBuffers(self, measure_time: int):
+
+			self._measurementIsDone = False
 
 			# The actual number of samples is taken as the ceiling of however many 
 			# full open and closed periods it takes to complete the measurement
-			self.shutter_samples = int(math.ceil(shutter_time/SAMPLE_TIME_S))
+			self.shutter_samples = int(math.ceil(SHUTTER_PERIOD/SAMPLE_TIME_S))
 
 			# Number of shutter-open periods
-			self.nSamples = int(math.floor(measure_time/(2*shutter_time)))
+			self.nSamples = int(math.floor(measure_time/(2*SHUTTER_PERIOD)))
 
 			# Number of shutter closed periods
 			self.nDark = self.nSamples + 1
@@ -396,7 +447,7 @@ class Luminometer():
 			for i in range(len(self.dataA)):
 				csvWriter.writerow((self.dataA[i], self.dataB[i]))
 
-	def gateTrace(self, rawData: List[float], gateSize: int, excludeSize: int = 0) -> List[float]:
+	def gateTrace(self, rawData: List[float], gateSize: int) -> List[float]:
 		# Helper method that computes the mean of each even chunk of data, subtracted by the mean of the flanking odd
 		# chunks of data. The chunk size is specified by gateSize, and the total size of the rawData should be an odd
 		# multiple of gateSize, so that every even chunk has two flanking odd chunks.
@@ -418,9 +469,9 @@ class Luminometer():
 		samples = []
 
 		for i in range(gateSize, gateSize*nPeriods, 2*gateSize):
-			sample = mean(rawData[(i+excludeSize):i+(gateSize-1)])
-			darkBefore = mean(rawData[(i-gateSize+excludeSize):(i-1)])
-			darkAfter = mean(rawData[(i+gateSize+excludeSize):(i+2*gateSize - 1)])
+			sample = mean(rawData[(i+SKIP_SAMPLES):i+(gateSize-1)])
+			darkBefore = mean(rawData[(i-gateSize+SKIP_SAMPLES):(i-1)])
+			darkAfter = mean(rawData[(i+gateSize+SKIP_SAMPLES):(i+2*gateSize - 1)])
 			samples.append( sample - 0.5*(darkBefore + darkAfter))
 
 		return samples 
@@ -428,7 +479,6 @@ class Luminometer():
 
 	def run(self):
 		try:
-
 			with concurrent.futures.ThreadPoolExecutor(max_workers=None) as executor:
 
 				# Start a future for thread to submit work through the queue
@@ -437,31 +487,30 @@ class Luminometer():
 					executor.submit(Luminometer.shutterB.actuate, 'close'): 'SHUTTER B CLOSED'  \
 					}
 
+				print('Ready and waiting for button pushes...')
 
 				# Main realtime loop:
 				while self._powerOn:
-
-					# print('System running. Waiting for button pushes...')
 
 					# Check for status of the futures which are currently working
 					done, not_done = concurrent.futures.wait(future_result, timeout=0.05, \
 						return_when=concurrent.futures.FIRST_COMPLETED)
 					
-					# Shutter queue has size 2 and will not add additional items to the queue
-					while not measure_q.empty():
+					# Measure queue has size 1 and will not add additional items to the queue
+					while not self._measure_q.empty():
 						try:
-							measureType = measure_q.get_nowait()
+							measureType = self._measure_q.get_nowait()
 						except queue.Empty:
 							pass
 
-						future_result[executor.submit(self.measure, 30, 1, measureType)] = measureType
+						future_result[executor.submit(self.measure, measureType)] = measureType
 
-					# Shutter queue has size 2 and will not add additional items to the queue
-					while not shutter_q.empty():
+					# Shutter queue has size 1 and will not add additional items to the queue
+					while not self._shutter_q.empty():
 
 						# Fetch an action from the queue
 						try:
-							action = shutter_q.get_nowait()
+							action = self._shutter_q.get_nowait()
 						except queue.Empty:
 							pass
 
@@ -471,16 +520,16 @@ class Luminometer():
 
 					# Display queue has size 2 and will not add additional items to the queue
 					# If there is an incoming message, start a new future
-					while not display_q.empty():
+					while not self._display_q.empty():
 
 						# Fetch a job from the queue
 						try:
-							message = display_q.get_nowait()
+							message = self._display_q.get_nowait()
 						except queue.Empty:
 							pass
 
 						# Start the load operation and mark the future with its URL
-						future_result[executor.submit(self.display.displayMessage, message)] = "Message displayed: " + message
+						future_result[executor.submit(self.display.parser, message)] = "Message displayed: " + message[0]
 
 					# Process any completed futures
 					for future in done:
@@ -489,8 +538,6 @@ class Luminometer():
 							data = future.result()
 						except Exception as exc:
 							print('%r generated an exception: %s' % (result, exc))
-						else:
-							print(data)
 
 						# Remove the now completed future
 						del future_result[future]
@@ -517,5 +564,9 @@ if __name__ == "__main__":
 		print(f'Encountered exception: {exc}')
 	finally:
 		GPIO.cleanup()
+		del(Luminometer)
+		
+		# Power down system
+		os.system('sudo poweroff')
 
 

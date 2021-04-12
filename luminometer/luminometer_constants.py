@@ -1,9 +1,12 @@
 # Sampling rate of the ADC (488 kHz CLKIN, OSR = 4096, global chop mode. See ADS131m08 datasheet 8.4.2.2)
 SAMPLE_TIME_S = 0.050
 SHUTTER_ACTUATION_TIME = 0.05
+SHUTTER_PERIOD = 1
 FM_PER_V = 20000
 SKIP_SAMPLES = 3
 BTN_1_HOLD_TO_POWERDOWN_S = 3
+BUZZ_S = 0.3
+DEF_DARK_TIME = 60
 
 # BCM pins
 # Luminometer pushbuttons
@@ -27,3 +30,6 @@ FREQ = 4000
 
 # SPI Device number
 SPI_CE = 1
+
+# ADC Data ready pin
+DRDY = 15
