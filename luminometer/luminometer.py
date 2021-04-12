@@ -172,8 +172,7 @@ class Luminometer():
 		# Start handling incoming ADC data
 		if self._simulate:
 			print("SIMULATION MODE: Starting timer callback")
-			self._cbTimer = threading.Timer(SAMPLE_TIME_S, self._cb_adc_data_ready, args=(DRDY,))
-			self._cbTimer.start()
+			threading.Timer(SAMPLE_TIME_S, self._cb_adc_data_ready, args=(DRDY,)).start()
 		else:
 			GPIO.add_event_detect(self._adc._DRDY, GPIO.FALLING, callback=self._cb_adc_data_ready)
 
@@ -227,7 +226,7 @@ class Luminometer():
 		# Handle presses to button 3
 		try:
 			if not self._measureLock.locked():
-				self._measure_q.put_nowait((0,False))
+				self._measure_q.put_nowait((30,False))
 		except queue.Full:
 			print('\nAlready busy measuring')
 
@@ -283,7 +282,7 @@ class Luminometer():
 		"""
 		if not self._measuring:
 			with self._measureLock:
-
+				print("Starting measurement")
 				# Confirm to user that a dark measurement is being performed
 				if dark:
 					try:
@@ -312,18 +311,20 @@ class Luminometer():
 						if (self._sc > sampleCount) and ((self._sc % 2)==0) and (self._sc > 2):
 							print(f"\nMeasure: sample count = {self._sc}")
 
-							self.dataA = self.gateTrace(self.rawdataA[:self._rsc], self.shutter_samples, SKIP_SAMPLES)
-							self.dataA -= self._darkRef[0]
-							print(f"Sensor A after {int(self._sc/2)} cycles: {FM_PER_V*mean(self.dataA):.4f} fM")
+							# Gate traces and subtract dark reference
+							self.dataA = self.gateTrace(self.rawdataA[:self._rsc], self.shutter_samples)
+							self.dataA = [(p -self._darkRef[0]) for p in self.dataA]
+							print(f"Sensor A after {int(self._sc/2)} cycles: {FM_PER_V*mean(self.dataA):.4f}")
 							print(f"Sensor A raw: {self.rawdataA[self._rsc-1]:.4f}")
 
-							self.dataB = self.gateTrace(self.rawdataB[:self._rsc], self.shutter_samples, SKIP_SAMPLES)
-							self.dataB -= self._darkRef[1]
-							print(f"Sensor B after {int(self._sc/2)} cycles: {FM_PER_V*mean(self.dataB):.4f} fM")
+							self.dataB = self.gateTrace(self.rawdataB[:self._rsc], self.shutter_samples)
+							self.dataB = [(p -self._darkRef[1]) for p in self.dataB]
+							print(f"Sensor B after {int(self._sc/2)} cycles: {FM_PER_V*mean(self.dataB):.4f}")
 							print(f"Sensor B raw: {self.rawdataB[self._rsc-1]:.4f}")
 
-							self.semA = stdev(self.dataA)/math.sqrt(self.nSamples)
-							self.semB = stdev(self.dataB)/math.sqrt(self.nSamples)
+							if self._sc > 5:
+								self.semA = stdev(self.dataA)/math.sqrt(self.nSamples)
+								self.semB = stdev(self.dataB)/math.sqrt(self.nSamples)
 
 							duration_s = time.time() - t0
 
@@ -333,9 +334,9 @@ class Luminometer():
 									LumiMode.RESULT, \
 									self._darkIsStored,\
 									self._measurementIsDone,\
-									self.dataA,\
+									mean(self.dataA),\
 									self.semA,\
-									self.dataB,\
+									mean(self.dataB),\
 									self.semB,\
 									duration_s))
 							except queue.Full:
@@ -359,15 +360,21 @@ class Luminometer():
 
 					self.buzzer.buzz()
 				
-				except Exception as exc:
-					self.writeToFile('Interrupted_')
-					print(f'\nException occured during measurement: {exc}')
+				except KeyboardInterrupt as exc:
+					#self.writeToFile('Interrupted_')
+					print("Keyboard interrupted measurement")
 				finally:
 					t1 = time.time()
 					self._measuring = False
 
-				print(f"\n{self._rsc} samples in {self.t1 - self.t0} seconds. Sample rate of {self._rsc / (t1 - t0)} Hz")
+				print(f"\n{self._rsc} samples in {t1 - t0} seconds. Sample rate of {self._rsc / (t1 - t0)} Hz")
 				print(f"{self._crcErrs} CRC Errors encountered.")
+
+				try:
+					self._display_q.put_nowait((LumiMode.READY, self._darkIsStored))
+				except queue.Full:
+					pass
+
 
 			return
 
@@ -379,7 +386,7 @@ class Luminometer():
 		if self._simulate:
 			# Simulation mode
 			d = [0.0, 0.0]
-
+			threading.Timer(SAMPLE_TIME_S, self._cb_adc_data_ready, args=(DRDY,)).start()
 		else:
 			try:
 				# Read sensor
@@ -431,6 +438,9 @@ class Luminometer():
 
 			self.rawdataA = self.nRawSamples*[None]
 			self.rawdataB = self.nRawSamples*[None]
+
+			self.semA = 0.0
+			self.semB = 0.0
 
 			# Counters
 			self._rsc = self._sc = self._crcErrs = 0
@@ -487,7 +497,11 @@ class Luminometer():
 					executor.submit(Luminometer.shutterB.actuate, 'close'): 'SHUTTER B CLOSED'  \
 					}
 
-				print('Ready and waiting for button pushes...')
+				# Display to the user that the system is started and ready
+				self._display_q.put_nowait((LumiMode.READY, self._darkIsStored))
+
+
+				print('\nReady and waiting for button pushes...')
 
 				# Main realtime loop:
 				while self._powerOn:
@@ -503,7 +517,7 @@ class Luminometer():
 						except queue.Empty:
 							pass
 
-						future_result[executor.submit(self.measure, measureType)] = measureType
+						future_result[executor.submit(self.measure, *measureType)] = f"Exposure = {measureType[0]}, Dark = {measureType[1]}"
 
 					# Shutter queue has size 1 and will not add additional items to the queue
 					while not self._shutter_q.empty():
@@ -518,7 +532,7 @@ class Luminometer():
 						future_result[executor.submit(self.shutterA.actuate, action)] = "Shutter A: " + action
 						future_result[executor.submit(self.shutterB.actuate, action)] = "Shutter B: " + action
 
-					# Display queue has size 2 and will not add additional items to the queue
+					# Display queue has size 1 and will not add additional items to the queue
 					# If there is an incoming message, start a new future
 					while not self._display_q.empty():
 
@@ -529,7 +543,7 @@ class Luminometer():
 							pass
 
 						# Start the load operation and mark the future with its URL
-						future_result[executor.submit(self.display.parser, message)] = "Message displayed: " + message[0]
+						future_result[executor.submit(self.display.parser, *message)] = "Message displayed: " + repr(message[0])
 
 					# Process any completed futures
 					for future in done:
@@ -567,6 +581,6 @@ if __name__ == "__main__":
 		del(Luminometer)
 		
 		# Power down system
-		os.system('sudo poweroff')
+		# os.system('sudo poweroff')
 
 
