@@ -172,7 +172,7 @@ class Luminometer():
 		# Start handling incoming ADC data
 		if self._simulate:
 			print("SIMULATION MODE: Starting timer callback")
-			self._cbTimer = threading.Timer(SAMPLE_TIME_S, self._cb_adc_data_ready, args=DRDY)
+			self._cbTimer = threading.Timer(SAMPLE_TIME_S, self._cb_adc_data_ready, args=(DRDY,))
 			self._cbTimer.start()
 		else:
 			GPIO.add_event_detect(self._adc._DRDY, GPIO.FALLING, callback=self._cb_adc_data_ready)
