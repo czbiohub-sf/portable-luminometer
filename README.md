@@ -7,6 +7,8 @@ This repository contains the design details for a handheld, ultra-low cost lumin
 
 The device accepts 1-2 PCR tubes and reads the level of luminescence from them using a sensor that is read out by a 24-bit analog-to-digital converter. The device includes a shutter system that repeatedly blocks and unblocks the signal from reaching the sensor, thereby continuously performing dark measurements in order to stabilize the baseline of the measurement against drift. Results are displayed on a low-power, e-ink screen.
 
+![]https://github.com/czbiohub/ulc-tube-reader/blob/fully-threaded/SiPM%20Demo.gif
+
 ## Contents
 
 ### Luminometer
