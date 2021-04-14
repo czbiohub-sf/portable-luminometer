@@ -93,22 +93,30 @@ class LumiShutter():
 		except TypeError:
 			print("\naction must be a string!")
 			return
+
 		if not self._lock.locked():
 			with self._lock:
-				if action == 'open':
-					print(f"\nOpening shutter")
-					GPIO.output([self._fwdPin,self._revPin], (1,0))
-					time.sleep(driveTime)
+				try:
+					if action == 'open':
+						print(f"\nOpening shutter")
+						GPIO.output([self._fwdPin,self._revPin], (1,0))
+						time.sleep(driveTime)
+						self.brake()
+
+					elif action == 'close':
+						print(f"\nClosing shutter")
+						GPIO.output([self._fwdPin,self._revPin], (0,1))
+						time.sleep(driveTime)
+						self.brake()
+
+					else:
+						print(f"\nShutter command not recognized!")
+				except Exception as e:
+					print(f"Shutter actuation error: {e}")
+				finally:
 					self.brake()
 
-				elif action == 'close':
-					print(f"\nClosing shutter")
-					GPIO.output([self._fwdPin,self._revPin], (0,1))
-					time.sleep(driveTime)
-					self.brake()
 
-				else:
-					print(f"\nShutter command not recognized!")
 
 		return
 
@@ -199,6 +207,7 @@ class Luminometer():
 
 			try:
 				self._display_q.put((LumiMode.TITLE, 'Powering off'))
+				time.sleep(5)
 			except queue.Full:
 				pass
 
@@ -286,7 +295,7 @@ class Luminometer():
 				# Confirm to user that a dark measurement is being performed
 				if dark:
 					try:
-						self._display_q.put((LumiMode.TITLE, 'DARK REF IN PROGRESS'))
+						self._display_q.put((LumiMode.TITLE, 'DARK REF'))
 					except queue.Full:
 						pass
 
@@ -302,6 +311,8 @@ class Luminometer():
 
 				try:
 					self._measuring = True
+
+					# Keeps track of the overall measurement duration
 					sampleCount = 0
 
 					# Start data acquisition loop
@@ -312,51 +323,45 @@ class Luminometer():
 							print(f"\nMeasure: sample count = {self._sc}")
 
 							# Gate traces and subtract dark reference
-							self.dataA = self.gateTrace(self.rawdataA[:self._rsc], self.shutter_samples)
-							self.dataA = [(p -self._darkRef[0]) for p in self.dataA]
-							print(f"Sensor A after {int(self._sc/2)} cycles: {FM_PER_V*mean(self.dataA):.4f}")
-							print(f"Sensor A raw: {self.rawdataA[self._rsc-1]:.4f}")
+							self.dataA = self.gateTrace(self.rawdataA[:self._rsc], self.shutter_samples, 0.0 if dark else self._darkRef[0])
+							self.dataB = self.gateTrace(self.rawdataB[:self._rsc], self.shutter_samples, 0.0 if dark else self._darkRef[1])								
 
-							self.dataB = self.gateTrace(self.rawdataB[:self._rsc], self.shutter_samples)
-							self.dataB = [(p -self._darkRef[1]) for p in self.dataB]
-							print(f"Sensor B after {int(self._sc/2)} cycles: {FM_PER_V*mean(self.dataB):.4f}")
+							print(f"Sensor A after {int(self._sc/2)} cycles: {RLU_PER_V*mean(self.dataA):.2f}")
+							print(f"Sensor A raw: {self.rawdataA[self._rsc-1]:.4f}")
+							print(f"Sensor B after {int(self._sc/2)} cycles: {RLU_PER_V*mean(self.dataB):.2f}")
 							print(f"Sensor B raw: {self.rawdataB[self._rsc-1]:.4f}")
 
+							# Can't compute stdev unless there are >3 shutter-open periods _|-|_|-|_|-|_
 							if self._sc > 5:
 								self.semA = stdev(self.dataA)/math.sqrt(self.nSamples)
 								self.semB = stdev(self.dataB)/math.sqrt(self.nSamples)
 
-							duration_s = time.time() - t0
+							self._duration_s = time.time() - t0
 
-							# Update display with intermediate results
-							try:
-								self._display_q.put_nowait((\
-									LumiMode.RESULT, \
-									self._darkIsStored,\
-									self._measurementIsDone,\
-									mean(self.dataA),\
-									self.semA,\
-									mean(self.dataB),\
-									self.semB,\
-									duration_s))
-							except queue.Full:
-								print('\nDisplay queue full. Could not display result')
+							self._updateDisplayResult()
 
 							sampleCount += 1
 
-					self.dataA = self.gateTrace(self.rawdataA, self.shutter_samples)
-					self.dataB = self.gateTrace(self.rawdataB, self.shutter_samples)
+					# Final: fate traces and subtract dark reference
+					self.dataA = self.gateTrace(self.rawdataA[:self._rsc], self.shutter_samples, 0.0 if dark else self._darkRef[0])
+					self.dataB = self.gateTrace(self.rawdataB[:self._rsc], self.shutter_samples, 0.0 if dark else self._darkRef[1])	
+
+					# Final result is the mean of all the gated shutter-open periods
 					self.resultA = mean(self.dataA)
 					self.resultB = mean(self.dataB)
 					self.semA = stdev(self.dataA)/math.sqrt(self.nSamples)
 					self.semB = stdev(self.dataB)/math.sqrt(self.nSamples)
 
+					# If doing a dark calibration, then store the result
 					if dark:
-						self._darkRef = [self.dataA, self.dataB]
+						self._darkRef[0] = self.resultA
+						self._darkRef[1] = self.resultB
 						self._darkIsStored = True
 
-					print(f"\nSensor A final result: {FM_PER_V*self.resultA:.4f} +/- {FM_PER_V*self.semA:.4f} (s.e.m.) ")
-					print(f"\nSensor B final result: {FM_PER_V*self.resultB:.4f} +/- {FM_PER_V*self.semB:.4f} (s.e.m.) ")
+					print(f"\nSensor A final result: {RLU_PER_V*self.resultA:.2f} +/- {RLU_PER_V*self.semA:.2f} (s.e.m.) ")
+					print(f"\nSensor B final result: {RLU_PER_V*self.resultB:.2f} +/- {RLU_PER_V*self.semB:.2f} (s.e.m.) ")
+					print(f"\n{self._rsc} samples in {time.time() - t0} seconds. Sample rate of {self._rsc / (time.time() - t0)} Hz")
+					print(f"{self._crcErrs} CRC Errors encountered.")
 
 					self.buzzer.buzz()
 				
@@ -364,19 +369,12 @@ class Luminometer():
 					#self.writeToFile('Interrupted_')
 					print("Keyboard interrupted measurement")
 				finally:
-					t1 = time.time()
 					self._measuring = False
+					self._measurementIsDone = True
+					time.sleep(2)
+					self._updateDisplayResult(True)
 
-				print(f"\n{self._rsc} samples in {t1 - t0} seconds. Sample rate of {self._rsc / (t1 - t0)} Hz")
-				print(f"{self._crcErrs} CRC Errors encountered.")
-
-				try:
-					self._display_q.put_nowait((LumiMode.READY, self._darkIsStored))
-				except queue.Full:
-					pass
-
-
-			return
+		return
 
 	def _cb_adc_data_ready(self, channel):
 		# Callback function executed when data ready is asserted from ADC
@@ -419,6 +417,32 @@ class Luminometer():
 			self._sc = int(math.floor(self._rsc/self.shutter_samples))
 		return
 
+	def _subtractDark(self):
+		self.dataA = [(p -self._darkRef[0]) for p in self.dataA]
+		self.dataB = [(p -self._darkRef[1]) for p in self.dataB]
+
+	def _updateDisplayResult(self, wait: bool = False):
+		# Update display with intermediate results
+		args = (\
+				LumiMode.RESULT, \
+				self._darkIsStored,\
+				self._measurementIsDone,\
+				RLU_PER_V*mean(self.dataA),\
+				RLU_PER_V*self.semA,\
+				RLU_PER_V*mean(self.dataB),\
+				RLU_PER_V*self.semB,\
+				self._duration_s)
+		try:
+			if wait:
+				# Ensure the final result is displayed
+				while self._display_q.full():
+					pass
+				self._display_q.put(args)
+			else:
+				self._display_q.put_nowait(args)
+		except queue.Full:
+			print('\nDisplay queue full. Could not display result')
+
 	def _resetBuffers(self, measure_time: int):
 
 			self._measurementIsDone = False
@@ -442,6 +466,8 @@ class Luminometer():
 			self.semA = 0.0
 			self.semB = 0.0
 
+			self._duration_s = 0.0
+
 			# Counters
 			self._rsc = self._sc = self._crcErrs = 0
 
@@ -457,7 +483,7 @@ class Luminometer():
 			for i in range(len(self.dataA)):
 				csvWriter.writerow((self.dataA[i], self.dataB[i]))
 
-	def gateTrace(self, rawData: List[float], gateSize: int) -> List[float]:
+	def gateTrace(self, rawData: List[float], gateSize: int, darkVal: float = 0.0) -> List[float]:
 		# Helper method that computes the mean of each even chunk of data, subtracted by the mean of the flanking odd
 		# chunks of data. The chunk size is specified by gateSize, and the total size of the rawData should be an odd
 		# multiple of gateSize, so that every even chunk has two flanking odd chunks.
@@ -479,13 +505,12 @@ class Luminometer():
 		samples = []
 
 		for i in range(gateSize, gateSize*nPeriods, 2*gateSize):
-			sample = mean(rawData[(i+SKIP_SAMPLES):i+(gateSize-1)])
+			sample = mean(rawData[(i+SKIP_SAMPLES):i+(gateSize-1)]) - darkVal
 			darkBefore = mean(rawData[(i-gateSize+SKIP_SAMPLES):(i-1)])
 			darkAfter = mean(rawData[(i+gateSize+SKIP_SAMPLES):(i+2*gateSize - 1)])
 			samples.append( sample - 0.5*(darkBefore + darkAfter))
 
 		return samples 
-
 
 	def run(self):
 		try:
@@ -581,6 +606,6 @@ if __name__ == "__main__":
 		del(Luminometer)
 		
 		# Power down system
-		# os.system('sudo poweroff')
+		#os.system('sudo poweroff')
 
 
