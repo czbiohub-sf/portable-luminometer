@@ -995,4 +995,6 @@ Wire Wire Line
 Connection ~ 6275 2825
 Wire Wire Line
 	6275 2825 6375 2825
+Text Notes 375  6325 0    49   ~ 0
+Add pull-down resistors here!
 $EndSCHEMATC

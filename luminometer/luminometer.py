@@ -159,6 +159,7 @@ class Luminometer():
 		self._measurementIsDone = False
 		self._darkRef = [0.0, 0.0]
 
+
 		try: 
 			self.adc_status_print()
 		except Exception as e:
@@ -191,53 +192,102 @@ class Luminometer():
 
 	def _btn1_callback(self, channel):
 		# Handle presses to button 1
-		# A short press on button 1 performs a measurement.
-		# A long hold on button 1 shuts the system down
 
 		startTime = time.time()
+		buzz = True
+		powerOff = False
+
+		# Monitor duration of button press
 		while not GPIO.input(channel):
-			pass
+			time.sleep(0.2)
+			duration = time.time() - startTime
+			if duration > BTN_1_HOLD_TO_POWERDOWN_S:
+				if buzz:
+					buzz = False
+					self.buzzer.buzz()
+					powerOff = True
+					print('Powering off')
 
-		duration = time.time() - startTime
-		print(f"\nButton held for {duration} seconds ")
-
-		if duration > BTN_1_HOLD_TO_POWERDOWN_S:
-			self._powerOn = False
-			print('Powering off')
-
+		if powerOff:
 			try:
 				self._display_q.put((LumiMode.TITLE, 'Powering off'))
 				time.sleep(5)
 			except queue.Full:
 				pass
 
+			self._powerOn = False
+
+		# Perform dark measurement
 		elif not self._measureLock.locked():
 			try:
 				self._measure_q.put_nowait((DEF_DARK_TIME,True))
 			except queue.Full:
-				print('\nAlready busy measuring')
+				pass
+		
+		return
 
 	def _btn2_callback(self, channel):
 		# Handle presses to button 2
-		startTime = time.time()
-		while not GPIO.input(channel):
-			pass
+		if not self._measuring:
+			buzz1s = buzz2s = buzz3s = buzz4s = True
+			exposure = 10
 
-		duration = time.time() - startTime
-		print(f"Not implemented")
-		# try:
-		# 	if not self._measureLock.locked():
-		# 		self._measure_q.put_nowait('reference')
-		# except queue.Full:
-		# 	print('\nAlready busy measuring')
+			startTime = time.time()
+			while not GPIO.input(channel):
+				duration = time.time() - startTime
+				if (int(duration) == 1) and buzz1s:
+					self.buzzer.buzz()
+					buzz1s = False
+					exposure = 30
+				elif (int(duration)==2) and buzz2s:
+					self.buzzer.buzz()
+					buzz2s = False
+					exposure = 60
+				elif (int(duration)==3) and buzz3s:
+					self.buzzer.buzz()
+					buzz3s = False
+					exposure = 300			
+				elif (int(duration)==4) and buzz4s:
+					self.buzzer.buzz()
+					buzz4s = False
+					exposure = 600
+
+			try:
+				if not self._measureLock.locked():
+					self._measure_q.put_nowait((exposure, False))
+			except queue.Full:
+				print('\nAlready busy measuring')
 	
 	def _btn3_callback(self, channel):
-		# Handle presses to button 3
-		try:
-			if not self._measureLock.locked():
-				self._measure_q.put_nowait((30,False))
-		except queue.Full:
-			print('\nAlready busy measuring')
+		"""
+		Handle presses to button 3
+		Desired behavior:
+		If the device is idle, pressing the button for any duration 
+		will result in a measurement using auto-exposure.
+		If the device is currently measuring, then we monitor for the 
+		stop signal (a 3 second hold on the button)
+		"""
+
+		# A measurement is ongoing. Monitor for the stop condition
+		if self._measuring:
+			startTime = time.time()
+			buzz3s = True
+			while not GPIO.input(channel):
+				time.sleep(0.2)
+				duration = time.time() - startTime
+				if duration > 3:
+					if buzz3s:
+						buzz3s = False
+						self.buzzer.buzz()
+						self._haltMeasurement = True
+		
+		# Add a measurement to the queue
+		else:
+			try:
+				if not self._measureLock.locked():
+					self._measure_q.put_nowait((0,False))
+			except queue.Full:
+				pass
 
 	def adc_status_print(self):
 		print("ID")
@@ -316,15 +366,16 @@ class Luminometer():
 					sampleCount = 0
 
 					# Start data acquisition loop
-					while self._rsc < self.nRawSamples:
-
+					while self._loopCondition(measure_time):
 						# Do this once each time a full cycle (closed-open-closed) has completed:
 						if (self._sc > sampleCount) and ((self._sc % 2)==0) and (self._sc > 2):
 							print(f"\nMeasure: sample count = {self._sc}")
 
 							# Gate traces and subtract dark reference
 							self.dataA = self.gateTrace(self.rawdataA[:self._rsc], self.shutter_samples, 0.0 if dark else self._darkRef[0])
-							self.dataB = self.gateTrace(self.rawdataB[:self._rsc], self.shutter_samples, 0.0 if dark else self._darkRef[1])								
+							self.dataB = self.gateTrace(self.rawdataB[:self._rsc], self.shutter_samples, 0.0 if dark else self._darkRef[1])	
+							self.resultA = mean(self.dataA)
+							self.resultB = mean(self.dataB)							
 
 							print(f"Sensor A after {int(self._sc/2)} cycles: {RLU_PER_V*mean(self.dataA):.2f}")
 							print(f"Sensor A raw: {self.rawdataA[self._rsc-1]:.4f}")
@@ -333,8 +384,8 @@ class Luminometer():
 
 							# Can't compute stdev unless there are >3 shutter-open periods _|-|_|-|_|-|_
 							if self._sc > 5:
-								self.semA = stdev(self.dataA)/math.sqrt(self.nSamples)
-								self.semB = stdev(self.dataB)/math.sqrt(self.nSamples)
+								self.semA = stdev(self.dataA)/math.sqrt(float(len(self.dataA)))
+								self.semB = stdev(self.dataB)/math.sqrt(float(len(self.dataB)))
 
 							self._duration_s = time.time() - t0
 
@@ -349,8 +400,8 @@ class Luminometer():
 					# Final result is the mean of all the gated shutter-open periods
 					self.resultA = mean(self.dataA)
 					self.resultB = mean(self.dataB)
-					self.semA = stdev(self.dataA)/math.sqrt(self.nSamples)
-					self.semB = stdev(self.dataB)/math.sqrt(self.nSamples)
+					self.semA = stdev(self.dataA)/math.sqrt(float(len(self.dataA)))
+					self.semB = stdev(self.dataB)/math.sqrt(float(len(self.dataB)))
 
 					# If doing a dark calibration, then store the result
 					if dark:
@@ -371,10 +422,25 @@ class Luminometer():
 				finally:
 					self._measuring = False
 					self._measurementIsDone = True
-					time.sleep(2)
+					time.sleep(5)
 					self._updateDisplayResult(True)
 
 		return
+
+	def _loopCondition(self, exposure:int) -> bool:
+		if exposure > 0:
+			result = (self._rsc < self.nRawSamples) and (self._haltMeasurement == False)
+			return result
+
+		# Auto-exposure
+		else:
+			result = \
+					((self._duration_s < MAX_EXPOSURE) and \
+					(self._haltMeasurement == False) and \
+					((abs(self.resultB) / self.semB)) < MIN_SNR) or \
+					((self._sc) < 7)
+			return result
+
 
 	def _cb_adc_data_ready(self, channel):
 		# Callback function executed when data ready is asserted from ADC
@@ -415,11 +481,7 @@ class Luminometer():
 
 			self._rsc += 1
 			self._sc = int(math.floor(self._rsc/self.shutter_samples))
-		return
-
-	def _subtractDark(self):
-		self.dataA = [(p -self._darkRef[0]) for p in self.dataA]
-		self.dataB = [(p -self._darkRef[1]) for p in self.dataB]
+		return		
 
 	def _updateDisplayResult(self, wait: bool = False):
 		# Update display with intermediate results
@@ -445,14 +507,24 @@ class Luminometer():
 
 	def _resetBuffers(self, measure_time: int):
 
+			self.dataA = [0.0]
+			self.dataB = [0.0]
+			self.semA = float('inf')
+			self.semB = float('inf')
+			self.resultA = 0.0
+			self.resultB = 0.0
 			self._measurementIsDone = False
+			self._haltMeasurement = False
 
 			# The actual number of samples is taken as the ceiling of however many 
 			# full open and closed periods it takes to complete the measurement
 			self.shutter_samples = int(math.ceil(SHUTTER_PERIOD/SAMPLE_TIME_S))
 
 			# Number of shutter-open periods
-			self.nSamples = int(math.floor(measure_time/(2*SHUTTER_PERIOD)))
+			if measure_time > 0:
+				self.nSamples = int(math.floor(measure_time/(2*SHUTTER_PERIOD)))
+			else:
+				self.nSamples = 10000
 
 			# Number of shutter closed periods
 			self.nDark = self.nSamples + 1
@@ -463,8 +535,7 @@ class Luminometer():
 			self.rawdataA = self.nRawSamples*[None]
 			self.rawdataB = self.nRawSamples*[None]
 
-			self.semA = 0.0
-			self.semB = 0.0
+
 
 			self._duration_s = 0.0
 
@@ -499,8 +570,6 @@ class Luminometer():
 		# Process only up the last odd-numbered period
 		if nPeriods % 2 == 0:
 			nPeriods = nPeriods -1
-
-		print(f"Gate trace: nPeriods = {nPeriods}")
 
 		samples = []
 
@@ -606,6 +675,6 @@ if __name__ == "__main__":
 		del(Luminometer)
 		
 		# Power down system
-		#os.system('sudo poweroff')
+		os.system('sudo poweroff')
 
 
