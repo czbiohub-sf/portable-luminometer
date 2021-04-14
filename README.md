@@ -1,15 +1,52 @@
-# ulc_luminometer
+# Ultra-sensitive, portable, low-cost luminometer
 
 ## Introduction
-Documentation in progress!
-
 This repository contains the design details for a handheld, ultra-low cost luminescence reader developed by the BioEngineering team at Chan Zuckerberg Biohub (CZB). This module is being developed in response to the need for such a device that can be used in low-resource settings for a split-luciferase sars-cov-2 antibody test. This assay was developed in the lab of Jim Wells at UCSF, and in collaboration with Cristina Tato at CZB.
 
 The device accepts 1-2 PCR tubes and reads the level of luminescence from them using a sensor that is read out by a 24-bit analog-to-digital converter. The device includes a shutter system that repeatedly blocks and unblocks the signal from reaching the sensor, thereby continuously performing dark measurements in order to stabilize the baseline of the measurement against drift. Results are displayed on a low-power, e-ink screen.
 
 ![](https://github.com/czbiohub/ulc-tube-reader/blob/fully-threaded/SiPM%20Demo.gif)
 
-## Contents
+## Installation and Use
+### Option 1: Clone the SD Card
+1. Flash our pre-existing SD card onto a new card. (To be completed)
+
+### Option 2: Manual install
+1. Install the latest Raspbian OS on a micro-SD card by following the instructions at: https://www.raspberrypi.org/software/
+2. After the OS is loaded on the micro-SD card and while still loaded in your mac/PC/linux machine, replace ```/boot/config.txt``` with the version found in this repo. This configures the SPI bus on the device, turns off audio processing and the HDMI driver (to save power), and turns off the on-board activity light (to reduce stray light inside the device).
+3. Follow the [instructions](https://www.raspberrypi.org/documentation/configuration/wireless/headless.md) to set up the RPi 'headless' (no keyboard or monitor), using WiFi.
+4. [ssh into the device](https://www.raspberrypi.org/documentation/remote-access/ssh/README.md)
+5. Create and activate a virtual environment with Python3: 
+```shell
+cd /home/pi/Documents/
+python3 -m venv lumi
+source lumi/bin/activate
+```
+6. Install the display driver from Pimoroni, answering 'y' when prompted.
+```shell
+curl https://get.pimoroni.com/inky | bash
+```
+7. Clone this repository and navigate to the base:
+```shell
+git clone https://github.com/czbiohub/ulc-tube-reader/
+cd ulc-tube-reader
+```
+8. Install setuptools (__pip install setuptools__)
+9. Install wheel (__pip install wheel__)
+10. Install module (__pip install .__)
+11. Follow the instructions in `gpclk_configi/README.md` in order to configure the general purpose clock on-board the RPi, which the ADC requires as input.
+12. Configure the RPi to run the luminometer software after boot is completed. After these commands are entered, the RPi will automatically start executing the luminometer software upon startup, but it will still be possible to ssh into the device at the same time.
+```shell
+ExecStart=/usr/bin/python3 /home/pi/Documents/ulc-tube-reader/luminometer/luminometer.py > /home/pi/lumilog.log 2>&1
+sudo chmod 644 /lib/systemd/system/luminometer.service
+sudo systemctl daemon-reload
+sudo systemctl enable sample.service
+```
+13. Power down the RPi: ```sudo poweroff```
+14. Attach the Inky pHat to the GPIO header, then securely plug the RPi into the socket header on the luminometer board.
+15. Power on the device and make measurements.
+
+## Module contents
 
 ### Luminometer
 * __Luminometer__ - 
@@ -26,24 +63,6 @@ The device accepts 1-2 PCR tubes and reads the level of luminescence from them u
 `consts.py` - defines specific constants for the `ADS131M08Reader` class, such as register addresses, commands, e.t.c.
 
 `crc.py` - defines the CRC functions for communications with the ADC.
-
-
-## Installation and Use
-### Installing Module
-1. Create and/or activate a virtual environment with Python3
-2. Download / clone this repository
-3. Navigate to the base of the repository
-4. Install setuptools (__pip install setuptools__)
-5. Install wheel (__pip install wheel__)
-6. Install module (__pip install .__)
-7. Follow the instructions in `gpclk_configi/README.md`
-
-
-NOTE: Developers may want to install the module with __pip install -e__ . So that changes they make to the module are immediately reflected when subsequently imported.
-
-### Installing without cloning the repository
-1. Create and/or activate a virtual environment in a convenient location with Python3
-2. Install module (__pip install git+https://github.com/czbiohub/ulc_luminometer__ )
 
 ### Updating Module from Repository
 1. Pull changes from remote repository
