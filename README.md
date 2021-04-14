@@ -1,37 +1,88 @@
-# ulc-tube-reader
+# Ultra-sensitive, portable, low-cost luminometer
 
 ## Introduction
-This page is a work in progress and will be updated according to progress on the project. 
+This repository contains the design details for a handheld, ultra-low cost luminescence reader developed by the BioEngineering team at Chan Zuckerberg Biohub (CZB). This module is being developed in response to the need for such a device that can be used in low-resource settings for a split-luciferase sars-cov-2 antibody test. This assay was developed in the lab of Jim Wells at UCSF, and in collaboration with Cristina Tato at CZB.
 
-This repository contains the design details for an ultra-low cost luminescence reader developed by the BioEngineering team at Chan Zuckerberg Biohub (CZB). This module is being developed in response to the need for a low-cost, handheld, high-sensitivity luminescence reader that can be used in low-resource settings for a split-luciferase COVID-19 diagnostic test. This assay was developed in the lab of Jim Wells at UCSF, and in collaboration with Cristina Tato at CZB, and Manu Prakash at Stanford. 
+The device accepts 1-2 PCR tubes and reads the level of luminescence from them using a sensor that is read out by a 24-bit analog-to-digital converter. The device includes a shutter system that repeatedly blocks and unblocks the signal from reaching the sensor, thereby continuously performing dark measurements in order to stabilize the baseline of the measurement against drift. Results are displayed on a low-power, e-ink screen.
 
-Each module will read luminescence values from between 1-8 PCR tubes simultaneously, depending on the number of detector modules that are hooked up to the device. A tube reader module will be composed of:
-- 1-8 detector modules
-- ADC module
-- Raspberry Pi
-- LCD touchscreen
-
-
-## Contents
-- Basic Signal-To-Noise calculations
-- Electronics project files (KiCAD)
-- Software package
-- Links to mechanical design (OnShape)
-- User manual
-
-## Python classes
-* __LumiPlotter__ - Monitors and displays TubeReader properties, ex. Instantaneous and integrated signal from channels 1-8. Connects button functionality 
-* __TubeReaderCore__ - Executes start/stop of time course measurements, stores measurement data, queries ADCReader.
-* __ADCReader__ - Abstract base class defining API for ADC Readers
-* __ADS131M08Reader__ - Chip-specific ADC Reader 
-
-
-## Dependencies
-
+![](https://github.com/czbiohub/ulc-tube-reader/blob/fully-threaded/SiPM%20Demo.gif)
 
 ## Installation and Use
+### Option 1: Clone the SD Card
+1. Flash our pre-existing SD card onto a new card. (To be completed)
 
+### Option 2: Manual install
+1. Install the latest Raspbian OS on a micro-SD card by following the instructions at: https://www.raspberrypi.org/software/
+2. After the OS is loaded on the micro-SD card and while still loaded in your mac/PC/linux machine, replace ```/boot/config.txt``` with the version found in this repo. This configures the SPI bus on the device, turns off audio processing and the HDMI driver (to save power), and turns off the on-board activity light (to reduce stray light inside the device).
+3. Follow the [instructions](https://www.raspberrypi.org/documentation/configuration/wireless/headless.md) to set up the RPi 'headless' (no keyboard or monitor), using WiFi.
+4. [ssh into the device](https://www.raspberrypi.org/documentation/remote-access/ssh/README.md)
+5. Create and activate a virtual environment with Python3: 
+```shell
+cd /home/pi/Documents/
+python3 -m venv lumi
+source lumi/bin/activate
+```
+6. Install the display driver from Pimoroni, answering 'y' when prompted.
+```shell
+curl https://get.pimoroni.com/inky | bash
+```
+7. Clone this repository and navigate to the base:
+```shell
+git clone https://github.com/czbiohub/ulc-tube-reader/
+cd ulc-tube-reader
+```
+8. Install setuptools (__pip install setuptools__)
+9. Install wheel (__pip install wheel__)
+10. Install module (__pip install .__)
+11. Follow the instructions in `gpclk_configi/README.md` in order to configure the general purpose clock on-board the RPi, which the ADC requires as input.
+12. Configure the RPi to run the luminometer software after boot is completed. After these commands are entered, the RPi will automatically start executing the luminometer software upon startup, but it will still be possible to ssh into the device at the same time.
+```shell
+sudo nano /lib/systemd/system/lumiboot.service
+```
+In the newly-opened text file, paste the following text:
+```
+[Unit]
+Description=Luminometer boot command
+After=multi-user.target
 
+[Service]
+Type=idle
+ExecStart=/usr/bin/python3 /home/pi/Documents/ulc-tube-reader/luminometer/luminometer.py
 
-## How to Contribute
+[Install]
+WantedBy=multi-user.target
+```
+Now enter the following commands in the terminal to activate the boot service:
+```shell
+ExecStart=/usr/bin/python3 /home/pi/Documents/ulc-tube-reader/luminometer/luminometer.py > /home/pi/lumilog.log 2>&1
+sudo chmod 644 /lib/systemd/system/lumiboot.service
+sudo systemctl daemon-reload
+sudo systemctl enable lumiboot.service
+```
+13. Power down the RPi: ```sudo poweroff```
+14. Attach the Inky pHat to the GPIO header, then securely plug the RPi into the socket header on the luminometer board.
+15. Power on the device and make measurements.
 
+## Module contents
+
+### Luminometer
+* __Luminometer__ - 
+* __LumiScreen__ - 
+* __LumiBuzzer__ - 
+
+### ADC Driver
+`gpclk_config/` - contains the `dt-blob.dts` file required to run the ADC. See the README for instructions on setting up the Raspberry Pi.
+
+`adc_reader.py` - defines the `ADCReader` abstract base class, includes the basic operations for ADC drivers for this project
+
+`ads131m08_reader.py` - defines the `ADS131M08Reader` driver for the ADS131M08. The `if __name__ == '__main__'` block at the bottom of the file has an example of running the software.
+
+`consts.py` - defines specific constants for the `ADS131M08Reader` class, such as register addresses, commands, e.t.c.
+
+`crc.py` - defines the CRC functions for communications with the ADC.
+
+### Updating Module from Repository
+1. Pull changes from remote repository
+2. Activate virtual environment with previous install
+3. Navigate to the module directory
+4. Update module (__pip install . --upgrade__)
