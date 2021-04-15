@@ -2,11 +2,12 @@
 
 ## Contents
 - Theory of Operation
-- Powering up and shutting down
-- Making measurements
-- Mechanical Design
-- Electrical Design
-- Software Design
+- Operation Guide
+  - Powering up and shutting down
+  - Making measurements
+- Mechanical Details
+- Electrical Details
+- Software Details
 - Validation Results
 
 ## Theory of Operation
@@ -64,3 +65,11 @@ __During the READY state__
 The bottom button starts a dark reference measurement. By default, the exposure goes indefinitely until aborted. The dark reference can therefore be acquired for as long as required in order to improve precision, as displayed over time on the screen. 
 
 Holding bottom button for three seconds (not during measurement) powers down the device.
+
+### Mechanical Details
+
+### Electrical Details
+
+### Software Details
+
+### Validation Results
