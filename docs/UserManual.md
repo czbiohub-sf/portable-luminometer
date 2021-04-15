@@ -12,6 +12,7 @@
 
 ## Theory of Operation
 <img src = "https://user-images.githubusercontent.com/30475643/114794262-ee839280-9d40-11eb-962d-150d2e095a7a.png" width="340">
+
 The luminometer uses high-sensitivity Silicon Photomultiplier (SiPM) sensors to detect low levels of light. SiPM sensors consist of arrays of internal Avalanche Photodiodes (APDs) with extremely high internal gain, resulting in a large signal amplification for each photon that is detected. The drawback of such sensors is their dark current -- that is, signal that appears regardless of the amount of light hitting the sensor-- which is very strongly dependent on temperature. In practice, this means that all measurements we make consist of the actual luminescence signal added on top of a time-varying dark signal that drifts with the temperature of the sensors. Without mitigation, the drift of the dark signal would dwarf the signals we are trying to measure.
 
 To compensate for the dark signal drift, a swinging shutter arm was introduced. The shutter repeatedly blocks and unblocks the light from hitting the sensor, allowing us to perform repeated dark offset measurements over time, as we accumulate enough signal from the sample. Each period of time the shutter is either open or closed, a series of data samples are acquired and averaged, giving us a sequence of datapoints corresponding to alternating open and closed periods. To subtract the dark offset, each shutter open datapoint is subtracted by the mean of its flanking closed periods. Using both flanking closed periods fully compensates for linear drift in the dark signal. To achieve this, every measurement is programmed to start and end with shutter-closed periods.
@@ -20,7 +21,7 @@ For example, if the total measurement time is set to 7 seconds and the shutter p
 
 After the subtraction is completed, the signal is now gated and the averaged datapoints can themselves be averaged together to produce a single number, and because our final answer is the result of averaging multiple independent samples, the standard error of the mean can be reported as a statistical measure of the uncertainty due to counting statistics of dark current shot noise. 
 
-Finally, there is a residual shutter-induced voltage offset corresponding to a difference in gated signal that occurs even in the absence of a sample or background light. This residual offset must be calibrated 
+Finally, there is a residual shutter-induced voltage offset (of unknown root cause) corresponding to a difference in gated signal that occurs even in the absence of a sample or background light. This residual offset must be calibrated out by performing a dark measurement prior to making real measurements. The offset is stored in memory and automatically subtracted from future measurements. The residual offset is not saved after powering down. 
 
 ## Operation Guide
 
