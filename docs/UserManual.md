@@ -17,7 +17,7 @@ The luminometer uses high-sensitivity Silicon Photomultiplier (SiPM) sensors to 
 
 To compensate for the dark signal drift, a swinging shutter arm was introduced. The shutter repeatedly blocks and unblocks the light from hitting the sensor, allowing us to perform repeated dark offset measurements over time, as we accumulate enough signal from the sample. Each period of time the shutter is either open or closed, a series of data samples are acquired and averaged, giving us a sequence of datapoints corresponding to alternating open and closed periods. To subtract the dark offset, each shutter open datapoint is subtracted by the mean of its flanking closed periods. Using both flanking closed periods fully compensates for linear drift in the dark signal. To achieve this, every measurement is programmed to start and end with shutter-closed periods.
 
-For example, if the total measurement time is set to 7 seconds and the shutter period is 1 second, then there will be 3 shutter-open periods and 4 shutter-closed periods: _-_-_-_. 
+For example, if the total measurement time is set to 7 seconds and the shutter period is 1 second, then there will be 3 shutter-open periods and 4 shutter-closed periods: \_\-\_\-\_\-\_. 
 
 After the subtraction is completed, the signal is now gated and the averaged datapoints can themselves be averaged together to produce a single number, and because our final answer is the result of averaging multiple independent samples, the standard error of the mean can be reported as a statistical measure of the uncertainty due to counting statistics of dark current shot noise. 
 
