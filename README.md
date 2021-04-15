@@ -41,7 +41,7 @@ pip install wheel
 ```
 10. Install module 
 ```shell
-pip install
+pip install .
 ```
 11. Follow the instructions in `gpclk_configi/README.md` in order to configure the general purpose clock on-board the RPi, which the ADC requires as input.
 13. Configure the RPi to run the luminometer software after boot is completed. After these commands are entered, the RPi will automatically start executing the luminometer software upon startup, but it will still be possible to ssh into the device at the same time.
