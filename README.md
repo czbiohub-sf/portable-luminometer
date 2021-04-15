@@ -31,11 +31,20 @@ curl https://get.pimoroni.com/inky | bash
 git clone https://github.com/czbiohub/ulc-tube-reader/
 cd ulc-tube-reader
 ```
-8. Install setuptools (__pip install setuptools__)
-9. Install wheel (__pip install wheel__)
-10. Install module (__pip install .__)
+8. Install setuptools: 
+```shell
+pip install setuptools
+```
+9. Install wheel 
+```shell
+pip install wheel
+```
+10. Install module 
+```shell
+pip install
+```
 11. Follow the instructions in `gpclk_configi/README.md` in order to configure the general purpose clock on-board the RPi, which the ADC requires as input.
-12. Configure the RPi to run the luminometer software after boot is completed. After these commands are entered, the RPi will automatically start executing the luminometer software upon startup, but it will still be possible to ssh into the device at the same time.
+13. Configure the RPi to run the luminometer software after boot is completed. After these commands are entered, the RPi will automatically start executing the luminometer software upon startup, but it will still be possible to ssh into the device at the same time.
 ```shell
 sudo nano /lib/systemd/system/lumiboot.service
 ```
