@@ -26,11 +26,7 @@ from ads131m08_reader import ADS131M08Reader, bytes_to_readable, CRCError
 
 """
  TODO:
-- Complete button callbacks
 - Switch to PWM drive of shutters (Future, in V1.2)
-- Test with hardware
-- Write auto-exposure function
-- Add detail to display messages (s.e.m. and/or SNR, measurement duration)
 """
 
 
@@ -159,9 +155,8 @@ class Luminometer():
 		self._measurementIsDone = False
 		self._darkRef = [0.0, 0.0]
 
-
 		try: 
-			self.adc_status_print()
+			self._adc.status_print()
 		except Exception as e:
 			print('Could not print ADC status!')
 
@@ -193,14 +188,14 @@ class Luminometer():
 	def _btn1_callback(self, channel):
 		# Handle presses to button 1
 
-		startTime = time.time()
+		startTime = time.perf_counter()
 		buzz = True
 		powerOff = False
 
 		# Monitor duration of button press
 		while not GPIO.input(channel):
 			time.sleep(0.2)
-			duration = time.time() - startTime
+			duration = time.perf_counter() - startTime
 			if duration > BTN_1_HOLD_TO_POWERDOWN_S:
 				if buzz:
 					buzz = False
@@ -232,9 +227,9 @@ class Luminometer():
 			buzz1s = buzz2s = buzz3s = buzz4s = True
 			exposure = 10
 
-			startTime = time.time()
+			startTime = time.perf_counter()
 			while not GPIO.input(channel):
-				duration = time.time() - startTime
+				duration = time.perf_counter() - startTime
 				if (int(duration) == 1) and buzz1s:
 					self.buzzer.buzz()
 					buzz1s = False
@@ -270,11 +265,11 @@ class Luminometer():
 
 		# A measurement is ongoing. Monitor for the stop condition
 		if self._measuring:
-			startTime = time.time()
+			startTime = time.perf_counter()
 			buzz3s = True
 			while not GPIO.input(channel):
 				time.sleep(0.2)
-				duration = time.time() - startTime
+				duration = time.perf_counter() - startTime
 				if duration > 3:
 					if buzz3s:
 						buzz3s = False
@@ -289,31 +284,6 @@ class Luminometer():
 			except queue.Full:
 				pass
 
-	def adc_status_print(self):
-		print("ID")
-		d = self._adc.read_register(ID_ADDR)
-		print(bytes_to_readable(d)[0])
-		print()
-
-		print("MODE")
-		d = self._adc.read_register(MODE_ADDR)
-		print(bytes_to_readable(d)[0])
-		print()
-
-		print("CLOCK")
-		d = self._adc.read_register(CLOCK_ADDR)
-		print(bytes_to_readable(d)[0])
-		print()
-
-		print("CFG")
-		d = self._adc.read_register(CFG_ADDR)
-		print(bytes_to_readable(d)[0])
-		print()
-
-		print("STATUS")
-		d = self._adc.read_register(STATUS_ADDR)
-		print(bytes_to_readable(d)[0])
-		print()
 
 	def measure(self, \
 		measure_time: int = 30, \
@@ -357,7 +327,7 @@ class Luminometer():
 
 				self._resetBuffers(measure_time)
 
-				t0 = time.time()
+				t0 = time.perf_counter()
 
 				try:
 					self._measuring = True
@@ -377,9 +347,9 @@ class Luminometer():
 							self.resultA = mean(self.dataA)
 							self.resultB = mean(self.dataB)							
 
-							print(f"Sensor A after {int(self._sc/2)} cycles: {RLU_PER_V*mean(self.dataA):.2f}")
+							print(f"Sensor A after {int(self._sc/2)} cycles: {RLU_PER_V*self.resultA:.2f}")
 							print(f"Sensor A raw: {self.rawdataA[self._rsc-1]:.4f}")
-							print(f"Sensor B after {int(self._sc/2)} cycles: {RLU_PER_V*mean(self.dataB):.2f}")
+							print(f"Sensor B after {int(self._sc/2)} cycles: {RLU_PER_V*self.resultB:.2f}")
 							print(f"Sensor B raw: {self.rawdataB[self._rsc-1]:.4f}")
 
 							# Can't compute stdev unless there are >3 shutter-open periods _|-|_|-|_|-|_
@@ -387,7 +357,7 @@ class Luminometer():
 								self.semA = stdev(self.dataA)/math.sqrt(float(len(self.dataA)))
 								self.semB = stdev(self.dataB)/math.sqrt(float(len(self.dataB)))
 
-							self._duration_s = time.time() - t0
+							self._duration_s = time.perf_counter() - t0
 
 							self._updateDisplayResult()
 
@@ -411,7 +381,7 @@ class Luminometer():
 
 					print(f"\nSensor A final result: {RLU_PER_V*self.resultA:.2f} +/- {RLU_PER_V*self.semA:.2f} (s.e.m.) ")
 					print(f"\nSensor B final result: {RLU_PER_V*self.resultB:.2f} +/- {RLU_PER_V*self.semB:.2f} (s.e.m.) ")
-					print(f"\n{self._rsc} samples in {time.time() - t0} seconds. Sample rate of {self._rsc / (time.time() - t0)} Hz")
+					print(f"\n{self._rsc} samples in {time.perf_counter() - t0} seconds. Sample rate of {self._rsc / (time.perf_counter() - t0)} Hz")
 					print(f"{self._crcErrs} CRC Errors encountered.")
 
 					self.buzzer.buzz()
@@ -480,7 +450,7 @@ class Luminometer():
 					pass
 
 			self._rsc += 1
-			self._sc = int(math.floor(self._rsc/self.shutter_samples))
+			self._sc = int(self._rsc/self.shutter_samples)
 		return		
 
 	def _updateDisplayResult(self, wait: bool = False):
@@ -522,9 +492,9 @@ class Luminometer():
 
 			# Number of shutter-open periods
 			if measure_time > 0:
-				self.nSamples = int(math.floor(measure_time/(2*SHUTTER_PERIOD)))
+				self.nSamples = int(measure_time/(2*SHUTTER_PERIOD))
 			else:
-				self.nSamples = 10000
+				self.nSamples = DEF_AUTO_MAX_DURATION
 
 			# Number of shutter closed periods
 			self.nDark = self.nSamples + 1
@@ -534,9 +504,6 @@ class Luminometer():
 
 			self.rawdataA = self.nRawSamples*[None]
 			self.rawdataB = self.nRawSamples*[None]
-
-
-
 			self._duration_s = 0.0
 
 			# Counters

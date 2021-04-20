@@ -9,6 +9,7 @@ BUZZ_S = 0.3
 DEF_DARK_TIME = 600
 MAX_EXPOSURE = 3000
 MIN_SNR = 5
+DEF_AUTO_MAX_DURATION = 10000
 
 # BCM pins
 # Luminometer pushbuttons

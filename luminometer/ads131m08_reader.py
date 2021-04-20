@@ -65,6 +65,33 @@ class ADS131M08Reader(ADCReader):
         # pull-up resistor; see Datasheet 8.5.1.5
         GPIO.setup(self._DRDY, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 
+
+    def status_print(self):
+        print("ID")
+        d = self.read_register(ID_ADDR)
+        print(bytes_to_readable(d)[0])
+        print()
+
+        print("MODE")
+        d = self.read_register(MODE_ADDR)
+        print(bytes_to_readable(d)[0])
+        print()
+
+        print("CLOCK")
+        d = self.read_register(CLOCK_ADDR)
+        print(bytes_to_readable(d)[0])
+        print()
+
+        print("CFG")
+        d = self.read_register(CFG_ADDR)
+        print(bytes_to_readable(d)[0])
+        print()
+
+        print("STATUS")
+        d = self.read_register(STATUS_ADDR)
+        print(bytes_to_readable(d)[0])
+        print()
+
     def setup_adc(self, device: int, channels: List[int] = [0,1]):
         """
         On the Raspberry Pi, SPI bus 0 supports SPI mode 1 and 3; The ADS131M08 communicates in SPI mode
