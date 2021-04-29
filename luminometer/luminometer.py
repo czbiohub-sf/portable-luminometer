@@ -284,7 +284,6 @@ class Luminometer():
 			except queue.Full:
 				pass
 
-
 	def measure(self, \
 		measure_time: int = 30, \
 		dark: bool = False):
@@ -337,6 +336,7 @@ class Luminometer():
 
 					# Start data acquisition loop
 					while self._loopCondition(measure_time):
+
 						# Do this once each time a full cycle (closed-open-closed) has completed:
 						if (self._sc > sampleCount) and ((self._sc % 2)==0) and (self._sc > 2):
 							print(f"\nMeasure: sample count = {self._sc}")
@@ -363,7 +363,7 @@ class Luminometer():
 
 							sampleCount += 1
 
-					# Final: fate traces and subtract dark reference
+					# Final: gate traces and subtract dark reference
 					self.dataA = self.gateTrace(self.rawdataA[:self._rsc], self.shutter_samples, 0.0 if dark else self._darkRef[0])
 					self.dataB = self.gateTrace(self.rawdataB[:self._rsc], self.shutter_samples, 0.0 if dark else self._darkRef[1])	
 
@@ -620,18 +620,6 @@ class Luminometer():
 			pass
 
 if __name__ == "__main__":
-
-	# # Parse command line args
-	# parser = argparse.ArgumentParser()
-	# parser.add_argument('--shutterTime', '-s', type=int, required=True, help="Shutter time in seconds")
-	# parser.add_argument('--integration', '-i', type=int, required=True, help="Integration time in seconds")
-	# parser.add_argument('--title','-t',type=str, required=True, help="Title for output file (no extension)")
-	# args, _ = parser.parse_known_args()
-
-	# shutterTime = args.shutterTime
-	# integrationTime_seconds = args.integration
-	# title = args.title
-
 	Luminometer = Luminometer()
 	try:
 		Luminometer.run()

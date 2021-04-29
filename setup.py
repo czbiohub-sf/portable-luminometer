@@ -9,8 +9,6 @@ setuptools.setup(
     url="https://github.com/czbiohub/ulc-tube-reader",
     install_requires=[
         'Pillow',
-        'RPi.GPIO == 0.7.0',
-        'spidev == 3.5',
         'inky'
     ],
     classifiers=[

@@ -1,9 +1,26 @@
 EESchema-DOCLIB  Version 2.0
 #
+$CMP DRV8833PWP
+D IC MOTOR DRIVER PAR 16HTSSOP
+K 296-29434-1-ND
+F http://www.ti.com/general/docs/suppproductinfo.tsp?distId=10&gotoUrl=http%3A%2F%2Fwww.ti.com%2Flit%2Fgpn%2Fdrv8833
+$ENDCMP
+#
 $CMP EG4627CT-ND
 D Push button switch, generic, two pins
 K switch normally-open pushbutton push-button
 F ~
+$ENDCMP
+#
+$CMP H2191-ND
+D Generic connector, single row, 01x02, script generated (kicad-library-utils/schlib/autogen/connector/)
+K connector
+F ~
+$ENDCMP
+#
+$CMP SDR0503-153JL
+D FIXED IND 15MH 20MA 168 OHM SMD
+F https://www.murata-ps.com/data/magnetics/kmp_1300r.pdf
 $ENDCMP
 #
 #End Doc Library

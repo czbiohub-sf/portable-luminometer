@@ -1,6 +1,98 @@
 EESchema-LIBRARY Version 2.4
 #encoding utf-8
 #
+# 2021-04-27_22-18-07_AS11CH
+#
+DEF 2021-04-27_22-18-07_AS11CH SW 0 10 Y N 1 F N
+F0 "SW" 800 400 60 H V C CNN
+F1 "2021-04-27_22-18-07_AS11CH" 800 300 60 H V C CNN
+F2 "footprints:AS11CH" 800 240 60 H I C CNN
+F3 "" 0 0 60 H V C CNN
+F4 "360-2728-ND" 0 0 50 H V C CNN "Part Number"
+F5 "Digikey" 0 0 50 H V C CNN "Vendor"
+$FPLIST
+ AS11CH_NKK
+$ENDFPLIST
+DRAW
+A 710 0 10 0 0 1 1 5 N 720 0 720 0
+A 890 0 10 0 0 1 1 5 N 900 0 900 0
+A 1100 0 5 -900 900 1 1 10 N 1100 -5 1100 -5
+C 710 0 10 1 1 5 N
+C 890 0 10 1 1 5 N
+C 1100 0 5 1 1 10 N
+P 2 1 1 5 300 -300 1300 -300 N
+P 2 1 1 5 300 0 700 0 N
+P 2 1 1 5 300 200 300 -300 N
+P 2 1 1 5 720 0 880 40 N
+P 2 1 1 5 900 0 1300 0 N
+P 2 1 1 5 1100 0 1100 -100 N
+P 2 1 1 5 1300 -300 1300 200 N
+P 2 1 1 5 1300 -100 1100 -100 N
+P 2 1 1 5 1300 200 300 200 N
+X 1 1 0 0 300 R 59 59 1 1 U
+X 2 2 1600 -100 300 L 59 59 1 1 U
+X 3 3 1600 0 300 L 59 59 1 1 U
+ENDDRAW
+ENDDEF
+#
+# ADC_lib_732-4872-1-ND
+#
+DEF ADC_lib_732-4872-1-ND L 0 40 N N 1 F N
+F0 "L" -50 0 50 V V C CNN
+F1 "ADC_lib_732-4872-1-ND" 75 0 50 V V C CNN
+F2 "Luminometer_OPT101_Footprints:L_1212_3030Metric" 0 0 50 H I C CNN
+F3 "" 0 0 50 H I C CNN
+$FPLIST
+ Choke_*
+ *Coil*
+ Inductor_*
+ L_*
+$ENDFPLIST
+DRAW
+A 0 -75 25 -899 899 0 1 0 N 0 -100 0 -50
+A 0 -25 25 -899 899 0 1 0 N 0 -50 0 0
+A 0 25 25 -899 899 0 1 0 N 0 0 0 50
+A 0 75 25 -899 899 0 1 0 N 0 50 0 100
+T 900 150 0 50 0 0 0 47uH Normal 0 C C
+X 1 1 0 150 50 D 50 50 1 1 P
+X 2 2 0 -150 50 U 50 50 1 1 P
+ENDDRAW
+ENDDEF
+#
+# Connector_Generic_Conn_01x01
+#
+DEF Connector_Generic_Conn_01x01 J 0 40 Y N 1 F N
+F0 "J" 0 100 50 H V C CNN
+F1 "Connector_Generic_Conn_01x01" 0 -100 50 H V C CNN
+F2 "" 0 0 50 H I C CNN
+F3 "" 0 0 50 H I C CNN
+$FPLIST
+ Connector*:*_1x??_*
+$ENDFPLIST
+DRAW
+S -50 5 0 -5 1 1 6 N
+S -50 50 50 -50 1 1 10 f
+X Pin_1 1 -200 0 150 R 50 50 1 1 P
+ENDDRAW
+ENDDEF
+#
+# Connector_TestPoint
+#
+DEF Connector_TestPoint TP 0 30 N N 1 F N
+F0 "TP" 0 270 50 H V C CNN
+F1 "Connector_TestPoint" 0 200 50 H V C CNN
+F2 "" 200 0 50 H I C CNN
+F3 "" 200 0 50 H I C CNN
+$FPLIST
+ Pin*
+ Test*
+$ENDFPLIST
+DRAW
+C 0 130 30 0 1 0 N
+X 1 1 0 0 100 U 50 50 1 1 P
+ENDDRAW
+ENDDEF
+#
 # Device_C
 #
 DEF Device_C C 0 10 N Y 1 F N
@@ -16,28 +108,6 @@ P 2 0 1 20 -80 -30 80 -30 N
 P 2 0 1 20 -80 30 80 30 N
 X ~ 1 0 150 110 D 50 50 1 1 P
 X ~ 2 0 -150 110 U 50 50 1 1 P
-ENDDRAW
-ENDDEF
-#
-# Device_D
-#
-DEF Device_D D 0 40 N N 1 F N
-F0 "D" 0 100 50 H V C CNN
-F1 "Device_D" 0 -100 50 H V C CNN
-F2 "" 0 0 50 H I C CNN
-F3 "" 0 0 50 H I C CNN
-$FPLIST
- TO-???*
- *_Diode_*
- *SingleDiode*
- D_*
-$ENDFPLIST
-DRAW
-P 2 0 1 10 -50 50 -50 -50 N
-P 2 0 1 0 50 0 -50 0 N
-P 4 0 1 10 50 50 50 -50 -50 0 50 50 N
-X K 1 -150 0 100 R 50 50 1 1 P
-X A 2 150 0 100 L 50 50 1 1 P
 ENDDRAW
 ENDDEF
 #
@@ -79,18 +149,39 @@ X ~ 2 0 -150 50 U 50 50 1 1 P
 ENDDRAW
 ENDDEF
 #
-# LuminometerCustomPartLib_102-2201-1-ND
+# LuminometerCustomPartLib_296-46565-1-ND
 #
-DEF LuminometerCustomPartLib_102-2201-1-ND BZ 0 40 Y Y 1 F N
-F0 "BZ" 0 300 50 H V C CNN
-F1 "LuminometerCustomPartLib_102-2201-1-ND" 0 -350 50 H V C CNN
-F2 "" 0 0 50 H I C CNN
-F3 "" 0 0 50 H I C CNN
+DEF LuminometerCustomPartLib_296-46565-1-ND U 0 20 Y Y 1 F N
+F0 "U" -300 250 50 H V L CNN
+F1 "LuminometerCustomPartLib_296-46565-1-ND" 0 250 50 H V L CNN
+F2 "Package_TO_SOT_SMD:SOT-23-6" 50 -350 50 H I L CNN
+F3 "" -300 350 50 H I C CNN
+ALIAS TPS54308 TPS54202DDC
+$FPLIST
+ SOT?23*
+$ENDFPLIST
 DRAW
-P 7 0 1 0 -300 0 -300 300 150 300 300 150 300 -200 -300 -200 -300 0 f
-X + 1 -400 -100 100 R 40 40 0 0 I
-X - 2 400 -100 100 L 40 40 0 0 I
-X NC 3 -400 200 100 R 40 40 0 0 N N
+S -300 200 300 -200 0 1 10 f
+X GND 1 0 -300 100 U 50 50 1 1 W
+X SW 2 400 0 100 L 50 50 1 1 w
+X VIN 3 -400 100 100 R 50 50 1 1 W
+X FB 4 400 -100 100 L 50 50 1 1 I
+X PWM 5 -400 -100 100 R 50 50 1 1 I
+X BOOT 6 400 100 100 L 50 50 1 1 P
+ENDDRAW
+ENDDEF
+#
+# LuminometerCustomPartLib_668-SMI-1027-T-5V-RCT-ND
+#
+DEF LuminometerCustomPartLib_668-SMI-1027-T-5V-RCT-ND BZ 0 40 Y Y 1 F N
+F0 "BZ" 20 290 50 H V C CNN
+F1 "LuminometerCustomPartLib_668-SMI-1027-T-5V-RCT-ND" 0 -350 50 H V C CNN
+F2 "" 20 0 50 H I C CNN
+F3 "" 20 0 50 H I C CNN
+DRAW
+P 7 0 1 0 130 0 130 150 -100 150 -140 110 -140 -130 130 -130 130 0 f
+X - 1 -225 0 100 R 40 40 0 0 I
+X + 2 225 0 100 L 40 40 0 0 I
 ENDDRAW
 ENDDEF
 #
@@ -129,6 +220,46 @@ X BISEN 6 -500 -300 100 R 50 50 1 1 B
 X BOUT1 7 400 100 100 L 50 50 1 1 O
 X nFAULT 8 400 -100 100 L 50 50 1 1 O
 X BIN1 9 -500 100 100 R 50 50 1 1 I
+ENDDRAW
+ENDDEF
+#
+# LuminometerCustomPartLib_H2179-ND
+#
+DEF LuminometerCustomPartLib_H2179-ND J 0 40 Y N 1 F N
+F0 "J" 0 100 50 H V C CNN
+F1 "LuminometerCustomPartLib_H2179-ND" 0 -200 50 H V C CNN
+F2 "" 0 0 50 H I C CNN
+F3 "" 0 0 50 H I C CNN
+F4 "H2179-ND" 0 0 50 H V C CNN "Part Number"
+F5 "Digikey" 0 0 50 H I C CNN "Vendor"
+$FPLIST
+ Connector*:*_1x??_*
+$ENDFPLIST
+DRAW
+S -50 -95 0 -105 1 1 6 N
+S -50 5 0 -5 1 1 6 N
+S -50 50 50 -150 1 1 10 f
+X Pin_1 1 -200 0 150 R 50 50 1 1 P
+X Pin_2 2 -200 -100 150 R 50 50 1 1 P
+ENDDRAW
+ENDDEF
+#
+# LuminometerCustomPartLib_H2191-ND
+#
+DEF LuminometerCustomPartLib_H2191-ND J 0 40 Y N 1 F N
+F0 "J" 0 100 50 H V C CNN
+F1 "LuminometerCustomPartLib_H2191-ND" 0 -200 50 H V C CNN
+F2 "Connector_Hirose:Hirose_DF13-02P-1.25DSA_1x02_P1.25mm_Vertical" 0 0 50 H I C CNN
+F3 "" 0 0 50 H I C CNN
+$FPLIST
+ Connector*:*_1x??_*
+$ENDFPLIST
+DRAW
+S -50 -95 0 -105 1 1 6 N
+S -50 5 0 -5 1 1 6 N
+S -50 50 50 -150 1 1 10 f
+X Pin_1 1 -200 0 150 R 50 50 1 1 P
+X Pin_2 2 -200 -100 150 R 50 50 1 1 P
 ENDDRAW
 ENDDEF
 #
@@ -171,34 +302,43 @@ X Pin_b6 b6 250 -250 150 L 50 50 1 1 P
 ENDDRAW
 ENDDEF
 #
-# LuminometerCustomPartLib_SDR0503-153JL
+# LuminometerCustomPartLib_PMIC_header_right_angle
 #
-DEF LuminometerCustomPartLib_SDR0503-153JL L 0 40 Y Y 1 F N
-F0 "L" -150 100 60 H V C CNN
-F1 "LuminometerCustomPartLib_SDR0503-153JL" 125 -75 60 H V C CNN
-F2 "Luminometer_OPT101_Footprints:SDR0503-153JL" 200 200 60 H I L CNN
-F3 "" 200 300 60 H I L CNN
-F4 "SDR0503-153JLCT-ND" 200 400 60 H I L CNN "Digi-Key_PN"
-F5 "SDR0503-153JL" 200 500 60 H I L CNN "MPN"
-F6 "Inductors, Coils, Chokes" 200 600 60 H I L CNN "Category"
-F7 "Fixed Inductors" 200 700 60 H I L CNN "Family"
-F8 "FIXED IND 15MH 20MA 168 OHM SMD" 200 1000 60 H I L CNN "Description"
-F9 "Bourns Inc." 200 1100 60 H I L CNN "Manufacturer"
+DEF LuminometerCustomPartLib_PMIC_header_right_angle J 0 40 Y N 1 F N
+F0 "J" 0 400 50 H V C CNN
+F1 "LuminometerCustomPartLib_PMIC_header_right_angle" 0 -500 50 H V C CNN
+F2 "Luminometer_OPT101_Footprints:PMIC_Header" 0 0 50 H I C CNN
+F3 "" 0 0 50 H I C CNN
+F4 "732-5341-ND" 0 0 50 H V C CNN "Part Number"
+F5 "Digikey" 0 0 50 H V C CNN "Vendor"
+$FPLIST
+ Connector*:*_1x??_*
+$ENDFPLIST
 DRAW
-A -94 14 48 -1631 37 0 1 0 N -140 0 -47 17
-A -67 14 20 -113 1633 0 1 0 N -47 10 -87 20
-A -47 10 41 1660 -1040 0 1 0 N -87 20 -57 -30
-A -42 13 46 -1104 -39 0 1 0 N -58 -30 2 10
-A -17 14 20 -113 1633 0 1 0 N 3 10 -37 20
-A 3 10 41 1660 -1040 0 1 0 N -37 20 -7 -30
-A 8 13 46 -1104 -39 0 1 0 N -8 -30 52 10
-A 33 14 20 -113 1633 0 1 0 N 53 10 13 20
-A 53 10 41 1660 -1040 0 1 0 N 13 20 43 -30
-A 58 13 46 -1104 -39 0 1 0 N 42 -30 102 10
-A 83 14 20 -113 1633 0 1 0 N 103 10 63 20
-A 102 9 40 -130 1687 0 1 0 N 141 0 62 17
-X ~ 1 -200 0 59 R 50 50 1 1 P
-X ~ 2 200 0 59 L 50 50 1 1 P
+S 34 -395 0 -405 1 1 6 F
+S 34 -295 0 -305 1 1 6 F
+S 34 -195 0 -205 1 1 6 F
+S 34 -95 0 -105 1 1 6 F
+S 34 5 0 -5 1 1 6 F
+S 34 105 0 95 1 1 6 F
+S 34 205 0 195 1 1 6 F
+S 34 305 0 295 1 1 6 F
+P 2 1 1 6 50 -400 34 -400 N
+P 2 1 1 6 50 -300 34 -300 N
+P 2 1 1 6 50 -200 34 -200 N
+P 2 1 1 6 50 -100 34 -100 N
+P 2 1 1 6 50 0 34 0 N
+P 2 1 1 6 50 100 34 100 N
+P 2 1 1 6 50 200 34 200 N
+P 2 1 1 6 50 300 34 300 N
+X Pin_1 1 200 300 150 L 50 50 1 1 P
+X Pin_2 2 200 200 150 L 50 50 1 1 P
+X Pin_3 3 200 100 150 L 50 50 1 1 P
+X Pin_4 4 200 0 150 L 50 50 1 1 P
+X Pin_5 5 200 -100 150 L 50 50 1 1 P
+X Pin_6 6 200 -200 150 L 50 50 1 1 P
+X Pin_7 7 200 -300 150 L 50 50 1 1 P
+X Pin_8 8 200 -400 150 L 50 50 1 1 P
 ENDDRAW
 ENDDEF
 #
@@ -211,31 +351,6 @@ F2 "" 0 0 50 H I C CNN
 F3 "" 0 0 50 H I C CNN
 DRAW
 C 0 0 112 0 1 0 N
-ENDDRAW
-ENDDEF
-#
-# Luminometer_RPi-rescue_22-23-2021-dk_Rectangular-Connectors-Headers-Male-Pins
-#
-DEF Luminometer_RPi-rescue_22-23-2021-dk_Rectangular-Connectors-Headers-Male-Pins J 0 40 Y Y 1 F N
-F0 "J" -100 50 50 H V R CNN
-F1 "Luminometer_RPi-rescue_22-23-2021-dk_Rectangular-Connectors-Headers-Male-Pins" 50 -150 50 H V C CNN
-F2 "digikey-footprints:PinHeader_1x2_P2.54mm_Drill1.02mm" 200 200 60 H I L CNN
-F3 "https://media.digikey.com/pdf/Data%20Sheets/Molex%20PDFs/A-6373-N_Series_Dwg_2010-12-03.pdf" 200 300 60 H I L CNN
-F4 "WM4200-ND" 200 400 60 H I L CNN "Digi-Key_PN"
-F5 "22-23-2021" 200 500 60 H I L CNN "MPN"
-F6 "Connectors, Interconnects" 200 600 60 H I L CNN "Category"
-F7 "Rectangular Connectors - Headers, Male Pins" 200 700 60 H I L CNN "Family"
-F8 "https://media.digikey.com/pdf/Data%20Sheets/Molex%20PDFs/A-6373-N_Series_Dwg_2010-12-03.pdf" 200 800 60 H I L CNN "DK_Datasheet_Link"
-F9 "/product-detail/en/molex/22-23-2021/WM4200-ND/26667" 200 900 60 H I L CNN "DK_Detail_Page"
-F10 "CONN HEADER VERT 2POS 2.54MM" 200 1000 60 H I L CNN "Description"
-F11 "Molex" 200 1100 60 H I L CNN "Manufacturer"
-F12 "Active" 200 1200 60 H I L CNN "Status"
-DRAW
-S -50 0 150 -100 1 1 0 f
-S -10 -45 10 -65 1 1 0 F
-S 90 -45 110 -65 1 1 0 F
-X ~ 1 0 100 100 D 50 50 1 1 P
-X ~ 2 100 100 100 D 50 50 1 1 P
 ENDDRAW
 ENDDEF
 #
@@ -264,36 +379,6 @@ X ~ GND@2 -200 -300 100 U 40 40 0 0 P
 ENDDRAW
 ENDDEF
 #
-# Luminometer_RPi-rescue_BC817-25LT1G-dk_Transistors-Bipolar-BJT-Single
-#
-DEF Luminometer_RPi-rescue_BC817-25LT1G-dk_Transistors-Bipolar-BJT-Single Q 0 0 Y Y 1 F N
-F0 "Q" -126 166 60 H V L CNN
-F1 "Luminometer_RPi-rescue_BC817-25LT1G-dk_Transistors-Bipolar-BJT-Single" 206 0 60 V V C CNN
-F2 "digikey-footprints:SOT-23-3" 200 200 60 H I L CNN
-F3 "https://www.onsemi.com/pub/Collateral/BC817-16LT1-D.PDF" 200 300 60 H I L CNN
-F4 "BC817-25LT1GOSCT-ND" 200 400 60 H I L CNN "Digi-Key_PN"
-F5 "BC817-25LT1G" 200 500 60 H I L CNN "MPN"
-F6 "Discrete Semiconductor Products" 200 600 60 H I L CNN "Category"
-F7 "Transistors - Bipolar (BJT) - Single" 200 700 60 H I L CNN "Family"
-F8 "https://www.onsemi.com/pub/Collateral/BC817-16LT1-D.PDF" 200 800 60 H I L CNN "DK_Datasheet_Link"
-F9 "/product-detail/en/on-semiconductor/BC817-25LT1G/BC817-25LT1GOSCT-ND/917829" 200 900 60 H I L CNN "DK_Detail_Page"
-F10 "TRANS NPN 45V 0.5A SOT23" 200 1000 60 H I L CNN "Description"
-F11 "ON Semiconductor" 200 1100 60 H I L CNN "Manufacturer"
-F12 "Active" 200 1200 60 H I L CNN "Status"
-DRAW
-C 0 0 128 0 1 0 f
-P 2 0 1 0 -150 0 -100 0 N
-P 2 0 1 0 -140 0 0 0 N
-P 2 0 1 0 0 -50 100 -100 N
-P 2 0 1 0 0 50 100 100 N
-P 2 0 1 0 0 100 0 -100 N
-P 4 0 1 0 60 -50 80 -90 40 -100 60 -50 F
-X B 1 -200 0 100 R 50 50 1 1 I
-X E 2 100 -200 100 U 50 50 1 1 P
-X C 3 100 200 100 D 50 50 1 1 P
-ENDDRAW
-ENDDEF
-#
 # Mechanical_MountingHole
 #
 DEF Mechanical_MountingHole H 0 40 Y Y 1 F N
@@ -306,6 +391,62 @@ $FPLIST
 $ENDFPLIST
 DRAW
 C 0 0 50 0 1 50 N
+ENDDRAW
+ENDDEF
+#
+# Mechanical_MountingHole_Pad
+#
+DEF Mechanical_MountingHole_Pad H 0 40 N N 1 F N
+F0 "H" 0 250 50 H V C CNN
+F1 "Mechanical_MountingHole_Pad" 0 175 50 H V C CNN
+F2 "" 0 0 50 H I C CNN
+F3 "" 0 0 50 H I C CNN
+$FPLIST
+ MountingHole*Pad*
+$ENDFPLIST
+DRAW
+C 0 50 50 0 1 50 N
+X 1 1 0 -100 100 U 50 50 1 1 I
+ENDDRAW
+ENDDEF
+#
+# dk_Transistors-FETs-MOSFETs-Single_IRLML6344TRPBF
+#
+DEF dk_Transistors-FETs-MOSFETs-Single_IRLML6344TRPBF Q 0 0 Y Y 1 F N
+F0 "Q" -106 143 60 H V R CNN
+F1 "dk_Transistors-FETs-MOSFETs-Single_IRLML6344TRPBF" 136 0 60 V V C CNN
+F2 "digikey-footprints:SOT-23-3" 200 200 60 H I L CNN
+F3 "https://www.infineon.com/dgdl/irlml6344pbf.pdf?fileId=5546d462533600a4015356689c44262c" 200 300 60 H I L CNN
+F4 "IRLML6344TRPBFCT-ND" 200 400 60 H I L CNN "Digi-Key_PN"
+F5 "IRLML6344TRPBF" 200 500 60 H I L CNN "MPN"
+F6 "Discrete Semiconductor Products" 200 600 60 H I L CNN "Category"
+F7 "Transistors - FETs, MOSFETs - Single" 200 700 60 H I L CNN "Family"
+F8 "https://www.infineon.com/dgdl/irlml6344pbf.pdf?fileId=5546d462533600a4015356689c44262c" 200 800 60 H I L CNN "DK_Datasheet_Link"
+F9 "/product-detail/en/infineon-technologies/IRLML6344TRPBF/IRLML6344TRPBFCT-ND/2538168" 200 900 60 H I L CNN "DK_Detail_Page"
+F10 "MOSFET N-CH 30V 5A SOT23" 200 1000 60 H I L CNN "Description"
+F11 "Infineon Technologies" 200 1100 60 H I L CNN "Manufacturer"
+F12 "Active" 200 1200 60 H I L CNN "Status"
+DRAW
+C -50 0 130 0 1 0 f
+C 0 -75 5 0 1 0 N
+C 0 -55 5 0 1 0 N
+C 0 75 5 0 1 0 N
+P 2 0 1 0 0 -55 -100 -55 N
+P 3 0 1 0 -200 -100 -120 -100 -120 55 N
+P 3 0 1 0 0 -100 0 0 -100 0 N
+P 3 0 1 0 0 100 0 55 -100 55 N
+P 5 0 1 0 -5 -75 40 -75 40 55 40 75 -5 75 N
+P 2 1 1 0 -100 -55 -100 -75 N
+P 2 1 1 0 -100 -55 -100 -35 N
+P 2 1 1 0 -100 0 -100 -20 N
+P 2 1 1 0 -100 0 -100 20 N
+P 2 1 1 0 -100 75 -100 35 N
+P 2 1 1 0 60 20 20 20 N
+P 4 1 1 0 -100 0 -70 20 -70 -20 -100 0 F
+P 4 1 1 0 40 20 20 -10 60 -10 40 20 F
+X G 1 -300 -100 100 R 50 50 1 1 B
+X S 2 0 -200 100 U 50 50 1 1 B
+X D 3 0 200 100 D 50 50 1 1 B
 ENDDRAW
 ENDDEF
 #
