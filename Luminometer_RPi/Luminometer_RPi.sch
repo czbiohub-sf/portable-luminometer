@@ -670,32 +670,18 @@ Text Notes 7250 5225 0    79   ~ 0
 Sensor board
 Text Notes 9900 5325 0    79   ~ 0
 PMIC Interface
-Text Label 11050 6800 2    50   ~ 0
+Text Label 11075 7575 2    50   ~ 0
 PMIC_USB
-Text Label 11050 6700 2    50   ~ 0
-PMIC_BATT
-Text Label 11050 6600 2    50   ~ 0
-PMIC_VS
 Text Label 11050 6500 2    50   ~ 0
 PMIC_EN
 Text Label 11050 6400 2    50   ~ 0
 PMIC_GND
-Text Label 11050 6200 2    50   ~ 0
-PMIC_G
 Text Label 11050 6100 2    50   ~ 0
 PMIC_5V
 Text Label 11050 6300 2    50   ~ 0
 PMIC_LBO
 Wire Wire Line
-	11050 6800 10575 6800
-Wire Wire Line
-	11050 6700 10575 6700
-Wire Wire Line
-	11050 6600 10575 6600
-Wire Wire Line
 	11050 6300 10575 6300
-Wire Wire Line
-	11050 6200 10575 6200
 Wire Wire Line
 	6225 3675 6225 3600
 Wire Wire Line
@@ -1746,7 +1732,22 @@ Wire Wire Line
 	4650 3450 3450 3450
 NoConn ~ 3175 8325
 NoConn ~ 2250 3350
-NoConn ~ 3450 3350
 NoConn ~ 2250 2950
 NoConn ~ 3450 2950
+Text Label 4650 3350 2    50   ~ 0
+ADC_PWR_EN
+Wire Wire Line
+	4650 3350 3450 3350
+Text Notes 10650 6825 0    39   ~ 0
+PMIC_USB
+Text Notes 10650 6725 0    39   ~ 0
+PMIC_BATT
+Text Notes 10650 6625 0    39   ~ 0
+PMIC_VS
+NoConn ~ 10575 6800
+NoConn ~ 10575 6700
+NoConn ~ 10575 6600
+NoConn ~ 10575 6200
+Text Notes 10650 6200 0    39   ~ 0
+PMIC_G
 $EndSCHEMATC
