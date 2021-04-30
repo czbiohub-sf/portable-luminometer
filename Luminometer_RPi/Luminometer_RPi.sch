@@ -1463,17 +1463,6 @@ Connection ~ 13875 2300
 Wire Wire Line
 	13875 2300 14150 2300
 $Comp
-L Mechanical:MountingHole H9
-U 1 1 608A5388
-P 7275 10275
-F 0 "H9" H 7375 10321 50  0000 L CNN
-F 1 "MountingHole" H 7375 10230 50  0000 L CNN
-F 2 "MountingHole:MountingHole_2.7mm_M2.5" H 7275 10275 50  0001 C CNN
-F 3 "~" H 7275 10275 50  0001 C CNN
-	1    7275 10275
-	1    0    0    -1  
-$EndComp
-$Comp
 L ADC_lib:732-4872-1-ND L1
 U 1 1 608C82F9
 P 13875 1975
