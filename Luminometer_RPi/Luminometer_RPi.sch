@@ -186,16 +186,16 @@ Text Label 5750 5525 0    50   ~ 0
 B3
 Wire Wire Line
 	5750 5525 5750 5600
-Text Label 4650 3550 2    50   ~ 0
+Text Label 4650 2150 2    50   ~ 0
 B1
-Text Label 1050 3350 0    50   ~ 0
+Text Label 1050 1750 0    50   ~ 0
 B3
 Wire Wire Line
-	1050 3350 2250 3350
-Text Label 1050 3450 0    50   ~ 0
+	1050 1750 2250 1750
+Text Label 1050 1850 0    50   ~ 0
 B2
 Wire Wire Line
-	1050 3450 2250 3450
+	1050 1850 2250 1850
 $Comp
 L LuminometerCustomPartLib:Harting_15110122601000 J7
 U 1 1 5F98726C
@@ -326,7 +326,7 @@ F 4 "Z6127-ND" H 5500 7175 50  0001 C CNN "Part Number"
 $EndComp
 Text Notes 3625 6950 0    79   ~ 0
 Button caps
-Text Label 4625 1950 2    50   ~ 0
+Text Label 1050 3450 0    50   ~ 0
 BZ
 $Comp
 L Device:R R1
@@ -510,20 +510,20 @@ Wire Wire Line
 	6775 2350 6950 2350
 Wire Wire Line
 	6775 2275 6775 2350
-Text Label 1050 2950 0    50   ~ 0
+Text Label 4650 1950 2    50   ~ 0
 SHT_FAULT
-Text Label 4650 2950 2    50   ~ 0
+Text Label 4650 2350 2    50   ~ 0
 nSLEEP
 Wire Wire Line
-	3450 2950 4650 2950
-Text Label 1050 3250 0    50   ~ 0
+	3450 2350 4650 2350
+Text Label 4650 3150 2    50   ~ 0
 SHT_PWM
 Wire Wire Line
-	4650 3150 3450 3150
-Text Label 4650 3350 2    50   ~ 0
+	1050 3250 2250 3250
+Text Label 4650 2450 2    50   ~ 0
 SHT_1
 Wire Wire Line
-	4650 3350 3450 3350
+	4650 2450 3450 2450
 Text Notes 6175 1275 0    118  ~ 24
 Shutter Drive
 Text Notes 7200 4800 0    118  ~ 24
@@ -563,11 +563,10 @@ F 3 "~" H 10700 5625 50  0001 C CNN
 	1    10700 5625
 	1    0    0    -1  
 $EndComp
-NoConn ~ 2250 1750
 Wire Wire Line
-	2250 2950 1050 2950
+	3450 1950 4650 1950
 Wire Wire Line
-	2250 3250 1050 3250
+	3450 3150 4650 3150
 $Comp
 L LuminometerCustomPartLib:DRV8833PWP U1
 U 1 1 6022DBB4
@@ -1078,10 +1077,10 @@ Wire Wire Line
 	6275 2750 5900 2750
 Connection ~ 6275 2750
 NoConn ~ 2250 3150
-Text Label 4650 2350 2    50   ~ 0
+Text Label 4650 3550 2    50   ~ 0
 PMIC_LBO
 Wire Wire Line
-	4650 2350 3450 2350
+	4650 3550 3450 3550
 $Comp
 L Device:Ferrite_Bead_Small FB1
 U 1 1 60FC940F
@@ -1137,7 +1136,7 @@ Wire Wire Line
 Wire Wire Line
 	1600 9500 1500 9500
 Wire Wire Line
-	3450 1950 4625 1950
+	2250 3450 1050 3450
 Text Notes 3525 5325 0    79   ~ 0
 Buttons
 Text Label 11750 2175 0    50   ~ 0
@@ -1192,7 +1191,7 @@ F 5 "Digikey" V 14575 2075 50  0001 C CNN "Vendor"
 	1    14575 2075
 	1    0    0    -1  
 $EndComp
-Text Label 4650 3150 2    50   ~ 0
+Text Label 1050 3250 0    50   ~ 0
 COOL_PWM
 Wire Wire Line
 	8325 6925 8325 6825
@@ -1740,13 +1739,14 @@ $EndComp
 Wire Wire Line
 	9925 9050 9925 9000
 Wire Wire Line
-	4650 3550 3450 3550
-NoConn ~ 2250 1850
-NoConn ~ 3450 2150
+	4650 2150 3450 2150
 NoConn ~ 3400 8225
 NoConn ~ 15425 800 
 Wire Wire Line
 	4650 3450 3450 3450
-NoConn ~ 3450 2450
 NoConn ~ 3175 8325
+NoConn ~ 2250 3350
+NoConn ~ 3450 3350
+NoConn ~ 2250 2950
+NoConn ~ 3450 2950
 $EndSCHEMATC
