@@ -103,7 +103,7 @@ U 1 1 5F990C68
 P 7275 8925
 F 0 "H1" H 7375 8971 50  0000 L CNN
 F 1 "MountingHole" H 7375 8880 50  0000 L CNN
-F 2 "MountingHole:MountingHole_2.7mm_M2.5" H 7275 8925 50  0001 C CNN
+F 2 "MountingHole:MountingHole_2.5mm_Pad" H 7275 8925 50  0001 C CNN
 F 3 "~" H 7275 8925 50  0001 C CNN
 	1    7275 8925
 	1    0    0    -1  
@@ -114,7 +114,7 @@ U 1 1 5F99265B
 P 7275 9400
 F 0 "H4" H 7375 9446 50  0000 L CNN
 F 1 "MountingHole" H 7375 9355 50  0000 L CNN
-F 2 "MountingHole:MountingHole_2.7mm_M2.5" H 7275 9400 50  0001 C CNN
+F 2 "MountingHole:MountingHole_2.5mm_Pad" H 7275 9400 50  0001 C CNN
 F 3 "~" H 7275 9400 50  0001 C CNN
 	1    7275 9400
 	1    0    0    -1  
@@ -125,42 +125,20 @@ U 1 1 5F992965
 P 7275 9850
 F 0 "H7" H 7375 9896 50  0000 L CNN
 F 1 "MountingHole" H 7375 9805 50  0000 L CNN
-F 2 "MountingHole:MountingHole_2.7mm_M2.5" H 7275 9850 50  0001 C CNN
+F 2 "MountingHole:MountingHole_2.5mm_Pad" H 7275 9850 50  0001 C CNN
 F 3 "~" H 7275 9850 50  0001 C CNN
 	1    7275 9850
 	1    0    0    -1  
 $EndComp
 $Comp
-L Mechanical:MountingHole H3
-U 1 1 5F993F77
-P 9100 8900
-F 0 "H3" H 9200 8946 50  0000 L CNN
-F 1 "MountingHole" H 9200 8855 50  0000 L CNN
-F 2 "MountingHole:MountingHole_2.5mm_Pad_TopOnly" H 9100 8900 50  0001 C CNN
-F 3 "~" H 9100 8900 50  0001 C CNN
-	1    9100 8900
-	1    0    0    -1  
-$EndComp
-$Comp
-L Mechanical:MountingHole H6
-U 1 1 5F994304
-P 9100 9400
-F 0 "H6" H 9200 9446 50  0000 L CNN
-F 1 "MountingHole" H 9200 9355 50  0000 L CNN
-F 2 "MountingHole:MountingHole_2.5mm_Pad_TopOnly" H 9100 9400 50  0001 C CNN
-F 3 "~" H 9100 9400 50  0001 C CNN
-	1    9100 9400
-	1    0    0    -1  
-$EndComp
-$Comp
 L Mechanical:MountingHole_Pad H8
 U 1 1 5F90ED96
-P 9925 8900
-F 0 "H8" H 10025 8946 50  0000 L CNN
-F 1 "MountingHole" H 10025 8855 50  0000 L CNN
-F 2 "MountingHole:MountingHole_2.7mm_M2.5_Pad_TopBottom" H 9925 8900 50  0001 C CNN
-F 3 "~" H 9925 8900 50  0001 C CNN
-	1    9925 8900
+P 10000 8975
+F 0 "H8" H 10100 9021 50  0000 L CNN
+F 1 "MountingHole" H 10100 8930 50  0000 L CNN
+F 2 "MountingHole:MountingHole_2.7mm_M2.5_ISO14580_Pad_TopBottom" H 10000 8975 50  0001 C CNN
+F 3 "~" H 10000 8975 50  0001 C CNN
+	1    10000 8975
 	1    0    0    -1  
 $EndComp
 $Comp
@@ -285,7 +263,7 @@ Text Notes 8125 8625 0    79   ~ 0
 Shaft\nSpacer
 Text Notes 9000 8625 0    79   ~ 0
 Shutter\nShafts
-Text Notes 9850 8625 0    79   ~ 0
+Text Notes 9900 8625 0    79   ~ 0
 Tube Holder
 $Comp
 L LuminometerCustomPartLib:Z6127-ND #BC1
@@ -1583,16 +1561,16 @@ R,L,C values not chosen \ncorrectly yet!
 $Comp
 L power:GND #PWR0112
 U 1 1 60B59764
-P 9925 9050
-F 0 "#PWR0112" H 9925 8800 50  0001 C CNN
-F 1 "GND" H 10050 8900 50  0000 C CNN
-F 2 "" H 9925 9050 50  0001 C CNN
-F 3 "" H 9925 9050 50  0001 C CNN
-	1    9925 9050
+P 10000 9125
+F 0 "#PWR0112" H 10000 8875 50  0001 C CNN
+F 1 "GND" H 10125 8975 50  0000 C CNN
+F 2 "" H 10000 9125 50  0001 C CNN
+F 3 "" H 10000 9125 50  0001 C CNN
+	1    10000 9125
 	1    0    0    -1  
 $EndComp
 Wire Wire Line
-	9925 9050 9925 9000
+	10000 9125 10000 9075
 Wire Wire Line
 	4650 2150 3450 2150
 NoConn ~ 15425 800 
@@ -1789,4 +1767,52 @@ Wire Wire Line
 Connection ~ 11300 2875
 Wire Wire Line
 	3450 2550 3725 2550
+$Comp
+L Mechanical:MountingHole_Pad H3
+U 1 1 61898DDF
+P 9125 8975
+F 0 "H3" H 9225 9024 50  0000 L CNN
+F 1 "MountingHole_Pad" H 9225 8933 50  0000 L CNN
+F 2 "MountingHole:MountingHole_2.7mm_M2.5_ISO14580_Pad_TopBottom" H 9125 8975 50  0001 C CNN
+F 3 "~" H 9125 8975 50  0001 C CNN
+	1    9125 8975
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:GND #PWR09
+U 1 1 61898DE9
+P 9125 9125
+F 0 "#PWR09" H 9125 8875 50  0001 C CNN
+F 1 "GND" H 9250 8975 50  0000 C CNN
+F 2 "" H 9125 9125 50  0001 C CNN
+F 3 "" H 9125 9125 50  0001 C CNN
+	1    9125 9125
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	9125 9075 9125 9125
+$Comp
+L Mechanical:MountingHole_Pad H6
+U 1 1 618B589B
+P 9125 9425
+F 0 "H6" H 9225 9474 50  0000 L CNN
+F 1 "MountingHole_Pad" H 9225 9383 50  0000 L CNN
+F 2 "MountingHole:MountingHole_2.7mm_M2.5_ISO14580_Pad_TopBottom" H 9125 9425 50  0001 C CNN
+F 3 "~" H 9125 9425 50  0001 C CNN
+	1    9125 9425
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:GND #PWR010
+U 1 1 618B58A5
+P 9125 9575
+F 0 "#PWR010" H 9125 9325 50  0001 C CNN
+F 1 "GND" H 9250 9425 50  0000 C CNN
+F 2 "" H 9125 9575 50  0001 C CNN
+F 3 "" H 9125 9575 50  0001 C CNN
+	1    9125 9575
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	9125 9525 9125 9575
 $EndSCHEMATC
