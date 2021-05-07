@@ -340,7 +340,7 @@ F 3 "" H 5875 2550 50  0001 C CNN
 	1    5875 2550
 	-1   0    0    -1  
 $EndComp
-Text Label 6000 2250 0    50   ~ 0
+Text Label 6150 2250 0    50   ~ 0
 ADC0P
 Text Label 3750 1450 1    50   ~ 0
 BIAS
@@ -460,7 +460,7 @@ Wire Wire Line
 	5550 2750 5450 2750
 Wire Wire Line
 	5900 2850 5900 3125
-Text Label 6000 2850 0    50   ~ 0
+Text Label 6150 2850 0    50   ~ 0
 ADC1P
 Connection ~ 5900 2850
 Text Label 4575 2850 2    50   ~ 0
@@ -1060,7 +1060,7 @@ U 1 1 601F5B7D
 P 4925 3125
 F 0 "TP4" H 4975 3450 50  0000 R CNN
 F 1 "TestPoint" H 4975 3350 50  0000 R CNN
-F 2 "TestPoint:TestPoint_Pad_D1.5mm" H 5125 3125 50  0001 C CNN
+F 2 "TestPoint:TestPoint_Pad_1.0x1.0mm" H 5125 3125 50  0001 C CNN
 F 3 "~" H 5125 3125 50  0001 C CNN
 	1    4925 3125
 	-1   0    0    1   
@@ -1074,7 +1074,7 @@ U 1 1 601F71FD
 P 4900 2025
 F 0 "TP3" H 4950 2300 50  0000 R CNN
 F 1 "TestPoint" H 5175 2225 50  0000 R CNN
-F 2 "TestPoint:TestPoint_Pad_D1.5mm" H 5100 2025 50  0001 C CNN
+F 2 "TestPoint:TestPoint_Pad_1.0x1.0mm" H 5100 2025 50  0001 C CNN
 F 3 "~" H 5100 2025 50  0001 C CNN
 	1    4900 2025
 	1    0    0    -1  
@@ -1467,7 +1467,7 @@ U 1 1 5FD63B89
 P 9925 5925
 F 0 "H3" H 10025 5971 50  0000 L CNN
 F 1 "MountingHole" H 9675 5800 50  0000 L CNN
-F 2 "MountingHole:MountingHole_2.7mm" H 9925 5925 50  0001 C CNN
+F 2 "MountingHole:MountingHole_2.7mm_M2.5_ISO14580_Pad" H 9925 5925 50  0001 C CNN
 F 3 "~" H 9925 5925 50  0001 C CNN
 	1    9925 5925
 	1    0    0    -1  
@@ -1478,7 +1478,7 @@ U 1 1 5FDB2C55
 P 10325 5925
 F 0 "H6" H 10450 5975 50  0000 C CNN
 F 1 "MountingHole" H 10475 5800 50  0000 C CNN
-F 2 "MountingHole:MountingHole_2.7mm" H 10325 5925 50  0001 C CNN
+F 2 "MountingHole:MountingHole_2.7mm_M2.5_ISO14580_Pad" H 10325 5925 50  0001 C CNN
 F 3 "~" H 10325 5925 50  0001 C CNN
 	1    10325 5925
 	1    0    0    -1  
@@ -1489,7 +1489,7 @@ U 1 1 5FD83D7B
 P 9925 5475
 F 0 "H2" H 10025 5521 50  0000 L CNN
 F 1 "MountingHole" H 9675 5350 50  0000 L CNN
-F 2 "MountingHole:MountingHole_2.1mm" H 9925 5475 50  0001 C CNN
+F 2 "MountingHole:MountingHole_2.2mm_M2_ISO14580_Pad" H 9925 5475 50  0001 C CNN
 F 3 "~" H 9925 5475 50  0001 C CNN
 	1    9925 5475
 	1    0    0    -1  
@@ -1500,7 +1500,7 @@ U 1 1 5FD83D85
 P 10300 5475
 F 0 "H5" H 10400 5521 50  0000 L CNN
 F 1 "MountingHole" H 10100 5625 50  0000 L CNN
-F 2 "MountingHole:MountingHole_2.1mm" H 10300 5475 50  0001 C CNN
+F 2 "MountingHole:MountingHole_2.2mm_M2_ISO14580_Pad" H 10300 5475 50  0001 C CNN
 F 3 "~" H 10300 5475 50  0001 C CNN
 	1    10300 5475
 	1    0    0    -1  
@@ -1511,7 +1511,7 @@ U 1 1 5FDB2488
 P 10650 5475
 F 0 "H8" H 10750 5521 50  0000 L CNN
 F 1 "MountingHole" H 10425 5375 50  0000 L CNN
-F 2 "MountingHole:MountingHole_2.7mm_M2.5" H 10650 5475 50  0001 C CNN
+F 2 "MountingHole:MountingHole_2.5mm_Pad" H 10650 5475 50  0001 C CNN
 F 3 "~" H 10650 5475 50  0001 C CNN
 	1    10650 5475
 	1    0    0    -1  
@@ -1661,9 +1661,9 @@ Wire Wire Line
 Wire Wire Line
 	11000 3050 11000 3550
 Wire Wire Line
-	5900 2250 6000 2250
+	5900 2250 6050 2250
 Wire Wire Line
-	5900 2850 6000 2850
+	5900 2850 6050 2850
 $Comp
 L Connector:TestPoint TP2
 U 1 1 60762B08
@@ -1681,8 +1681,6 @@ Text Notes 3700 5600 3    50   ~ 0
 1.5 mA
 Text Notes 3875 5275 1    50   ~ 0
 3.3 mA
-Text Notes 4400 6700 0    59   ~ 0
-24k and 2k \nsubstituted in build mod
 Text Notes 4550 5450 2    50   ~ 0
 1.8 mA
 Text Notes 5200 6100 2    50   ~ 0
@@ -1801,7 +1799,7 @@ $Comp
 L Device:R R19
 U 1 1 60B19A67
 P 7050 2275
-F 0 "R19" V 7250 2275 50  0000 C CNN
+F 0 "R19" V 6950 2275 50  0000 C CNN
 F 1 "2.7M" V 7050 2275 50  0000 C CNN
 F 2 "Resistor_SMD:R_0603_1608Metric" V 6980 2275 50  0001 C CNN
 F 3 "~" H 7050 2275 50  0001 C CNN
@@ -1815,7 +1813,7 @@ $Comp
 L Device:R R20
 U 1 1 60B19A74
 P 7050 2375
-F 0 "R20" V 7225 2375 50  0000 C CNN
+F 0 "R20" V 6950 2375 50  0000 C CNN
 F 1 "100k" V 7050 2375 50  0000 C CNN
 F 2 "Resistor_SMD:R_0603_1608Metric" V 6980 2375 50  0001 C CNN
 F 3 "~" H 7050 2375 50  0001 C CNN
@@ -1930,7 +1928,7 @@ $Comp
 L Device:R R27
 U 1 1 6100066E
 P 8050 2600
-F 0 "R27" V 8100 2450 50  0000 C CNN
+F 0 "R27" V 8125 2375 50  0000 C CNN
 F 1 "1k" V 8050 2600 50  0000 C CNN
 F 2 "Resistor_SMD:R_0603_1608Metric" V 7980 2600 50  0001 C CNN
 F 3 "https://www.susumu.co.jp/common/pdf/n_catalog_partition38_en.pdf" H 8050 2600 50  0001 C CNN
@@ -1987,7 +1985,7 @@ $Comp
 L Device:R R21
 U 1 1 6110C7CE
 P 7050 2900
-F 0 "R21" V 7250 2900 50  0000 C CNN
+F 0 "R21" V 6950 2900 50  0000 C CNN
 F 1 "2.7M" V 7050 2900 50  0000 C CNN
 F 2 "Resistor_SMD:R_0603_1608Metric" V 6980 2900 50  0001 C CNN
 F 3 "~" H 7050 2900 50  0001 C CNN
@@ -2001,7 +1999,7 @@ $Comp
 L Device:R R22
 U 1 1 6110C7DB
 P 7050 3000
-F 0 "R22" V 7225 3000 50  0000 C CNN
+F 0 "R22" V 6950 3000 50  0000 C CNN
 F 1 "100k" V 7050 3000 50  0000 C CNN
 F 2 "Resistor_SMD:R_0603_1608Metric" V 6980 3000 50  0001 C CNN
 F 3 "~" H 7050 3000 50  0001 C CNN
@@ -2056,4 +2054,32 @@ Wire Wire Line
 	7725 3000 7725 2800
 Wire Wire Line
 	7250 3000 7725 3000
+$Comp
+L Connector:TestPoint TP5
+U 1 1 612F5EA0
+P 6050 2250
+F 0 "TP5" H 6100 2525 50  0000 R CNN
+F 1 "TestPoint" H 6325 2450 50  0000 R CNN
+F 2 "TestPoint:TestPoint_Pad_1.0x1.0mm" H 6250 2250 50  0001 C CNN
+F 3 "~" H 6250 2250 50  0001 C CNN
+	1    6050 2250
+	1    0    0    -1  
+$EndComp
+Connection ~ 6050 2250
+Wire Wire Line
+	6050 2250 6150 2250
+$Comp
+L Connector:TestPoint TP6
+U 1 1 612F6302
+P 6050 2850
+F 0 "TP6" H 6100 3125 50  0000 R CNN
+F 1 "TestPoint" H 6000 3050 50  0000 R CNN
+F 2 "TestPoint:TestPoint_Pad_1.0x1.0mm" H 6250 2850 50  0001 C CNN
+F 3 "~" H 6250 2850 50  0001 C CNN
+	1    6050 2850
+	-1   0    0    1   
+$EndComp
+Connection ~ 6050 2850
+Wire Wire Line
+	6050 2850 6150 2850
 $EndSCHEMATC
