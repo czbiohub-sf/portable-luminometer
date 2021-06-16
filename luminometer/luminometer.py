@@ -11,6 +11,7 @@ Sensor Datasheet
 
 """
 import time, math, csv, argparse
+from datetime import datetime
 import os
 import RPi.GPIO as GPIO
 import concurrent.futures
@@ -159,6 +160,7 @@ class Luminometer():
 			self._adc.status_print()
 		except Exception as e:
 			print('Could not print ADC status!')
+			print(e)
 
 		self._crcErrs = 0
 		self._measureLock = threading.Lock()
@@ -201,11 +203,11 @@ class Luminometer():
 					buzz = False
 					self.buzzer.buzz()
 					powerOff = True
-					print('Powering off')
+					print('POWER OFF')
 
 		if powerOff:
 			try:
-				self._display_q.put((LumiMode.TITLE, 'Powering off'))
+				self._display_q.put((LumiMode.TITLE, 'POWER OFF'))
 				time.sleep(5)
 			except queue.Full:
 				pass
@@ -342,15 +344,17 @@ class Luminometer():
 							print(f"\nMeasure: sample count = {self._sc}")
 
 							# Gate traces and subtract dark reference
-							self.dataA = self.gateTrace(self.rawdataA[:self._rsc], self.shutter_samples, 0.0 if dark else self._darkRef[0])
-							self.dataB = self.gateTrace(self.rawdataB[:self._rsc], self.shutter_samples, 0.0 if dark else self._darkRef[1])	
+							self.dataA = self.gateTrace(self.rawdataA[:self._rsc], self.shutter_samples)
+							self.dataB = self.gateTrace(self.rawdataB[:self._rsc], self.shutter_samples)	
+							# self.dataA = self.gateTrace(self.rawdataA[:self._rsc], self.shutter_samples, 0.0 if dark else self._darkRef[0])
+							# self.dataB = self.gateTrace(self.rawdataB[:self._rsc], self.shutter_samples, 0.0 if dark else self._darkRef[1])	
 							self.resultA = mean(self.dataA)
 							self.resultB = mean(self.dataB)							
 
 							print(f"Sensor A after {int(self._sc/2)} cycles: {RLU_PER_V*self.resultA:.2f}")
-							print(f"Sensor A raw: {self.rawdataA[self._rsc-1]:.4f}")
+							print(f"Sensor A raw: {self.rawdataA[self._rsc-1]:.8f}")
 							print(f"Sensor B after {int(self._sc/2)} cycles: {RLU_PER_V*self.resultB:.2f}")
-							print(f"Sensor B raw: {self.rawdataB[self._rsc-1]:.4f}")
+							print(f"Sensor B raw: {self.rawdataB[self._rsc-1]:.8f}")
 
 							# Can't compute stdev unless there are >3 shutter-open periods _|-|_|-|_|-|_
 							if self._sc > 5:
@@ -364,8 +368,10 @@ class Luminometer():
 							sampleCount += 1
 
 					# Final: gate traces and subtract dark reference
-					self.dataA = self.gateTrace(self.rawdataA[:self._rsc], self.shutter_samples, 0.0 if dark else self._darkRef[0])
-					self.dataB = self.gateTrace(self.rawdataB[:self._rsc], self.shutter_samples, 0.0 if dark else self._darkRef[1])	
+					self.dataA = self.gateTrace(self.rawdataA[:self._rsc], self.shutter_samples)
+					self.dataB = self.gateTrace(self.rawdataB[:self._rsc], self.shutter_samples)	
+					# self.dataA = self.gateTrace(self.rawdataA[:self._rsc], self.shutter_samples, 0.0 if dark else self._darkRef[0])
+					# self.dataB = self.gateTrace(self.rawdataB[:self._rsc], self.shutter_samples, 0.0 if dark else self._darkRef[1])	
 
 					# Final result is the mean of all the gated shutter-open periods
 					self.resultA = mean(self.dataA)
@@ -384,6 +390,7 @@ class Luminometer():
 					print(f"\n{self._rsc} samples in {time.perf_counter() - t0} seconds. Sample rate of {self._rsc / (time.perf_counter() - t0)} Hz")
 					print(f"{self._crcErrs} CRC Errors encountered.")
 
+					self.writeToFile()
 					self.buzzer.buzz()
 				
 				except KeyboardInterrupt as exc:
@@ -410,7 +417,6 @@ class Luminometer():
 					((abs(self.resultB) / self.semB)) < MIN_SNR) or \
 					((self._sc) < 7)
 			return result
-
 
 	def _cb_adc_data_ready(self, channel):
 		# Callback function executed when data ready is asserted from ADC
@@ -509,8 +515,10 @@ class Luminometer():
 			# Counters
 			self._rsc = self._sc = self._crcErrs = 0
 
-	def writeToFile(self, title):
-
+	def writeToFile(self):
+		now = datetime.now()
+		dt_string = now.strftime("%Y-%m-%d-%H-%M-%S")
+		title = dt_string
 		with open(title + '.csv', 'w', newline='') as csvFile:
 			csvWriter = csv.writer(csvFile)
 			for i in range(self.nRawSamples):
@@ -521,12 +529,24 @@ class Luminometer():
 			for i in range(len(self.dataA)):
 				csvWriter.writerow((self.dataA[i], self.dataB[i]))
 
-	def gateTrace(self, rawData: List[float], gateSize: int, darkVal: float = 0.0) -> List[float]:
-		# Helper method that computes the mean of each even chunk of data, subtracted by the mean of the flanking odd
-		# chunks of data. The chunk size is specified by gateSize, and the total size of the rawData should be an odd
-		# multiple of gateSize, so that every even chunk has two flanking odd chunks.
+	def gateTrace(self, rawData: List[float], gateSize: int) -> List[float]:
+		"""
+		Helper method that computes the mean of each even chunk of data, subtracted by the mean of the flanking odd
+		chunks of data. The chunk size is specified by gateSize, and the total size of the rawData should be an odd
+		multiple of gateSize, so that every even chunk has two flanking odd chunks.
 
-		# The function will disregard raw data that does not consist of a complete odd multiple of the gateSize.
+		The function will disregard raw data that does not consist of a complete odd multiple of the gateSize.
+
+		Here, we also correct for residual thermal offset. This effect manifests as a difference in signal between shutter-
+		open and shutter-closed stages regardless of sample present. The effect is not 100% understood, but one potential
+		root cause could be that the SiPM sensor itself emits light in direct proportion to its dark current (it acts like an LED). 
+		There is some small amount of light that reflects back on itself (more or less, depending on shutter state), which it then detects.
+		The effect seems to be corrigible by subtracting a linear fit from the raw dark current of the sensor.
+
+		Inputs:
+			rawData: List of float values consisting of raw sensor reads in a time-series.
+			gateSize: Integer depicting the number of raw sensor reads in each shutter-open or shutter-closed state.
+		"""
 
 		nPeriods = int(len(rawData) / gateSize)
 
@@ -540,13 +560,18 @@ class Luminometer():
 
 		samples = []
 
+
 		for i in range(gateSize, gateSize*nPeriods, 2*gateSize):
-			sample = mean(rawData[(i+SKIP_SAMPLES):i+(gateSize-1)]) - darkVal
+			sample = mean(rawData[(i+SKIP_SAMPLES):i+(gateSize-1)])
 			darkBefore = mean(rawData[(i-gateSize+SKIP_SAMPLES):(i-1)])
 			darkAfter = mean(rawData[(i+gateSize+SKIP_SAMPLES):(i+2*gateSize - 1)])
-			samples.append( sample - 0.5*(darkBefore + darkAfter))
+			darkMean = 0.5*(darkBefore + darkAfter)
+			gatedValue = sample - darkMean
+			correctedValue = gatedValue - SENSOR_A_CP_RATIO*(darkMean - SENSOR_A_DARK_V)
+			samples.append(correctedValue)
 
 		return samples 
+
 
 	def run(self):
 		try:
@@ -630,6 +655,6 @@ if __name__ == "__main__":
 		del(Luminometer)
 		
 		# Power down system
-		os.system('sudo poweroff')
+		#os.system('sudo poweroff')
 
 
