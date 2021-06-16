@@ -55,10 +55,10 @@ class LumiShutter():
 	# Written to operate a TI DRV8833 H-bridge chip.
 	# Each instance of this class drives just one channel; create a second instance to drive two channels.
 
-	def __init__(self, fwdPin: int, revPin: int, faultPin: int, sleepPin: int):
+	def __init__(self, dirPin: int, pwmPin: int, faultPin: int, sleepPin: int):
 		try:
-			self._fwdPin = int(fwdPin)
-			self._revPin = int(revPin)
+			self._dirPin = int(dirPin)
+			self._pwmPin = int(pwmPin)
 			self._faultPin = int(faultPin)
 			self._sleepPin = int(sleepPin)
 		except TypeError:
@@ -66,8 +66,10 @@ class LumiShutter():
 			raise
 
 		GPIO.setmode(GPIO.BCM)
-		GPIO.setup(self._fwdPin, GPIO.OUT, initial = 0)
-		GPIO.setup(self._revPin, GPIO.OUT, initial = 0)
+		GPIO.setup(self._dirPin, GPIO.OUT, initial = 0)
+		GPIO.setup(self._pwmPin, GPIO.OUT, initial = 0)
+		self._pwm = GPIO.PWM(self._pwmPin, SHT_PWM_FREQ)
+		self._pwm.start(0)
 		GPIO.setup(self._sleepPin, GPIO.OUT, initial = 1)
 		GPIO.setup(self._faultPin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 		GPIO.output(self._sleepPin, 1)
@@ -96,32 +98,36 @@ class LumiShutter():
 				try:
 					if action == 'open':
 						print(f"\nOpening shutter")
-						GPIO.output([self._fwdPin,self._revPin], (1,0))
+						GPIO.output(self._dirPin, 1)
+						self._pwm.ChangeDutyCycle(SHUTTER_DRIVE_DR)
 						time.sleep(driveTime)
-						self.brake()
+						self.hold()
 
 					elif action == 'close':
 						print(f"\nClosing shutter")
-						GPIO.output([self._fwdPin,self._revPin], (0,1))
+						GPIO.output(self._dirPin, 0)
+						self._pwm.ChangeDutyCycle(SHUTTER_DRIVE_DR)
 						time.sleep(driveTime)
-						self.brake()
+						self.hold()
 
 					else:
 						print(f"\nShutter command not recognized!")
 				except Exception as e:
 					print(f"Shutter actuation error: {e}")
 				finally:
-					self.brake()
+					self.hold()
 
 
 
 		return
 
 	def rest(self):
-		GPIO.output([self._fwdPin, self._revPin], (0,0))
+		self._pwm.ChangeDutyCycle(0.0)
+		GPIO.output(self._dirPin, 0)
 
-	def brake(self):
-		GPIO.output([self._fwdPin, self._revPin], (1,1))
+
+	def hold(self):
+		self._pwm.ChangeDutyCycle(SHUTTER_HOLD_DR)
 
 	def _faultDetected(self, channel):
 		# Callback for handling an H-bridge fault pin event
@@ -129,6 +135,18 @@ class LumiShutter():
 		# https://www.ti.com/lit/ds/symlink/drv8833.pdf?ts=1617084507643&ref_url=https%253A%252F%252Fwww.google.com%252F
 		print('\nH-bridge fault detected!')
 		raise HBridgeFault
+
+	def __delete__(self):
+		try:
+			self._pwm.ChangeDutyCycle(0.0)
+			self._pwm.stop()
+		except:
+			pass
+		try:
+			GPIO.output(self._dirPin, 0)
+		except:
+			pass
+
 
 class Luminometer():
 
@@ -144,12 +162,14 @@ class Luminometer():
 			self._simulate = True
 
 		self.display = LumiScreen()
-		self.shutterA = LumiShutter(AIN1, AIN2, NFAULT, NSLEEP)
-		self.shutterB = LumiShutter(BIN1, BIN2, NFAULT, NSLEEP)
+		self.shutter = LumiShutter(SHT_1, SHT_PWM, SHT_FAULT, NSLEEP)
 		self.buzzer = LumiBuzzer(BUZZ)
 		self._btn1 = BTN_1
 		self._btn2 = BTN_2
 		self._btn3 = BTN_3
+		self._FAN = FAN
+		self._ADC_PWR_EN = ADC_PWR_EN
+		self._PMIC_LBO = PMIC_LBO
 		self._powerOn = True
 		self._measuring = False
 		self._darkIsStored = False
@@ -169,6 +189,13 @@ class Luminometer():
 		GPIO.setup(self._btn1, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 		GPIO.setup(self._btn2, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 		GPIO.setup(self._btn3, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+
+		# Set up low battery input
+		GPIO.setup(self._PMIC_LBO, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+
+		# Set up sensor board power enable, and fan enable
+		GPIO.setup(self._ADC_PWR_EN, GPIO.OUT, initial=1)
+		GPIO.setup(self._FAN, GPIO.OUT, initial=1)
 
 		# Add callback for button pushes
 		GPIO.add_event_detect(self._btn1, GPIO.FALLING, callback=self._btn1_callback, bouncetime=200)
@@ -615,8 +642,7 @@ class Luminometer():
 							pass
 
 						# Submit shutter actions
-						future_result[executor.submit(self.shutterA.actuate, action)] = "Shutter A: " + action
-						future_result[executor.submit(self.shutterB.actuate, action)] = "Shutter B: " + action
+						future_result[executor.submit(self.shutter.actuate, action)] = "Shutter: " + action
 
 					# Display queue has size 1 and will not add additional items to the queue
 					# If there is an incoming message, start a new future

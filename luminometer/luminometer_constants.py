@@ -2,6 +2,8 @@
 SAMPLE_TIME_S = 0.050
 SHUTTER_ACTUATION_TIME = 0.03
 SHUTTER_PERIOD = 1
+SHUTTER_DRIVE_DR = 1.0
+SHUTTER_HOLD_DR = 0.1
 RLU_PER_V = 20000
 SKIP_SAMPLES = 3
 BTN_1_HOLD_TO_POWERDOWN_S = 3
@@ -19,23 +21,27 @@ SENSOR_B_CP_RATIO = 0.006
 
 # BCM pins
 # Luminometer pushbuttons
-BTN_1 = 3
-BTN_2 = 26
-BTN_3 = 19
+BTN_1 = 18
+BTN_2 = 3
+BTN_3 = 
+FAN = 20
+PMIC_LBO = 21
+ADC_PWR_EN = 16
 
 # H-bridge inputs (channel A)
-AIN1 = 16
-AIN2 = 13
-# H-bridge inputs (channel B)
-BIN1 = 5
-BIN2 = 6
+SHT_1 = 24
+SHT_PWM = 12
+SHT_PWM_FREQ = 80000
+
 # H-bridge logical I/O
-NSLEEP = 1
-NFAULT = 0
+NSLEEP = 23
+SHT_FAULT = 14
+
+# Cooling
+COOL_PWM = 13
 
 # Audio element
-BUZZ = 12
-FREQ = 4000
+BUZZ = 25
 
 # SPI Device number
 SPI_CE = 1
