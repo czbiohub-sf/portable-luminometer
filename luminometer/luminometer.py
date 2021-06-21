@@ -97,27 +97,20 @@ class LumiShutter():
 			with self._lock:
 				try:
 					if action == 'open':
-						print(f"\nOpening shutter")
-						GPIO.output(self._dirPin, 1)
-						self._pwm.ChangeDutyCycle(SHUTTER_DRIVE_DR)
+						self.driveOpen()
 						time.sleep(driveTime)
-						self.hold()
+						self.holdOpen()
 
 					elif action == 'close':
-						print(f"\nClosing shutter")
-						GPIO.output(self._dirPin, 0)
-						self._pwm.ChangeDutyCycle(SHUTTER_DRIVE_DR)
+						self.driveClosed()
 						time.sleep(driveTime)
-						self.hold()
+						self.holdClosed()
 
 					else:
 						print(f"\nShutter command not recognized!")
 				except Exception as e:
 					print(f"Shutter actuation error: {e}")
-				finally:
-					self.hold()
-
-
+					self.rest()
 
 		return
 
@@ -125,9 +118,23 @@ class LumiShutter():
 		self._pwm.ChangeDutyCycle(0.0)
 		GPIO.output(self._dirPin, 0)
 
+	def driveOpen(self):
+		print(f"\nOpening shutter")
+		GPIO.output(self._dirPin, 0)
+		self._pwm.ChangeDutyCycle(SHUTTER_DRIVE_DR)
+	
+	def driveClosed(self):
+		print(f"\nClosing shutter")
+		GPIO.output(self._dirPin, 1)
+		self._pwm.ChangeDutyCycle(1-SHUTTER_DRIVE_DR)
 
-	def hold(self):
+	def holdOpen(self):
+		GPIO.output(self._dirPin, 0)
 		self._pwm.ChangeDutyCycle(SHUTTER_HOLD_DR)
+
+	def holdClosed(self):
+		GPIO.output(self._dirPin, 1)
+		self._pwm.ChangeDutyCycle(1-SHUTTER_HOLD_DR)
 
 	def _faultDetected(self, channel):
 		# Callback for handling an H-bridge fault pin event
