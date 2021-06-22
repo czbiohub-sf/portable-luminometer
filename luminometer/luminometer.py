@@ -25,10 +25,6 @@ from luminometer_constants import *
 from lumiscreen import LumiScreen, LumiMode
 from ads131m08_reader import ADS131M08Reader, bytes_to_readable, CRCError
 
-"""
- TODO:
-- Switch to PWM drive of shutters (Future, in V1.2)
-"""
 
 
 class HBridgeFault(Exception):
@@ -42,13 +38,12 @@ class LumiBuzzer():
 			print("Pin value not convertible to integer!")
 			raise
 		GPIO.setmode(GPIO.BCM)
-		GPIO.setup(buzzPin, GPIO.OUT)
-		self._pwm = GPIO.PWM(self._buzzPin, FREQ)
+		GPIO.setup(buzzPin, GPIO.OUT, initial=0)
 
 	def buzz(self):
-		self._pwm.start(50)
+		GPIO.output(self._buzzPin, 1)
 		time.sleep(BUZZ_S)
-		self._pwm.stop()
+		GPIO.output(self._buzzPin, 0)
 
 class LumiShutter():
 	# Uses RPi BCM pinout
