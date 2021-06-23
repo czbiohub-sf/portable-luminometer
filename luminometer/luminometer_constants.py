@@ -7,7 +7,7 @@ SHUTTER_HOLD_DR = 0.1
 RLU_PER_V = 20000
 SKIP_SAMPLES = 3
 BTN_1_HOLD_TO_POWERDOWN_S = 3
-BUZZ_S = 0.3
+BUZZ_S = 0.1
 DEF_DARK_TIME = 1800
 MAX_EXPOSURE = 3000
 MIN_SNR = 5
@@ -23,7 +23,7 @@ SENSOR_B_CP_RATIO = 0.006
 # Luminometer pushbuttons
 BTN_1 = 18
 BTN_2 = 3
-BTN_3 = 
+BTN_3 = 2
 FAN = 20
 PMIC_LBO = 21
 ADC_PWR_EN = 16
@@ -31,7 +31,7 @@ ADC_PWR_EN = 16
 # H-bridge inputs (channel A)
 SHT_1 = 24
 SHT_PWM = 12
-SHT_PWM_FREQ = 80000
+SHT_PWM_FREQ = 50000
 
 # H-bridge logical I/O
 NSLEEP = 23

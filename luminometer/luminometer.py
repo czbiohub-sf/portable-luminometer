@@ -12,7 +12,7 @@ Sensor Datasheet
 """
 import time, math, csv, argparse
 from datetime import datetime
-import os
+import os, json
 import RPi.GPIO as GPIO
 import concurrent.futures
 import threading
@@ -162,6 +162,18 @@ class Luminometer():
 			print("Error creating ADC reader!")
 			print(e)
 			self._simulate = True
+
+
+		# Read temperature coefficients from file
+		try:
+			with open('temp_coeffs.json') as json_file:
+				data = json.load(json_file)
+				self._tempCoeffs = data
+		except Exception as exc:
+			print(f"Could not read read temp_coeffs: {exc}")
+			print('Using default values')
+			self._tempCoeffs["A0"] = self._tempCoeffs["B0"] = -0.45
+			self._tempCoeffs["A1"] = self._tempCoeffs["B1"] = 0.005
 
 		self.display = LumiScreen()
 		self.shutter = LumiShutter(SHT_1, SHT_PWM, SHT_FAULT, NSLEEP)
@@ -601,15 +613,13 @@ class Luminometer():
 
 		return samples 
 
-
 	def run(self):
 		try:
 			with concurrent.futures.ThreadPoolExecutor(max_workers=None) as executor:
 
 				# Start a future for thread to submit work through the queue
 				future_result = { \
-					executor.submit(Luminometer.shutterA.actuate, 'close'): 'SHUTTER A CLOSED', \
-					executor.submit(Luminometer.shutterB.actuate, 'close'): 'SHUTTER B CLOSED'  \
+					executor.submit(Luminometer.shutter.actuate, 'close'): 'SHUTTER CLOSED', \
 					}
 
 				# Display to the user that the system is started and ready
@@ -677,7 +687,7 @@ if __name__ == "__main__":
 	try:
 		Luminometer.run()
 	except Exception as exc:
-		print(f'Encountered exception: {exc}')
+		print(f'Luminometer encountered exception: {exc}')
 	finally:
 		GPIO.cleanup()
 		del(Luminometer)

@@ -21,7 +21,7 @@ class LumiScreenBusy(Exception):
     pass
 
 class LumiScreen():
-	def __init__(self, rotation_deg: int = 180):
+	def __init__(self, rotation_deg: int = 0):
 		self._inky = InkyPHAT("black")
 		self._smallFont = ImageFont.truetype(FredokaOne, 22)
 		self._bigFont = ImageFont.truetype(FredokaOne, 32)
