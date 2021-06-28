@@ -9,7 +9,8 @@ setuptools.setup(
     url="https://github.com/czbiohub/ulc-tube-reader",
     install_requires=[
         'Pillow',
-        'inky'
+        'inky',
+        'numpy'
     ],
     classifiers=[
         "CZ Biohub :: Bioengineering",

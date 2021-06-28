@@ -12,6 +12,7 @@ Sensor Datasheet
 """
 import time, math, csv, argparse
 from datetime import datetime
+import numpy as np
 import os, json
 import RPi.GPIO as GPIO
 import concurrent.futures
@@ -63,8 +64,10 @@ class LumiShutter():
 		GPIO.setmode(GPIO.BCM)
 		GPIO.setup(self._dirPin, GPIO.OUT, initial = 0)
 		GPIO.setup(self._pwmPin, GPIO.OUT, initial = 0)
-		self._pwm = GPIO.PWM(self._pwmPin, SHT_PWM_FREQ)
-		self._pwm.start(0)
+
+		#self._pwm = GPIO.PWM(self._pwmPin, SHT_PWM_FREQ)
+		#self._pwm.start(0)
+
 		GPIO.setup(self._sleepPin, GPIO.OUT, initial = 1)
 		GPIO.setup(self._faultPin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 		GPIO.output(self._sleepPin, 1)
@@ -78,6 +81,8 @@ class LumiShutter():
 			pass
 
 		self._lock = threading.Lock()
+
+		self.rest()
 
 
 	def actuate(self, action: str, driveTime: float = SHUTTER_ACTUATION_TIME):
@@ -94,12 +99,14 @@ class LumiShutter():
 					if action == 'open':
 						self.driveOpen()
 						time.sleep(driveTime)
-						self.holdOpen()
+						#self.holdOpen()
+						self.rest()
 
 					elif action == 'close':
 						self.driveClosed()
 						time.sleep(driveTime)
-						self.holdClosed()
+						#self.holdClosed()
+						self.rest()
 
 					else:
 						print(f"\nShutter command not recognized!")
@@ -110,26 +117,47 @@ class LumiShutter():
 		return
 
 	def rest(self):
-		self._pwm.ChangeDutyCycle(0.0)
+		try:
+			self._pwm.stop()
+		except:
+			pass
 		GPIO.output(self._dirPin, 0)
+		GPIO.output(self._pwmPin, 0)
+
 
 	def driveOpen(self):
 		print(f"\nOpening shutter")
 		GPIO.output(self._dirPin, 0)
-		self._pwm.ChangeDutyCycle(SHUTTER_DRIVE_DR)
+		GPIO.output(self._pwmPin, 1)
+		# self._pwm.stop()
+		# self._pwm.start(SHUTTER_DRIVE_DR)
+		#self._pwm.start(SHUTTER_DRIVE_DR)
+		#self._pwm.ChangeDutyCycle(SHUTTER_DRIVE_DR)
 	
 	def driveClosed(self):
 		print(f"\nClosing shutter")
 		GPIO.output(self._dirPin, 1)
-		self._pwm.ChangeDutyCycle(1-SHUTTER_DRIVE_DR)
-
+		GPIO.output(self._pwmPin, 0)
+		# self._pwm.stop()
+		# self._pwm.start(1-SHUTTER_DRIVE_DR)
+		#self._pwm.start(1-SHUTTER_DRIVE_DR)
+	
 	def holdOpen(self):
-		GPIO.output(self._dirPin, 0)
-		self._pwm.ChangeDutyCycle(SHUTTER_HOLD_DR)
+		GPIO.output(self._dirPin, 1)
+		try:
+			self._pwm = GPIO.PWM(self._pwmPin, SHT_PWM_FREQ)
+		except:
+			pass
+		self._pwm.start(1.0-SHUTTER_HOLD_DR)
 
 	def holdClosed(self):
-		GPIO.output(self._dirPin, 1)
-		self._pwm.ChangeDutyCycle(1-SHUTTER_HOLD_DR)
+		GPIO.output(self._dirPin, 0)
+		try:
+			self._pwm = GPIO.PWM(self._pwmPin, SHT_PWM_FREQ)
+		except:
+			pass
+
+		self._pwm.start(SHUTTER_HOLD_DR)
 
 	def _faultDetected(self, channel):
 		# Callback for handling an H-bridge fault pin event
@@ -154,50 +182,35 @@ class Luminometer():
 
 	def __init__(self):
 
-		try:
-			self._adc = ADS131M08Reader()
-			self._adc.setup_adc(SPI_CE, channels=[0,1])
-			self._simulate = False
-		except Exception as e:
-			print("Error creating ADC reader!")
-			print(e)
-			self._simulate = True
+		self._tempCoeffs = {}
 
-
-		# Read temperature coefficients from file
 		try:
-			with open('temp_coeffs.json') as json_file:
+			with open(CAL_PATH,'r') as json_file:
 				data = json.load(json_file)
 				self._tempCoeffs = data
 		except Exception as exc:
-			print(f"Could not read read temp_coeffs: {exc}")
-			print('Using default values')
-			self._tempCoeffs["A0"] = self._tempCoeffs["B0"] = -0.45
-			self._tempCoeffs["A1"] = self._tempCoeffs["B1"] = 0.005
+			print(exc)
+			print("Unable to load temp_coeffs file!")
+			self._tempCoeffs["A"] = [SENSOR_A_DARK_V, SENSOR_A_CP_RATIO]
+			self._tempCoeffs["B"] = [SENSOR_B_DARK_V, SENSOR_B_CP_RATIO]
 
-		self.display = LumiScreen()
-		self.shutter = LumiShutter(SHT_1, SHT_PWM, SHT_FAULT, NSLEEP)
-		self.buzzer = LumiBuzzer(BUZZ)
+
+		# Pin assignments
 		self._btn1 = BTN_1
 		self._btn2 = BTN_2
 		self._btn3 = BTN_3
 		self._FAN = FAN
 		self._ADC_PWR_EN = ADC_PWR_EN
 		self._PMIC_LBO = PMIC_LBO
+		
+		# Boolean internal variables
 		self._powerOn = True
 		self._measuring = False
 		self._darkIsStored = False
 		self._measurementIsDone = False
-		self._darkRef = [0.0, 0.0]
 
-		try: 
-			self._adc.status_print()
-		except Exception as e:
-			print('Could not print ADC status!')
-			print(e)
-
+		# ADC Cyclic Redundancy Check - error counter
 		self._crcErrs = 0
-		self._measureLock = threading.Lock()
 
 		# Set up channels for button pushes
 		GPIO.setup(self._btn1, GPIO.IN, pull_up_down=GPIO.PUD_UP)
@@ -216,6 +229,27 @@ class Luminometer():
 		GPIO.add_event_detect(self._btn2, GPIO.FALLING, callback=self._btn2_callback, bouncetime=200)
 		GPIO.add_event_detect(self._btn3, GPIO.FALLING, callback=self._btn3_callback, bouncetime=200)
 
+		self.display = LumiScreen()
+		self.shutter = LumiShutter(SHT_1, SHT_PWM, SHT_FAULT, NSLEEP)
+		self.shutter.rest()
+		self.buzzer = LumiBuzzer(BUZZ)
+
+		# Start up sensor chip
+		try:
+			self._adc = ADS131M08Reader()
+			self._adc.setup_adc(SPI_CE, channels=[0,1])
+			self._simulate = False
+		except Exception as e:
+			print("Error creating ADC reader!")
+			print(e)
+			self._simulate = True
+
+		try: 
+			self._adc.status_print()
+		except Exception as e:
+			print('Could not print ADC status!')
+			print(e)
+
 		# Start handling incoming ADC data
 		if self._simulate:
 			print("SIMULATION MODE: Starting timer callback")
@@ -227,40 +261,43 @@ class Luminometer():
 		self._display_q = queue.Queue(maxsize=1)
 		self._shutter_q = queue.Queue(maxsize=1)
 		self._measure_q = queue.Queue(maxsize=1)
+		self._measureLock = threading.Lock()
 
 	def _btn1_callback(self, channel):
 		# Handle presses to button 1
 
 		startTime = time.perf_counter()
-		buzz = True
+		nBeeps = 0
 		powerOff = False
+		print("Button 1 pressed")
+		duration = 0
 
 		# Monitor duration of button press
 		while not GPIO.input(channel):
-			time.sleep(0.2)
-			duration = time.perf_counter() - startTime
-			if duration > BTN_1_HOLD_TO_POWERDOWN_S:
-				if buzz:
-					buzz = False
-					self.buzzer.buzz()
-					powerOff = True
-					print('POWER OFF')
+			time.sleep(0.1)
+			duration = int(time.perf_counter() - startTime)
+			if duration > nBeeps:
+				print(f"Held for {duration} seconds")
+				nBeeps += 1
+				self.buzzer.buzz()
 
-		if powerOff:
+		if duration == BTN_1_HOLD_TO_POWERDOWN_S:
+			print('POWER OFF')
 			try:
 				self._display_q.put((LumiMode.TITLE, 'POWER OFF'))
 				time.sleep(5)
 			except queue.Full:
 				pass
+			finally:
+				self._powerOn = False
 
-			self._powerOn = False
-
-		# Perform dark measurement
-		elif not self._measureLock.locked():
-			try:
-				self._measure_q.put_nowait((DEF_DARK_TIME,True))
-			except queue.Full:
-				pass
+		elif duration == BTN_1_HOLD_TO_CALIBRATE_S:
+			# Perform calibration
+			if not self._measureLock.locked():
+				try:
+					self._measure_q.put_nowait((DEF_DARK_TIME,True))
+				except queue.Full:
+					pass
 		
 		return
 
@@ -329,7 +366,7 @@ class Luminometer():
 
 	def measure(self, \
 		measure_time: int = 30, \
-		dark: bool = False):
+		isCalibration: bool = False):
 		"""
 		Arguments:
 		measure_time is the duration of the entire measurement, in seconds
@@ -354,10 +391,11 @@ class Luminometer():
 		if not self._measuring:
 			with self._measureLock:
 				print("Starting measurement")
-				# Confirm to user that a dark measurement is being performed
-				if dark:
+				
+				# Confirm to user that a calibration is being performed
+				if isCalibration:
 					try:
-						self._display_q.put((LumiMode.TITLE, 'DARK REF'))
+						self._display_q.put((LumiMode.TITLE, 'CALIBRATION'))
 					except queue.Full:
 						pass
 
@@ -384,11 +422,11 @@ class Luminometer():
 						if (self._sc > sampleCount) and ((self._sc % 2)==0) and (self._sc > 2):
 							print(f"\nMeasure: sample count = {self._sc}")
 
-							# Gate traces and subtract dark reference
-							self.dataA = self.gateTrace(self.rawdataA[:self._rsc], self.shutter_samples)
-							self.dataB = self.gateTrace(self.rawdataB[:self._rsc], self.shutter_samples)	
-							# self.dataA = self.gateTrace(self.rawdataA[:self._rsc], self.shutter_samples, 0.0 if dark else self._darkRef[0])
-							# self.dataB = self.gateTrace(self.rawdataB[:self._rsc], self.shutter_samples, 0.0 if dark else self._darkRef[1])	
+							# Gate traces 
+							self.dataA, _ = self.gateTrace(self.rawdataA[:self._rsc], self.shutter_samples, "A", False)
+							self.dataB, _ = self.gateTrace(self.rawdataB[:self._rsc], self.shutter_samples, "B", False)
+							
+							# Recalculate mean
 							self.resultA = mean(self.dataA)
 							self.resultB = mean(self.dataB)							
 
@@ -408,11 +446,9 @@ class Luminometer():
 
 							sampleCount += 1
 
-					# Final: gate traces and subtract dark reference
-					self.dataA = self.gateTrace(self.rawdataA[:self._rsc], self.shutter_samples)
-					self.dataB = self.gateTrace(self.rawdataB[:self._rsc], self.shutter_samples)	
-					# self.dataA = self.gateTrace(self.rawdataA[:self._rsc], self.shutter_samples, 0.0 if dark else self._darkRef[0])
-					# self.dataB = self.gateTrace(self.rawdataB[:self._rsc], self.shutter_samples, 0.0 if dark else self._darkRef[1])	
+					# Final: gate traces. If calibration, do the fit and write the file
+					self.dataA, rawDownsampledA = self.gateTrace(self.rawdataA[:self._rsc], self.shutter_samples, "A", isCalibration)
+					self.dataB, rawDownsampledB = self.gateTrace(self.rawdataB[:self._rsc], self.shutter_samples, "B", isCalibration)	
 
 					# Final result is the mean of all the gated shutter-open periods
 					self.resultA = mean(self.dataA)
@@ -421,10 +457,26 @@ class Luminometer():
 					self.semB = stdev(self.dataB)/math.sqrt(float(len(self.dataB)))
 
 					# If doing a dark calibration, then store the result
-					if dark:
-						self._darkRef[0] = self.resultA
-						self._darkRef[1] = self.resultB
-						self._darkIsStored = True
+					if isCalibration:
+						fitParamsA = np.polyfit(rawDownsampledA, self.dataA, 1, full=False)
+						fitParamsB = np.polyfit(rawDownsampledB, self.dataB, 1, full=False)
+						
+						# Convert fit parameters to V_dark at zero temperature
+						offsetA = -fitParamsA[1]/fitParams[0]
+						crA = fitParamsA[0]
+						self._tempCoeffs["A"] = [offsetA, crA]
+						offsetB = -fitParamsB[1]/fitParamsB[0]
+						crB = fitParamsA[0]
+						self._tempCoeffs["B"] = [offsetB, crB]
+
+
+						print(f"Offset A: {offsetA}")
+						print(f"Coupling coeff A: {crA}")						
+						print(f"Offset B: {OffsetB}")
+						print(f"Coupling coeff B: {crB}")
+
+						with open(CAL_PATH,'w') as outfile:
+							json.dump(self._tempCoeffs, outfile)
 
 					print(f"\nSensor A final result: {RLU_PER_V*self.resultA:.2f} +/- {RLU_PER_V*self.semA:.2f} (s.e.m.) ")
 					print(f"\nSensor B final result: {RLU_PER_V*self.resultB:.2f} +/- {RLU_PER_V*self.semB:.2f} (s.e.m.) ")
@@ -440,10 +492,12 @@ class Luminometer():
 				finally:
 					self._measuring = False
 					self._measurementIsDone = True
+					self.shutter.rest()
 					time.sleep(5)
 					self._updateDisplayResult(True)
 
 		return
+
 
 	def _loopCondition(self, exposure:int) -> bool:
 		if exposure > 0:
@@ -452,11 +506,12 @@ class Luminometer():
 
 		# Auto-exposure
 		else:
+
 			result = \
 					((self._duration_s < MAX_EXPOSURE) and \
 					(self._haltMeasurement == False) and \
 					((abs(self.resultB) / self.semB)) < MIN_SNR) or \
-					((self._sc) < 7)
+					((self._sc) < MIN_PERIODS)
 			return result
 
 	def _cb_adc_data_ready(self, channel):
@@ -570,7 +625,7 @@ class Luminometer():
 			for i in range(len(self.dataA)):
 				csvWriter.writerow((self.dataA[i], self.dataB[i]))
 
-	def gateTrace(self, rawData: List[float], gateSize: int) -> List[float]:
+	def gateTrace(self, rawData: List[float], gateSize: int, channel: str, isCalibration: bool = False) -> List[float]:
 		"""
 		Helper method that computes the mean of each even chunk of data, subtracted by the mean of the flanking odd
 		chunks of data. The chunk size is specified by gateSize, and the total size of the rawData should be an odd
@@ -600,20 +655,32 @@ class Luminometer():
 			nPeriods = nPeriods -1
 
 		samples = []
-
+		rawDownsampled = []
 
 		for i in range(gateSize, gateSize*nPeriods, 2*gateSize):
 			sample = mean(rawData[(i+SKIP_SAMPLES):i+(gateSize-1)])
 			darkBefore = mean(rawData[(i-gateSize+SKIP_SAMPLES):(i-1)])
 			darkAfter = mean(rawData[(i+gateSize+SKIP_SAMPLES):(i+2*gateSize - 1)])
 			darkMean = 0.5*(darkBefore + darkAfter)
-			gatedValue = sample - darkMean
-			correctedValue = gatedValue - SENSOR_A_CP_RATIO*(darkMean - SENSOR_A_DARK_V)
-			samples.append(correctedValue)
 
-		return samples 
+			rawDownsampled.append(darkMean)
+			gatedSample = sample - darkMean
+
+			if isCalibration:
+				samples.append(sample - darkMean)
+			else:
+				samples.append(self.correctTemperature(gatedSample, darkMean, self._tempCoeffs[channel]))
+
+		return samples, rawDownsampled
+
+
+	def correctTemperature(self, gatedIn: float, darkMeanIn: float, tempCoeffs: List[float]) -> float:
+		return gatedIn - tempCoeffs[1]*(darkMeanIn - tempCoeffs[0])
 
 	def run(self):
+
+		self.shutter.rest()
+
 		try:
 			with concurrent.futures.ThreadPoolExecutor(max_workers=None) as executor:
 
@@ -693,6 +760,6 @@ if __name__ == "__main__":
 		del(Luminometer)
 		
 		# Power down system
-		#os.system('sudo poweroff')
+		os.system('sudo poweroff')
 
 

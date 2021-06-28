@@ -85,7 +85,7 @@ class LumiScreen():
 		message[0] = "READY" + "  Dark:" + ('Yes' if dark == True else 'No')
 		message[1] = "Top: Auto"
 		message[2] = "10/30/60/300/600"
-		message[3] = "Bottom: Dark/OFF"
+		message[3] = "Bottom: CAL/OFF"
 
 		self._displayLines(message)
 
