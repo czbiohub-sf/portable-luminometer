@@ -466,7 +466,7 @@ class Luminometer():
 						crA = fitParamsA[0]
 						self._tempCoeffs["A"] = [offsetA, crA]
 						offsetB = -fitParamsB[1]/fitParamsB[0]
-						crB = fitParamsA[0]
+						crB = fitParamsB[0]
 						self._tempCoeffs["B"] = [offsetB, crB]
 
 
