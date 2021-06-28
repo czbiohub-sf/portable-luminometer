@@ -462,7 +462,7 @@ class Luminometer():
 						fitParamsB = np.polyfit(rawDownsampledB, self.dataB, 1, full=False)
 						
 						# Convert fit parameters to V_dark at zero temperature
-						offsetA = -fitParamsA[1]/fitParams[0]
+						offsetA = -fitParamsA[1]/fitParamsA[0]
 						crA = fitParamsA[0]
 						self._tempCoeffs["A"] = [offsetA, crA]
 						offsetB = -fitParamsB[1]/fitParamsB[0]
