@@ -667,7 +667,7 @@ class Luminometer():
 			gatedSample = sample - darkMean
 
 			if isCalibration:
-				samples.append(sample - darkMean)
+				samples.append(gatedSample)
 			else:
 				samples.append(self.correctTemperature(gatedSample, darkMean, self._tempCoeffs[channel]))
 
