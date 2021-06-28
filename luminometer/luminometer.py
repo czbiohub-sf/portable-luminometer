@@ -472,7 +472,7 @@ class Luminometer():
 
 						print(f"Offset A: {offsetA}")
 						print(f"Coupling coeff A: {crA}")						
-						print(f"Offset B: {OffsetB}")
+						print(f"Offset B: {offsetB}")
 						print(f"Coupling coeff B: {crB}")
 
 						with open(CAL_PATH,'w') as outfile:
