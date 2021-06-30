@@ -753,9 +753,9 @@ F 3 "" H 2000 2300 50  0001 C CNN
 	-1   0    0    -1  
 $EndComp
 Text Notes 4700 2100 0    39   ~ 0
-0.6 mA
+0.6-10 uA
 Text Notes 4675 3125 0    39   ~ 0
-0.6 mA
+0.6-10 uA
 Text Notes 4375 1500 0    39   ~ 0
 40Hz
 Text Notes 4350 3725 0    39   ~ 0
