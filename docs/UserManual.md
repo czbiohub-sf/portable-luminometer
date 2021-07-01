@@ -26,8 +26,8 @@ Finally, there is a residual signal offset corresponding to a difference in sign
 ## Operation Guide
 
 ### Powering up and shutting down
-__Important!__
-- Always wait 15 seconds after the luminometer software has been shut down before turning the main power switch off.
+__!!Important!!__
+Always wait 15 seconds after the luminometer software has been shut down before turning the main power switch off.
 
 __Powering up__
 Flip the power switch on the side panel to the up position and wait for the screen to display its ready message. This will take 30-60 seconds. 
@@ -70,15 +70,33 @@ The middle button is configured for the user to select a fixed manual exposure t
 - Holding for 5 seconds sets exposure to 600 s(the instrument will beep again to confirm). 
 
 __During a measurement__
-No action taken
+No action
 
 #### Bottom button
 __During the READY state__
-- The bottom button is mainly used for switching the power off: holding bottom button for three seconds powers down the device. Remember to always wait at least 15 seconds after the 'POWER OFF' message is displayed before turning the physical power switch off.
-- Calibration mode: 
+- The bottom button is mainly used for switching the power off: holding bottom button for **three** beeps powers down the device. Remember to always wait at least 15 seconds after the 'POWER OFF' message is displayed before turning the physical power switch off.
+- Calibration mode: holding the bottom button for **five** beeps starts a temperature compensation calibration. **CAUTION:** Entering the calibration mode will overwrite the previous calibration. Having a good temperature compensation calibration is essential for proper device operation. Please see the calibration section below for instructions on the calibration procedure.
 
 ### Battery charging
-The device uses a mini-USB interface for charging. The 4400 mA-hr
+The device uses a mini-USB interface for charging. The 4400 mA-hr battery is designed to last for over 10 hrs of continuous operation. The design intention is for the device to be charged overnight, and used all day for experiments. 
+
+Blue light: Power ON indicator
+Orange light: Charging in progress indicator
+Red light: Low battery indicator
+Green light: Fully-charged indicator
+
+## Temperature compensation calibration
+Requires: 
+- Luminometer
+- 37-40C incubator
+- 4 C refridgerator
+
+**Procedure**
+1. Put the luminometer in the incubator (with power turned on, waiting in the ready state), and allow it to come to temperature (minimum 30 mins).
+2. Take it out and immediately start the calibration (hold the bottom button for 5 beeps). You should see 'CALIBRATION' appear on the screen.
+3. Carefully lay it flat inside a 4 C fridge and leave it for 30 mins while it runs the calibration routine. Do not allow it to be bumped during this period.
+4. Take it out, and hold the top button for 3 seconds to halt.
+5. Calibration is now completed.
 
 ### Mechanical Details
 
