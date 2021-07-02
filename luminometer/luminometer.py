@@ -225,9 +225,9 @@ class Luminometer():
 		GPIO.setup(self._FAN, GPIO.OUT, initial=1)
 
 		# Add callback for button pushes
-		GPIO.add_event_detect(self._btn1, GPIO.FALLING, callback=self._btn1_callback, bouncetime=200)
-		GPIO.add_event_detect(self._btn2, GPIO.FALLING, callback=self._btn2_callback, bouncetime=200)
-		GPIO.add_event_detect(self._btn3, GPIO.FALLING, callback=self._btn3_callback, bouncetime=200)
+		GPIO.add_event_detect(self._btn1, GPIO.FALLING, callback=self._callbackHandler, bouncetime=200)
+		GPIO.add_event_detect(self._btn2, GPIO.FALLING, callback=self._callbackHandler, bouncetime=200)
+		GPIO.add_event_detect(self._btn3, GPIO.FALLING, callback=self._callbackHandler, bouncetime=200)
 
 		self.display = LumiScreen()
 		self.shutter = LumiShutter(SHT_1, SHT_PWM, SHT_FAULT, NSLEEP)
@@ -263,8 +263,20 @@ class Luminometer():
 		self._measure_q = queue.Queue(maxsize=1)
 		self._measureLock = threading.Lock()
 
-	def _btn1_callback(self, channel):
-		# Handle presses to button 1
+	def _callbackHandler(self, channel):
+		''' 
+		Handle one push-and-release event. This includes single button pushes as well as 
+		multi-button pushes. The event is defined as the interval between when the first 
+		button is pushed (triggering the callback via GPIO.FALLING), to when the last
+		button is released (no more buttons are pressed). Although 'channel' does correspond
+		to the event triggering a function call, the other buttons are all checked.
+
+		Handled events:
+		Button 1 (Bottom button)
+
+		Button
+
+		'''
 
 		startTime = time.perf_counter()
 		nBeeps = 0
