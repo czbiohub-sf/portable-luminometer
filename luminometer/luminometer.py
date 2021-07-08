@@ -15,6 +15,7 @@ from datetime import datetime
 import numpy as np
 import os, json
 import RPi.GPIO as GPIO
+import pigpio
 import concurrent.futures
 import threading
 import queue
@@ -63,10 +64,12 @@ class LumiShutter():
 
 		GPIO.setmode(GPIO.BCM)
 		GPIO.setup(self._dirPin, GPIO.OUT, initial = 0)
-		GPIO.setup(self._pwmPin, GPIO.OUT, initial = 0)
+		# GPIO.setup(self._pwmPin, GPIO.OUT, initial = 0)
 
-		self._pwm = GPIO.PWM(self._pwmPin, SHT_PWM_FREQ)
-		self._pwm.start(0)
+		# self._pwm = GPIO.PWM(self._pwmPin, SHT_PWM_FREQ)
+		# self._pwm.start(0)
+		self._pi = pigpio.pi()
+		self._pi.hardware_PWM(self._pwmPin, 0, 0)
 
 		GPIO.setup(self._sleepPin, GPIO.OUT, initial = 1)
 		GPIO.setup(self._faultPin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
@@ -119,7 +122,7 @@ class LumiShutter():
 	def rest(self):
 		try:
 			GPIO.output(self._dirPin, 0)
-			self._pwm.stop()
+			self._pi.hardware_PWM(self._pwmPin, 0, 0)
 		except:
 			pass
 		#GPIO.output(self._dirPin, 0)
@@ -128,7 +131,7 @@ class LumiShutter():
 
 	def driveOpen(self):
 		print(f"\nOpening shutter")
-		self._pwm.start(SHUTTER_DRIVE_DR)
+		self._pi.hardware_PWM(self._pwmPin, SHT_PWM_FREQ, SHUTTER_DRIVE_DR)
 		GPIO.output(self._dirPin, 0)
 		# GPIO.output(self._pwmPin, 1)
 		# self._pwm.stop()
@@ -137,7 +140,7 @@ class LumiShutter():
 	def driveClosed(self):
 		print(f"\nClosing shutter")
 		#self._pwm.start(100-SHUTTER_DRIVE_DR)
-		self._pwm.stop()
+		self._pi.hardware_PWM(self._pwmPin, 0, 0)
 		GPIO.output(self._pwmPin, 0)
 		GPIO.output(self._dirPin, 1)
 		#GPIO.output(self._pwmPin, 0)
@@ -145,11 +148,11 @@ class LumiShutter():
 		#self._pwm.ChangeDutyCycle(100-SHUTTER_DRIVE_DR)
 	
 	def holdOpen(self):
-		self._pwm.start(SHUTTER_HOLD_DR)
+		self._pi.hardware_PWM(self._pwmPin, SHT_PWM_FREQ, SHUTTER_HOLD_DR)
 		GPIO.output(self._dirPin, 0)
 
 	def holdClosed(self):
-		self._pwm.start(0)
+		self._pi.hardware_PWM(self._pwmPin, SHT_PWM, 0)
 		GPIO.output(self._dirPin, 0)
 
 	def _faultDetected(self, channel):
@@ -161,7 +164,7 @@ class LumiShutter():
 
 	def __delete__(self):
 		try:
-			self._pwm.stop()
+			self._pi.hardware_PWM(self._pwmPin, 0, 0)
 		except:
 			pass
 		try:
