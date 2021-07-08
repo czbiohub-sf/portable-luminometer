@@ -65,8 +65,8 @@ class LumiShutter():
 		GPIO.setup(self._dirPin, GPIO.OUT, initial = 0)
 		GPIO.setup(self._pwmPin, GPIO.OUT, initial = 0)
 
-		#self._pwm = GPIO.PWM(self._pwmPin, SHT_PWM_FREQ)
-		#self._pwm.start(0)
+		self._pwm = GPIO.PWM(self._pwmPin, SHT_PWM_FREQ)
+		self._pwm.start(0)
 
 		GPIO.setup(self._sleepPin, GPIO.OUT, initial = 1)
 		GPIO.setup(self._faultPin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
@@ -99,14 +99,14 @@ class LumiShutter():
 					if action == 'open':
 						self.driveOpen()
 						time.sleep(driveTime)
-						#self.holdOpen()
-						self.rest()
+						self.holdOpen()
+						#self.rest()
 
 					elif action == 'close':
 						self.driveClosed()
 						time.sleep(driveTime)
-						#self.holdClosed()
-						self.rest()
+						self.holdClosed()
+						#self.rest()
 
 					else:
 						print(f"\nShutter command not recognized!")
@@ -118,46 +118,39 @@ class LumiShutter():
 
 	def rest(self):
 		try:
+			GPIO.output(self._dirPin, 0)
 			self._pwm.stop()
 		except:
 			pass
-		GPIO.output(self._dirPin, 0)
-		GPIO.output(self._pwmPin, 0)
+		#GPIO.output(self._dirPin, 0)
+		#GPIO.output(self._pwmPin, 0)
 
 
 	def driveOpen(self):
 		print(f"\nOpening shutter")
+		self._pwm.start(SHUTTER_DRIVE_DR)
 		GPIO.output(self._dirPin, 0)
-		GPIO.output(self._pwmPin, 1)
+		# GPIO.output(self._pwmPin, 1)
 		# self._pwm.stop()
-		# self._pwm.start(SHUTTER_DRIVE_DR)
-		#self._pwm.start(SHUTTER_DRIVE_DR)
 		#self._pwm.ChangeDutyCycle(SHUTTER_DRIVE_DR)
 	
 	def driveClosed(self):
 		print(f"\nClosing shutter")
-		GPIO.output(self._dirPin, 1)
+		#self._pwm.start(100-SHUTTER_DRIVE_DR)
+		self._pwm.stop()
 		GPIO.output(self._pwmPin, 0)
+		GPIO.output(self._dirPin, 1)
+		#GPIO.output(self._pwmPin, 0)
 		# self._pwm.stop()
-		# self._pwm.start(1-SHUTTER_DRIVE_DR)
-		#self._pwm.start(1-SHUTTER_DRIVE_DR)
+		#self._pwm.ChangeDutyCycle(100-SHUTTER_DRIVE_DR)
 	
 	def holdOpen(self):
-		GPIO.output(self._dirPin, 1)
-		try:
-			self._pwm = GPIO.PWM(self._pwmPin, SHT_PWM_FREQ)
-		except:
-			pass
-		self._pwm.start(1.0-SHUTTER_HOLD_DR)
+		self._pwm.start(SHUTTER_HOLD_DR)
+		GPIO.output(self._dirPin, 0)
 
 	def holdClosed(self):
+		self._pwm.start(0)
 		GPIO.output(self._dirPin, 0)
-		try:
-			self._pwm = GPIO.PWM(self._pwmPin, SHT_PWM_FREQ)
-		except:
-			pass
-
-		self._pwm.start(SHUTTER_HOLD_DR)
 
 	def _faultDetected(self, channel):
 		# Callback for handling an H-bridge fault pin event
@@ -168,7 +161,6 @@ class LumiShutter():
 
 	def __delete__(self):
 		try:
-			self._pwm.ChangeDutyCycle(0.0)
 			self._pwm.stop()
 		except:
 			pass
@@ -456,7 +448,7 @@ class Luminometer():
 					self.semA = stdev(self.dataA)/math.sqrt(float(len(self.dataA)))
 					self.semB = stdev(self.dataB)/math.sqrt(float(len(self.dataB)))
 
-					# If doing a dark calibration, then store the result
+					# If doing a calibration, then store the result
 					if isCalibration:
 						fitParamsA = np.polyfit(rawDownsampledA, self.dataA, 1, full=False)
 						fitParamsB = np.polyfit(rawDownsampledB, self.dataB, 1, full=False)
@@ -468,7 +460,6 @@ class Luminometer():
 						offsetB = -fitParamsB[1]/fitParamsB[0]
 						crB = fitParamsB[0]
 						self._tempCoeffs["B"] = [offsetB, crB]
-
 
 						print(f"Offset A: {offsetA}")
 						print(f"Coupling coeff A: {crA}")						
@@ -561,9 +552,9 @@ class Luminometer():
 				LumiMode.RESULT, \
 				self._darkIsStored,\
 				self._measurementIsDone,\
-				RLU_PER_V*mean(self.dataA),\
+				RLU_PER_V*mean(self.dataA)+ADD_OFFSET_RLU,\
 				RLU_PER_V*self.semA,\
-				RLU_PER_V*mean(self.dataB),\
+				RLU_PER_V*mean(self.dataB)+ADD_OFFSET_RLU,\
 				RLU_PER_V*self.semB,\
 				self._duration_s)
 		try:

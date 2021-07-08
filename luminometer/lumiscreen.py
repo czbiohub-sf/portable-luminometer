@@ -68,7 +68,7 @@ class LumiScreen():
 		duration_s: int
 		'''
 		message = 4*[None]
-		message[0] = "Final:" + ('Yes' if final == True else 'No') + "  Dark:" + ('Yes' if dark == True else 'No')
+		message[0] = "Final:" + ('Yes' if final == True else 'No') 
 		message[1] = f"A: {sensorA:.2f}+/-{sensorA_sem:.2f}"
 		message[2] = f"B: {sensorB:.2f}+/-{sensorB_sem:.2f}"
 		message[3] = f"Time: {int(duration_s):n} s"
@@ -82,7 +82,7 @@ class LumiScreen():
 		dark: bool, indicating whether a dark measurement has been performed
 		'''
 		message = 4*[None]
-		message[0] = "READY" + "  Dark:" + ('Yes' if dark == True else 'No')
+		message[0] = "READY" #+ "  Dark:" + ('Yes' if dark == True else 'No')
 		message[1] = "Top: Auto"
 		message[2] = "10/30/60/300/600"
 		message[3] = "Bottom: CAL/OFF"
