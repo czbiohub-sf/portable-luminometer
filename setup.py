@@ -10,7 +10,8 @@ setuptools.setup(
     install_requires=[
         'Pillow',
         'inky',
-        'numpy'
+        'numpy',
+        'pigpio'
     ],
     classifiers=[
         "CZ Biohub :: Bioengineering",
