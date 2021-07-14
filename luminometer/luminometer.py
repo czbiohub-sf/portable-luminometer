@@ -10,7 +10,7 @@ Sensor Datasheet
 	https://www.mouser.com/datasheet/2/308/MICROC-SERIES-D-1811553.pdf
 
 """
-import time, math, csv, argparse
+import time, math, csv, argparse, logging
 from datetime import datetime
 import numpy as np
 import os, json
@@ -27,20 +27,38 @@ from luminometer_constants import *
 from lumiscreen import LumiScreen, LumiMode
 from ads131m08_reader import ADS131M08Reader, bytes_to_readable, CRCError
 
+############################## SET UP MEASUREMENT AND LOGGING DIRECTORIES ##############################
+LOG_OUTPUT_DIR = "/home/pi/luminometer-logs/"
+MEASUREMENT_OUTPUT_DIR = "/home/pi/measurements/"
+if not os.path.exists(LOG_OUTPUT_DIR):
+	os.mkdir(LOG_OUTPUT_DIR)
+if not os.path.exists(MEASUREMENT_OUTPUT_DIR):
+	os.mkdir(MEASUREMENT_OUTPUT_DIR)
+
+############################## SETUP LOGGER ##############################
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+log_location = os.path.join(LOG_OUTPUT_DIR, "luminometer.log")
+file_handler = logging.FileHandler(log_location)
+formatter = logging.Formatter("%(asctime)s:%(name)s:%(levelname)s: %(message)s", "%Y-%m-%d-%H:%M:%S")
+file_handler.setFormatter(formatter)
+logger.addHandler(file_handler)
 
 
 class HBridgeFault(Exception):
-    pass
+	logger.exception("\nH-bridge fault detected!")
+	pass
 
 class LumiBuzzer():
 	def __init__(self, buzzPin: int):
 		try:
 			self._buzzPin = int(buzzPin)
 		except TypeError:
-			print("Pin value not convertible to integer!")
+			logger.exception("Pin value not convertible to integer!")
 			raise
 		GPIO.setmode(GPIO.BCM)
 		GPIO.setup(buzzPin, GPIO.OUT, initial=0)
+		logger.info("Successfully instantiated LumiBuzzer.")
 
 	def buzz(self):
 		GPIO.output(self._buzzPin, 1)
@@ -59,7 +77,7 @@ class LumiShutter():
 			self._faultPin = int(faultPin)
 			self._sleepPin = int(sleepPin)
 		except TypeError:
-			print('Pin value not convertible to integer!')
+			logger.error("Pin value not convertible to integer!")
 			raise
 
 		GPIO.setmode(GPIO.BCM)
@@ -86,7 +104,7 @@ class LumiShutter():
 		self._lock = threading.Lock()
 
 		self.rest()
-
+		logger.info("Successfully instantiated LumiShutter.")
 
 	def actuate(self, action: str, driveTime: float = SHUTTER_ACTUATION_TIME):
 		
@@ -159,7 +177,6 @@ class LumiShutter():
 		# Callback for handling an H-bridge fault pin event
 		# Ref datasheet:
 		# https://www.ti.com/lit/ds/symlink/drv8833.pdf?ts=1617084507643&ref_url=https%253A%252F%252Fwww.google.com%252F
-		print('\nH-bridge fault detected!')
 		raise HBridgeFault
 
 	def __delete__(self):
@@ -608,7 +625,7 @@ class Luminometer():
 	def writeToFile(self):
 		now = datetime.now()
 		dt_string = now.strftime("%Y-%m-%d-%H-%M-%S")
-		title = dt_string
+		title = os.join(MEASUREMENT_OUTPUT_DIR, dt_string)
 		with open(title + '.csv', 'w', newline='') as csvFile:
 			csvWriter = csv.writer(csvFile)
 			for i in range(self.nRawSamples):
