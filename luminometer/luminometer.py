@@ -103,13 +103,11 @@ class LumiShutter():
 						self.driveOpen()
 						time.sleep(driveTime)
 						self.holdOpen()
-						#self.rest()
 
 					elif action == 'close':
 						self.driveClosed()
 						time.sleep(driveTime)
 						self.holdClosed()
-						#self.rest()
 
 					else:
 						print(f"\nShutter command not recognized!")
@@ -125,35 +123,25 @@ class LumiShutter():
 			self._pi.hardware_PWM(self._pwmPin, 0, 0)
 		except:
 			pass
-		#GPIO.output(self._dirPin, 0)
-		#GPIO.output(self._pwmPin, 0)
 
 
 	def driveOpen(self):
 		print(f"\nOpening shutter")
 		self._pi.hardware_PWM(self._pwmPin, SHT_PWM_FREQ, SHUTTER_DRIVE_DR)
 		GPIO.output(self._dirPin, 0)
-		# GPIO.output(self._pwmPin, 1)
-		# self._pwm.stop()
-		#self._pwm.ChangeDutyCycle(SHUTTER_DRIVE_DR)
 	
 	def driveClosed(self):
 		print(f"\nClosing shutter")
-		#self._pwm.start(100-SHUTTER_DRIVE_DR)
-		self._pi.hardware_PWM(self._pwmPin, 0, 0)
-		GPIO.output(self._pwmPin, 0)
+		self._pi.hardware_PWM(self._pwmPin, SHT_PWM_FREQ, 0)
 		GPIO.output(self._dirPin, 1)
-		#GPIO.output(self._pwmPin, 0)
-		# self._pwm.stop()
-		#self._pwm.ChangeDutyCycle(100-SHUTTER_DRIVE_DR)
 	
 	def holdOpen(self):
 		self._pi.hardware_PWM(self._pwmPin, SHT_PWM_FREQ, SHUTTER_HOLD_DR)
 		GPIO.output(self._dirPin, 0)
 
 	def holdClosed(self):
-		self._pi.hardware_PWM(self._pwmPin, SHT_PWM, 0)
-		GPIO.output(self._dirPin, 0)
+		self._pi.hardware_PWM(self._pwmPin, SHT_PWM_FREQ, 1000000 - SHUTTER_HOLD_DR)
+		GPIO.output(self._dirPin, 1)
 
 	def _faultDetected(self, channel):
 		# Callback for handling an H-bridge fault pin event
@@ -171,7 +159,6 @@ class LumiShutter():
 			GPIO.output(self._dirPin, 0)
 		except:
 			pass
-
 
 class Luminometer():
 
@@ -754,6 +741,6 @@ if __name__ == "__main__":
 		del(Luminometer)
 		
 		# Power down system
-		os.system('sudo poweroff')
+		# os.system('sudo poweroff')
 
 
