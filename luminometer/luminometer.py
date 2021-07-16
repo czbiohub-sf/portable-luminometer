@@ -629,7 +629,7 @@ class Luminometer():
 	def writeToFile(self):
 		now = datetime.now()
 		dt_string = now.strftime("%Y-%m-%d-%H-%M-%S")
-		title = os.join(MEASUREMENT_OUTPUT_DIR, dt_string)
+		title = os.path.join(MEASUREMENT_OUTPUT_DIR, dt_string)
 		with open(title + '.csv', 'w', newline='') as csvFile:
 			csvWriter = csv.writer(csvFile)
 			for i in range(self.nRawSamples):
