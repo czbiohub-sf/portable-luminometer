@@ -1,10 +1,5 @@
 # Sampling rate of the ADC (488 kHz CLKIN, OSR = 4096, global chop mode. See ADS131m08 datasheet 8.4.2.2)
 SAMPLE_TIME_S = 0.050
-SHUTTER_ACTUATION_TIME = 0.15
-SHUTTER_PERIOD = 1
-SHUTTER_DRIVE_DR = 100
-SHUTTER_HOLD_DR = 50
-RLU_PER_V = 20000
 SKIP_SAMPLES = 3
 BTN_1_HOLD_TO_POWERDOWN_S = 3
 BTN_1_HOLD_TO_CALIBRATE_S = 10
@@ -14,6 +9,8 @@ MAX_EXPOSURE = 3000
 MIN_SNR = 7
 MIN_PERIODS = 7
 DEF_AUTO_MAX_DURATION = 10000
+RLU_PER_V = 20000
+
 
 # Thermal calibration file location
 CAL_PATH = "/home/pi/Documents/ulc-tube-reader/luminometer/temp_coeffs.json"
@@ -26,7 +23,6 @@ SENSOR_B_CP_RATIO = 0.0003
 ADD_OFFSET_RLU = 0.5
 
 # BCM pins
-# Luminometer pushbuttons
 BTN_1 = 18
 BTN_2 = 3
 BTN_3 = 2
@@ -34,10 +30,14 @@ FAN = 20
 PMIC_LBO = 21
 ADC_PWR_EN = 16
 
-# H-bridge inputs (channel A)
+# Shutter parameters
+SHUTTER_ACTUATION_TIME = 0.15
+SHUTTER_PERIOD = 1
+SHUTTER_DRIVE_DR = 1000000
+SHUTTER_HOLD_DR = 500000
 SHT_1 = 24
 SHT_PWM = 12
-SHT_PWM_FREQ = 2000000
+SHT_PWM_FREQ = 50000
 
 # H-bridge logical I/O
 NSLEEP = 23
