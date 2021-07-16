@@ -10,7 +10,7 @@ Sensor Datasheet
 	https://www.mouser.com/datasheet/2/308/MICROC-SERIES-D-1811553.pdf
 
 """
-import time, math, csv, argparse
+import time, math, csv, argparse, logging
 from datetime import datetime
 import numpy as np
 import os, json
@@ -27,20 +27,45 @@ from luminometer_constants import *
 from lumiscreen import LumiScreen, LumiMode
 from ads131m08_reader import ADS131M08Reader, bytes_to_readable, CRCError
 
+############################## SET UP MEASUREMENT AND LOGGING DIRECTORIES ##############################
+LOG_OUTPUT_DIR = "/home/pi/luminometer-logs/"
+MEASUREMENT_OUTPUT_DIR = "/home/pi/measurements/"
+if not os.path.exists(LOG_OUTPUT_DIR):
+	os.mkdir(LOG_OUTPUT_DIR)
+if not os.path.exists(MEASUREMENT_OUTPUT_DIR):
+	os.mkdir(MEASUREMENT_OUTPUT_DIR)
 
+############################## SETUP LOGGER ##############################
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+log_location = os.path.join(LOG_OUTPUT_DIR, "luminometer.log")
+
+# Set up logging to a file
+file_handler = logging.FileHandler(log_location)
+formatter = logging.Formatter("%(asctime)s:%(name)s:%(levelname)s: %(message)s", "%Y-%m-%d-%H:%M:%S")
+file_handler.setFormatter(formatter)
+logger.addHandler(file_handler)
+
+# Set up logging to the console
+stream_handler = logging.StreamHandler()
+stream_handler.setLevel(logging.DEBUG)
+stream_handler.setFormatter(formatter)
+logger.addHandler(stream_handler)
 
 class HBridgeFault(Exception):
-    pass
+	logger.exception("\nH-bridge fault detected!")
+	pass
 
 class LumiBuzzer():
 	def __init__(self, buzzPin: int):
 		try:
 			self._buzzPin = int(buzzPin)
 		except TypeError:
-			print("Pin value not convertible to integer!")
+			logger.exception("Pin value not convertible to integer!")
 			raise
 		GPIO.setmode(GPIO.BCM)
 		GPIO.setup(buzzPin, GPIO.OUT, initial=0)
+		logger.info("Successfully instantiated LumiBuzzer.")
 
 	def buzz(self):
 		GPIO.output(self._buzzPin, 1)
@@ -59,7 +84,7 @@ class LumiShutter():
 			self._faultPin = int(faultPin)
 			self._sleepPin = int(sleepPin)
 		except TypeError:
-			print('Pin value not convertible to integer!')
+			logger.error("Pin value not convertible to integer!")
 			raise
 
 		GPIO.setmode(GPIO.BCM)
@@ -86,7 +111,7 @@ class LumiShutter():
 		self._lock = threading.Lock()
 
 		self.rest()
-
+		logger.info("Successfully instantiated LumiShutter.")
 
 	def actuate(self, action: str, driveTime: float = SHUTTER_ACTUATION_TIME):
 		
@@ -112,7 +137,7 @@ class LumiShutter():
 					else:
 						print(f"\nShutter command not recognized!")
 				except Exception as e:
-					print(f"Shutter actuation error: {e}")
+					logger.exception(f"Shutter actuation error: {e}")
 					self.rest()
 
 		return
@@ -120,26 +145,29 @@ class LumiShutter():
 	def rest(self):
 		try:
 			GPIO.output(self._dirPin, 0)
+			logger.info("Turning off PWM, resting.")
 			self._pi.hardware_PWM(self._pwmPin, 0, 0)
 		except:
 			pass
 
 
 	def driveOpen(self):
-		print(f"\nOpening shutter")
+		logger.info(f"\nOpening shutter")
 		self._pi.hardware_PWM(self._pwmPin, SHT_PWM_FREQ, SHUTTER_DRIVE_DR)
 		GPIO.output(self._dirPin, 0)
 	
 	def driveClosed(self):
-		print(f"\nClosing shutter")
+		logger.debug(f"\nClosing shutter")
 		self._pi.hardware_PWM(self._pwmPin, SHT_PWM_FREQ, 0)
 		GPIO.output(self._dirPin, 1)
 	
 	def holdOpen(self):
+		logger.debug("Holding open.")
 		self._pi.hardware_PWM(self._pwmPin, SHT_PWM_FREQ, SHUTTER_HOLD_DR)
 		GPIO.output(self._dirPin, 0)
 
 	def holdClosed(self):
+		logger.debug("Holding closed.")
 		self._pi.hardware_PWM(self._pwmPin, SHT_PWM_FREQ, 1000000 - SHUTTER_HOLD_DR)
 		GPIO.output(self._dirPin, 1)
 
@@ -147,7 +175,6 @@ class LumiShutter():
 		# Callback for handling an H-bridge fault pin event
 		# Ref datasheet:
 		# https://www.ti.com/lit/ds/symlink/drv8833.pdf?ts=1617084507643&ref_url=https%253A%252F%252Fwww.google.com%252F
-		print('\nH-bridge fault detected!')
 		raise HBridgeFault
 
 	def __delete__(self):
@@ -171,8 +198,7 @@ class Luminometer():
 				data = json.load(json_file)
 				self._tempCoeffs = data
 		except Exception as exc:
-			print(exc)
-			print("Unable to load temp_coeffs file!")
+			logger.exception("Unable to load temp_coeffs file!")
 			self._tempCoeffs["A"] = [SENSOR_A_DARK_V, SENSOR_A_CP_RATIO]
 			self._tempCoeffs["B"] = [SENSOR_B_DARK_V, SENSOR_B_CP_RATIO]
 
@@ -222,19 +248,17 @@ class Luminometer():
 			self._adc.setup_adc(SPI_CE, channels=[0,1])
 			self._simulate = False
 		except Exception as e:
-			print("Error creating ADC reader!")
-			print(e)
+			logger.exception("Error creating ADC reader!")
 			self._simulate = True
 
 		try: 
 			self._adc.status_print()
 		except Exception as e:
-			print('Could not print ADC status!')
-			print(e)
+			logger.exception('Could not print ADC status!')
 
 		# Start handling incoming ADC data
 		if self._simulate:
-			print("SIMULATION MODE: Starting timer callback")
+			logger.info("SIMULATION MODE: Starting timer callback")
 			threading.Timer(SAMPLE_TIME_S, self._cb_adc_data_ready, args=(DRDY,)).start()
 		else:
 			GPIO.add_event_detect(self._adc._DRDY, GPIO.FALLING, callback=self._cb_adc_data_ready)
@@ -245,13 +269,14 @@ class Luminometer():
 		self._measure_q = queue.Queue(maxsize=1)
 		self._measureLock = threading.Lock()
 
+		logger.info("Successfully instantiated Luminometer.")
+
 	def _btn1_callback(self, channel):
 		# Handle presses to button 1
-
 		startTime = time.perf_counter()
 		nBeeps = 0
 		powerOff = False
-		print("Button 1 pressed")
+		logger.info("Button 1 pressed.")
 		duration = 0
 
 		# Monitor duration of button press
@@ -259,12 +284,12 @@ class Luminometer():
 			time.sleep(0.1)
 			duration = int(time.perf_counter() - startTime)
 			if duration > nBeeps:
-				print(f"Held for {duration} seconds")
+				logger.info(f"Button 1 held for {duration} seconds.")
 				nBeeps += 1
 				self.buzzer.buzz()
 
 		if duration == BTN_1_HOLD_TO_POWERDOWN_S:
-			print('POWER OFF')
+			logger.info('POWER OFF')
 			try:
 				self._display_q.put((LumiMode.TITLE, 'POWER OFF'))
 				time.sleep(5)
@@ -277,6 +302,7 @@ class Luminometer():
 			# Perform calibration
 			if not self._measureLock.locked():
 				try:
+					logger.info("Performing calibration.")
 					self._measure_q.put_nowait((DEF_DARK_TIME,True))
 				except queue.Full:
 					pass
@@ -285,6 +311,7 @@ class Luminometer():
 
 	def _btn2_callback(self, channel):
 		# Handle presses to button 2
+		logger.info("Button 2 pressed.")
 		if not self._measuring:
 			buzz1s = buzz2s = buzz3s = buzz4s = True
 			exposure = 10
@@ -295,25 +322,29 @@ class Luminometer():
 				if (int(duration) == 1) and buzz1s:
 					self.buzzer.buzz()
 					buzz1s = False
+					logger.info("Button 2 held for 1 second - exposure=30 seconds.")
 					exposure = 30
 				elif (int(duration)==2) and buzz2s:
 					self.buzzer.buzz()
 					buzz2s = False
 					exposure = 60
+					logger.info("Button 2 held for 2 seconds - exposure=60 seconds")
 				elif (int(duration)==3) and buzz3s:
 					self.buzzer.buzz()
 					buzz3s = False
-					exposure = 300			
+					exposure = 300
+					logger.info("Button 2 held for 3 seconds - exposure=300 seconds")			
 				elif (int(duration)==4) and buzz4s:
 					self.buzzer.buzz()
 					buzz4s = False
 					exposure = 600
+					logger.info("Button 2 held for 4 seconds - exposure=600 seconds")
 
 			try:
 				if not self._measureLock.locked():
 					self._measure_q.put_nowait((exposure, False))
 			except queue.Full:
-				print('\nAlready busy measuring')
+				log.info('\nAlready busy measuring')
 	
 	def _btn3_callback(self, channel):
 		"""
@@ -325,6 +356,8 @@ class Luminometer():
 		stop signal (a 3 second hold on the button)
 		"""
 
+		logger.info("Button 3 pressed.")
+
 		# A measurement is ongoing. Monitor for the stop condition
 		if self._measuring:
 			startTime = time.perf_counter()
@@ -333,6 +366,7 @@ class Luminometer():
 				time.sleep(0.2)
 				duration = time.perf_counter() - startTime
 				if duration > 3:
+					logger.info(f"Button 3 held for 3 seconds - halting measurement.")
 					if buzz3s:
 						buzz3s = False
 						self.buzzer.buzz()
@@ -372,7 +406,7 @@ class Luminometer():
 		"""
 		if not self._measuring:
 			with self._measureLock:
-				print("Starting measurement")
+				logger.info("Starting measurement")
 				
 				# Confirm to user that a calibration is being performed
 				if isCalibration:
@@ -402,7 +436,7 @@ class Luminometer():
 
 						# Do this once each time a full cycle (closed-open-closed) has completed:
 						if (self._sc > sampleCount) and ((self._sc % 2)==0) and (self._sc > 2):
-							print(f"\nMeasure: sample count = {self._sc}")
+							logger.info(f"\nMeasure: sample count = {self._sc}")
 
 							# Gate traces 
 							self.dataA, _ = self.gateTrace(self.rawdataA[:self._rsc], self.shutter_samples, "A", False)
@@ -412,10 +446,10 @@ class Luminometer():
 							self.resultA = mean(self.dataA)
 							self.resultB = mean(self.dataB)							
 
-							print(f"Sensor A after {int(self._sc/2)} cycles: {RLU_PER_V*self.resultA:.2f}")
-							print(f"Sensor A raw: {self.rawdataA[self._rsc-1]:.8f}")
-							print(f"Sensor B after {int(self._sc/2)} cycles: {RLU_PER_V*self.resultB:.2f}")
-							print(f"Sensor B raw: {self.rawdataB[self._rsc-1]:.8f}")
+							logger.info(f"Sensor A after {int(self._sc/2)} cycles: {RLU_PER_V*self.resultA:.2f}")
+							logger.info(f"Sensor A raw: {self.rawdataA[self._rsc-1]:.8f}")
+							logger.info(f"Sensor B after {int(self._sc/2)} cycles: {RLU_PER_V*self.resultB:.2f}")
+							logger.info(f"Sensor B raw: {self.rawdataB[self._rsc-1]:.8f}")
 
 							# Can't compute stdev unless there are >3 shutter-open periods _|-|_|-|_|-|_
 							if self._sc > 5:
@@ -451,25 +485,25 @@ class Luminometer():
 						crB = fitParamsB[0]
 						self._tempCoeffs["B"] = [offsetB, crB]
 
-						print(f"Offset A: {offsetA}")
-						print(f"Coupling coeff A: {crA}")						
-						print(f"Offset B: {offsetB}")
-						print(f"Coupling coeff B: {crB}")
+						logger.debug(f"Offset A: {offsetA}")
+						logger.debug(f"Coupling coeff A: {crA}")						
+						logger.debug(f"Offset B: {offsetB}")
+						logger.debug(f"Coupling coeff B: {crB}")
 
 						with open(CAL_PATH,'w') as outfile:
 							json.dump(self._tempCoeffs, outfile)
 
-					print(f"\nSensor A final result: {RLU_PER_V*self.resultA:.2f} +/- {RLU_PER_V*self.semA:.2f} (s.e.m.) ")
-					print(f"\nSensor B final result: {RLU_PER_V*self.resultB:.2f} +/- {RLU_PER_V*self.semB:.2f} (s.e.m.) ")
-					print(f"\n{self._rsc} samples in {time.perf_counter() - t0} seconds. Sample rate of {self._rsc / (time.perf_counter() - t0)} Hz")
-					print(f"{self._crcErrs} CRC Errors encountered.")
+					logger.info(f"\nSensor A final result: {RLU_PER_V*self.resultA:.2f} +/- {RLU_PER_V*self.semA:.2f} (s.e.m.) ")
+					logger.info(f"\nSensor B final result: {RLU_PER_V*self.resultB:.2f} +/- {RLU_PER_V*self.semB:.2f} (s.e.m.) ")
+					logger.info(f"\n{self._rsc} samples in {time.perf_counter() - t0} seconds. Sample rate of {self._rsc / (time.perf_counter() - t0)} Hz")
+					logger.info(f"{self._crcErrs} CRC Errors encountered.")
 
 					self.writeToFile()
 					self.buzzer.buzz()
 				
 				except KeyboardInterrupt as exc:
 					#self.writeToFile('Interrupted_')
-					print("Keyboard interrupted measurement")
+					logger.error("Keyboard interrupted measurement")
 				finally:
 					self._measuring = False
 					self._measurementIsDone = True
@@ -556,7 +590,7 @@ class Luminometer():
 			else:
 				self._display_q.put_nowait(args)
 		except queue.Full:
-			print('\nDisplay queue full. Could not display result')
+			logger.error('\nDisplay queue full. Could not display result')
 
 	def _resetBuffers(self, measure_time: int):
 
@@ -595,7 +629,7 @@ class Luminometer():
 	def writeToFile(self):
 		now = datetime.now()
 		dt_string = now.strftime("%Y-%m-%d-%H-%M-%S")
-		title = dt_string
+		title = os.join(MEASUREMENT_OUTPUT_DIR, dt_string)
 		with open(title + '.csv', 'w', newline='') as csvFile:
 			csvWriter = csv.writer(csvFile)
 			for i in range(self.nRawSamples):
@@ -628,7 +662,7 @@ class Luminometer():
 		nPeriods = int(len(rawData) / gateSize)
 
 		if nPeriods < 3:
-			print("Raw data size must be greater than three times gateSize!")
+			logger.error("Raw data size must be greater than three times gateSize!")
 			return [0.0]
 
 		# Process only up the last odd-numbered period
@@ -674,7 +708,7 @@ class Luminometer():
 				self._display_q.put_nowait((LumiMode.READY, self._darkIsStored))
 
 
-				print('\nReady and waiting for button pushes...')
+				logger.info('\nReady and waiting for button pushes...')
 
 				# Main realtime loop:
 				while self._powerOn:
@@ -723,7 +757,7 @@ class Luminometer():
 						try:
 							data = future.result()
 						except Exception as exc:
-							print('%r generated an exception: %s' % (result, exc))
+							logger.exception('%r generated an exception: %s' % (result, exc))
 
 						# Remove the now completed future
 						del future_result[future]
@@ -735,7 +769,7 @@ if __name__ == "__main__":
 	try:
 		Luminometer.run()
 	except Exception as exc:
-		print(f'Luminometer encountered exception: {exc}')
+		logger.exception(f'Luminometer encountered exception: {exc}')
 	finally:
 		GPIO.cleanup()
 		del(Luminometer)
