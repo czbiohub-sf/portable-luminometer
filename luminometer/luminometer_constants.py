@@ -54,3 +54,7 @@ SPI_CE = 1
 
 # ADC Data ready pin
 DRDY = 15
+
+# Custom names for calibrations shown int he menu
+CUSTOM_CAL_A_NAME = "Blood"
+CUSTOM_CAL_B_NAME = "Serum"
