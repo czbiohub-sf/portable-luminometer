@@ -331,7 +331,7 @@ class Menu():
         height = self.inky_display.resolution[1]
         line1x, line1y = self.hanken_medium_font.getsize(line1)
         line2x, line2y = self.hanken_small_font.getsize(line2)
-        line3x, line3y = self.hanken_small_font.getsize(line3) + line2y
+        line3y = self.hanken_small_font.getsize(line3)[1] + line2y
         
         draw.text((width - line1x/2, height/2 - line1y/2), line1, self.inky_display.BLACK, font=self.hanken_medium_font)
         draw.text((0, height/2), line2, self.inky_display.BLACK, font=self.hanken_small_font)
