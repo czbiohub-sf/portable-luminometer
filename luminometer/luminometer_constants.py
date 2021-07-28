@@ -13,8 +13,10 @@ RLU_PER_V = 20000
 
 
 # Thermal calibration file location
-CAL_PATH = "/home/pi/Documents/ulc-tube-reader/luminometer/temp_coeffs.json"
-
+STANDARD_CAL_PATH = "/home/pi/Documents/ulc-tube-reader/luminometer/temp_coeffs.json"
+CUSTOM_CAL_A_PATH = "/home/pi/Documents/ulc-tube-reader/luminometer/temp_coeffs_A.json"
+CUSTOM_CAL_B_PATH = "/home/pi/Documents/ulc-tube-reader/luminometer/temp_coeffs_B.json"
+LAST_CAL = "/home/pi/Documents/ulc-tube-reader/luminometer/last_chosen_cal.json"
 # Calibrated values
 SENSOR_A_DARK_V = -0.42978502
 SENSOR_B_DARK_V = -0.4290032
