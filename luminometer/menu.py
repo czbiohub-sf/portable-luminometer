@@ -16,8 +16,9 @@ class MenuStates(enum.Enum):
     STATUS_MENU = enum.auto()
     CALIBRATION_MENU = enum.auto()
     CALIBRATION_IN_PROGRESS = enum.auto()
+    POWER_OFF = enum.auto()
 
-class Menu():
+class Menu():   
     def __init__(self, calibration, battery_status):
         try:
             self.inky_display = auto(ask_user=True, verbose=True)
@@ -168,6 +169,25 @@ class Menu():
         self.inky_display.set_image(img)
         self.inky_display.show()
 
+    def powerOff(self):
+        self.clearScreen()
+        
+        img = Image.new("P", self.inky_display.resolution)
+        draw = ImageDraw.Draw(img)
+        # self.statusBar(draw)
+
+        width = self.inky_display.resolution[0]
+        height = self.inky_display.resolution[1]
+
+        line = "POWERED OFF"
+
+        line1x, line1y = self.hanken_medium_font.getsize(line)
+
+        draw.text((width/2 - line1x/2, height/2 - line1y/2), line, self.inky_display.BLACK, font=self.hanken_medium_font)
+
+        self.inky_display.set_image(img)
+        self.inky_display.show()
+
     def showMeasurement(self, final: bool=False, sensorA: float=0.0, sensorA_sem: float=0.0,
                             sensorB: float=0.0, sensorB_sem: float=0.0, duration_s: int=0):
 
@@ -295,5 +315,7 @@ if __name__ == "__main__":
             menu.measurementInProgress("TIMED", 10, 30)
         elif userInput == str(6):
             menu.calibrationInProgress()
+        elif userInput == str(7):
+            menu.powerOff()
         else:
             exit()
