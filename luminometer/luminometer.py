@@ -245,7 +245,7 @@ class Luminometer():
 		# Start up sensor chip
 		try:
 			self._adc = ADS131M08Reader()
-			self._adc.setup_adc(SPI_CE, channels=[0,1])
+			self._adc.setup_adc(SPI_CE, channels=[0,1,2,3,4])
 			self._simulate = False
 		except Exception as e:
 			logger.exception("Error creating ADC reader!")
@@ -268,6 +268,8 @@ class Luminometer():
 		self._shutter_q = queue.Queue(maxsize=1)
 		self._measure_q = queue.Queue(maxsize=1)
 		self._measureLock = threading.Lock()
+
+		self._resetBuffers()
 
 		logger.info("Successfully instantiated Luminometer.")
 
@@ -529,6 +531,37 @@ class Luminometer():
 					((self._sc) < MIN_PERIODS)
 			return result
 
+	def averageNMeasurements(self, N: int=100) -> List[float]:
+		'''
+		Average N sequential measurements from the sensors without using the shutters.
+		This method uses the _cb_adc_data_ready() callback that always runs while the
+		ADC is on. We simply initialize new lists (one for each channel), set the 
+		_accumulate flag to True, and wait for them to fill up.
+		'''
+
+		self._accumBufferA = []
+		self._accumBufferB = []
+		self._accumSiPMRef = []
+		self._accumSiPMBias = []
+		self._accum34V = []
+
+		try:
+			self._accumulate = True
+
+			while len(self._accumBufferA) < N:
+				pass
+		except Exception as e:
+			print(e)
+		finally:
+			self._accumulate = False
+
+		output = [mean(self._accumBufferA), mean(self._accumBufferB), \
+		mean(self._accumSiPMRef), mean(self._accumSiPMBias), \
+		mean(self._accum34V)]
+
+		return output
+
+
 	def _cb_adc_data_ready(self, channel):
 		# Callback function executed when data ready is asserted from ADC
 		# The callback also queues the shutter actions, in order to stay synchronized 
@@ -568,6 +601,14 @@ class Luminometer():
 
 			self._rsc += 1
 			self._sc = int(self._rsc/self.shutter_samples)
+
+		if self._accumulate:
+			self._accumBufferA.append(d[0])
+			self._accumBufferB.append(d[1])
+			self._accumSiPMRef.append(d[2])
+			self._accumSiPMBias.append(d[3])
+			self._accum34V.append(d[4])
+		
 		return		
 
 	def _updateDisplayResult(self, wait: bool = False):
@@ -592,7 +633,7 @@ class Luminometer():
 		except queue.Full:
 			logger.error('\nDisplay queue full. Could not display result')
 
-	def _resetBuffers(self, measure_time: int):
+	def _resetBuffers(self, measure_time: int = 10):
 
 			self.dataA = [0.0]
 			self.dataB = [0.0]
@@ -602,6 +643,12 @@ class Luminometer():
 			self.resultB = 0.0
 			self._measurementIsDone = False
 			self._haltMeasurement = False
+			self._accumBufferA = []
+			self._accumBufferB = []
+			self._accumSiPMRef = []
+			self._accumSiPMBias = []
+			self._accum34V = []
+			self._accumulate = False
 
 			# The actual number of samples is taken as the ceiling of however many 
 			# full open and closed periods it takes to complete the measurement
