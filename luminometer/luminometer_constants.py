@@ -15,8 +15,10 @@ RLU_PER_V = 20000
 # Thermal calibration file location
 STANDARD_CAL_PATH = "/home/pi/Documents/ulc-tube-reader/luminometer/temp_coeffs.json"
 CUSTOM_CAL_A_PATH = "/home/pi/Documents/ulc-tube-reader/luminometer/temp_coeffs_A.json"
-CUSTOM_CAL_B_PATH = "/home/pi/Documents/ulc-tube-reader/luminometer/temp_coeffs_B.json"
+
+# Last chosen calibration
 LAST_CAL = "/home/pi/Documents/ulc-tube-reader/luminometer/last_chosen_cal.json"
+
 # Calibrated values
 SENSOR_A_DARK_V = -0.42978502
 SENSOR_B_DARK_V = -0.4290032
@@ -59,4 +61,3 @@ DRDY = 15
 
 # Custom names for calibrations shown int he menu
 CUSTOM_CAL_A_NAME = "Blood"
-CUSTOM_CAL_B_NAME = "Serum"
