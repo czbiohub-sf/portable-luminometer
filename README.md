@@ -68,10 +68,13 @@ sudo chmod 644 /lib/systemd/system/lumiboot.service
 sudo systemctl daemon-reload
 sudo systemctl enable lumiboot.service
 ```
-13. Run `sudo systemctl enable pigpiod` to start the pigpiod daemon on startup.
-14. Power down the RPi: ```sudo poweroff```
-15. Attach the Inky pHat to the GPIO header, then securely plug the RPi into the socket header on the luminometer board.
-16. Power on the device and make measurements.
+13. Run the following command to start the pigpiod daemon on startup:
+14. ```
+15. sudo systemctl enable pigpiod
+16. ```
+17. Power down the RPi: ```sudo poweroff```
+18. Attach the Inky pHat to the GPIO header, then securely plug the RPi into the socket header on the luminometer board.
+19. Power on the device and make measurements.
 
 ## Module contents
 
