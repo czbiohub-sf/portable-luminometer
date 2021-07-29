@@ -194,7 +194,6 @@ class Luminometer():
 
 		self.state = MenuStates.MAIN_MENU
 		self.measurementMode = ""
-		self.time_elapsed = 0
 		self.target_time = 0
 		self.selected_calibration = ""
 		self.screenLoaded = False
@@ -260,7 +259,7 @@ class Luminometer():
 		GPIO.add_event_detect(self._btn2, GPIO.FALLING, callback=self._btn2_callback, bouncetime=200)
 		GPIO.add_event_detect(self._btn3, GPIO.FALLING, callback=self._btn3_callback, bouncetime=200)
 
-		self.display = LumiScreen()
+		self.display = Menu()
 		self.shutter = LumiShutter(SHT_1, SHT_PWM, SHT_FAULT, NSLEEP)
 		self.shutter.rest()
 		self.buzzer = LumiBuzzer(BUZZ)
@@ -292,17 +291,86 @@ class Luminometer():
 		self._measure_q = queue.Queue(maxsize=1)
 		self._measureLock = threading.Lock()
 
+		self.set_state(MenuStates.MAIN_MENU)
 		logger.info("Successfully instantiated Luminometer.")
 
 	def set_state(self, state: MenuStates):
-		self.screenLoaded = False
-		self.state = state
+		display_kwargs = {
+			"state": state,
+			"battery_status": "OK", #TODO make this dynamic,
+			"selected_calibration": self.selected_calibration,
+			"measurementMode": self.measurementMode,
+			"time_elapsed": self._duration_s,
+			"target_time": self.target_time,
+			"_measurementIsDone": self._measurementIsDone,
+			"resultA": self.resultA,
+			"semA": self.semA,
+			"resultB": self.resultB,
+			"semB": self.semB,
+			"adc_vals": self.adc_vals,
+			
+		}
+		try:
+			self.state = state
+			self._display_q.put(display_kwargs)
+		except queue.Full:
+			pass
 
-	def btn1_callback(self, channel):
+	
+	def unified_callback(self, channel):
+		button = None
+		if channel == BTN_1:
+			button = 1
+		elif channel == BTN_2:
+			button = 2
+		elif channel == BTN_3:
+			button = 3
+
+		# Get duration of button hold
+		buzz1s = buzz2s = buzz3s = buzz4s = buzz5s = True
+		duration = 0
+		startTime = time.perf_counter()
+		while not GPIO.input(channel):
+			duration = time.perf_counter() - startTime
+			if (int(duration) == 1) and buzz1s:
+				self.buzzer.buzz()
+				buzz1s = False
+				logger.info(f"Button {button} held for 1 second.")
+			elif (int(duration)==2) and buzz2s:
+				self.buzzer.buzz()
+				buzz2s = False
+				logger.info(f"Button {button} held for 2 seconds.")
+			elif (int(duration)==3) and buzz3s:
+				self.buzzer.buzz()
+				buzz3s = False
+				logger.info(f"Button {button} held for 3 seconds.")			
+			elif (int(duration)==4) and buzz4s:
+				self.buzzer.buzz()
+				buzz4s = False
+				logger.info(f"Button {button} held for 4 seconds.")
+			elif (int(duration)==5) and buzz5s:
+				self.buzzer.buzz()
+				buzz5s = False
+				logger.info(f"Button {button} held for 5 seconds.")
+
+		if button == 1:
+			self.btn1_transition_logic(duration)
+		elif button == 2:
+			self.btn2_transition_logic(duration)
+		elif button == 3:
+			self.btn3_transition_logic(duration)
+
+	def btn1_transition_logic(self, duration):
 		'''This is the bottom button
 		'''
 
-		if self.state == MenuStates.MAIN_MENU:
+		# Power off if bottom button held for 5s
+		if int(duration) == 5:
+			nextState = MenuStates.POWER_OFF
+			logger.info('POWER OFF')
+			self._powerOn = False
+
+		elif self.state == MenuStates.MAIN_MENU:
 			nextState = MenuStates.CALIBRATION_MENU
 
 		elif self.state == MenuStates.MEASUREMENT_MENU:
@@ -315,85 +383,14 @@ class Luminometer():
 			nextState = MenuStates.MAIN_MENU
 
 		elif self.state == MenuStates.CALIBRATION_MENU:
-			self.selected_calibration = "B"
-			buzz1s = buzz2s = buzz3s = buzz4s = buzz5s = True
-			startTime = time.perf_counter()
-			while not GPIO.input(channel):
-				duration = time.perf_counter() - startTime
-				if (int(duration) == 1) and buzz1s:
-					self.buzzer.buzz()
-					buzz1s = False
-				elif (int(duration)==2) and buzz2s:
-					self.buzzer.buzz()
-					buzz2s = False
-				elif (int(duration)==3) and buzz3s:
-					self.buzzer.buzz()
-					buzz3s = False
-				elif (int(duration)==4) and buzz4s:
-					self.buzzer.buzz()
-					buzz4s = False
-				elif (int(duration)==5) and buzz5s:
-					self.buzzer.buzz()
-					buzz5s = False
-					calibrate = True
-			
-			# If held for 5s, began calibration, otherwise load default
-			if calibrate:
-				# TODO add calibration action
-				nextState = MenuStates.CALIBRATION_IN_PROGRESS
-			else:
-				# Get constants
-				with open(CUSTOM_CAL_B_PATH,'r') as json_file:
-					data = json.load(json_file)
-					self._tempCoeffs = data
-				
-				# Set A as last chosen calibration
-				with open(LAST_CAL, "w") as json_file:
-					json.dump(self.selected_calibration, json_file)
-				
-				nextState = MenuStates.MAIN_MENU
+			nextState = MenuStates.MAIN_MENU
+
+		elif self.state == MenuStates.CONFIRM_CALIBRATION:
+			nextState = MenuStates.MAIN_MENU
 
 		self.set_state(nextState)
 
-	def _btn1_callback(self, channel):
-		# Handle presses to button 1
-		startTime = time.perf_counter()
-		nBeeps = 0
-		powerOff = False
-		logger.info("Button 1 pressed.")
-		duration = 0
-
-		# Monitor duration of button press
-		while not GPIO.input(channel):
-			time.sleep(0.1)
-			duration = int(time.perf_counter() - startTime)
-			if duration > nBeeps:
-				logger.info(f"Button 1 held for {duration} seconds.")
-				nBeeps += 1
-				self.buzzer.buzz()
-
-		if duration == BTN_1_HOLD_TO_POWERDOWN_S:
-			logger.info('POWER OFF')
-			try:
-				self._display_q.put((LumiMode.TITLE, 'POWER OFF'))
-				time.sleep(5)
-			except queue.Full:
-				pass
-			finally:
-				self._powerOn = False
-
-		elif duration == BTN_1_HOLD_TO_CALIBRATE_S:
-			# Perform calibration
-			if not self._measureLock.locked():
-				try:
-					logger.info("Performing calibration.")
-					self._measure_q.put_nowait((DEF_DARK_TIME,True))
-				except queue.Full:
-					pass
-		
-		return
-
-	def btn2_callback(self, channel):
+	def btn2_transition_logic(self, duration):
 		'''This is the MIDDLE button
 		'''
 
@@ -403,32 +400,18 @@ class Luminometer():
 		elif self.state == MenuStates.MEASUREMENT_MENU:
 			# Perform timed measurement
 			if not self._measuring:
-				buzz1s = buzz2s = buzz3s = buzz4s = True
 				exposure = 10
-				startTime = time.perf_counter()
-				while not GPIO.input(channel):
-					duration = time.perf_counter() - startTime
-					if (int(duration) == 1) and buzz1s:
-						self.buzzer.buzz()
-						buzz1s = False
-						logger.info("Button 2 held for 1 second - exposure=30 seconds.")
-						exposure = 30
-					elif (int(duration)==2) and buzz2s:
-						self.buzzer.buzz()
-						buzz2s = False
-						exposure = 60
-						logger.info("Button 2 held for 2 seconds - exposure=60 seconds")
-					elif (int(duration)==3) and buzz3s:
-						self.buzzer.buzz()
-						buzz3s = False
-						exposure = 300
-						logger.info("Button 2 held for 3 seconds - exposure=300 seconds")			
-					elif (int(duration)==4) and buzz4s:
-						self.buzzer.buzz()
-						buzz4s = False
-						exposure = 600
-						logger.info("Button 2 held for 4 seconds - exposure=600 seconds")
-					self.target_time = exposure
+				
+				if int(duration) == 1:
+					exposure = 30
+				elif int(duration) == 2:
+					exposure = 60
+				elif int(duration) == 3:
+					exposure = 300
+				elif int(duration) == 4:
+					exposure = 600
+				self.target_time = exposure
+		
 				try:
 					if not self._measureLock.locked():
 						self._measure_q.put_nowait((exposure, False))
@@ -442,31 +425,14 @@ class Luminometer():
 				# Switch to custom calibration A and return to main
 				# or begin new calibration if held for 5 seconds
 				self.selected_calibration = "A"
-				buzz1s = buzz2s = buzz3s = buzz4s = buzz5s = True
-				startTime = time.perf_counter()
-				while not GPIO.input(channel):
-					duration = time.perf_counter() - startTime
-					if (int(duration) == 1) and buzz1s:
-						self.buzzer.buzz()
-						buzz1s = False
-					elif (int(duration)==2) and buzz2s:
-						self.buzzer.buzz()
-						buzz2s = False
-					elif (int(duration)==3) and buzz3s:
-						self.buzzer.buzz()
-						buzz3s = False
-					elif (int(duration)==4) and buzz4s:
-						self.buzzer.buzz()
-						buzz4s = False
-					elif (int(duration)==5) and buzz5s:
-						self.buzzer.buzz()
-						buzz5s = False
-						calibrate = True
+				calibrate = False
+
+				if int(duration) == 5:
+					calibrate = True
 				
-				# If held for 5s, began calibration, otherwise load default
+				# If held for 5s, prompt user to confirm they want to calibrate, otherwise load default
 				if calibrate:
-					# TODO add calibration action
-					nextState = MenuStates.CALIBRATION_IN_PROGRESS
+					nextState = MenuStates.CONFIRM_CALIBRATION
 				else:
 					# Get constants
 					with open(CUSTOM_CAL_A_PATH,'r') as json_file:
@@ -481,49 +447,12 @@ class Luminometer():
 
 		self.set_state(nextState)
 		return
-
-	def _btn2_callback(self, channel):
-		# Handle presses to button 2
-		logger.info("Button 2 pressed.")
-		if not self._measuring:
-			buzz1s = buzz2s = buzz3s = buzz4s = True
-			exposure = 10
-
-			startTime = time.perf_counter()
-			while not GPIO.input(channel):
-				duration = time.perf_counter() - startTime
-				if (int(duration) == 1) and buzz1s:
-					self.buzzer.buzz()
-					buzz1s = False
-					logger.info("Button 2 held for 1 second - exposure=30 seconds.")
-					exposure = 30
-				elif (int(duration)==2) and buzz2s:
-					self.buzzer.buzz()
-					buzz2s = False
-					exposure = 60
-					logger.info("Button 2 held for 2 seconds - exposure=60 seconds")
-				elif (int(duration)==3) and buzz3s:
-					self.buzzer.buzz()
-					buzz3s = False
-					exposure = 300
-					logger.info("Button 2 held for 3 seconds - exposure=300 seconds")			
-				elif (int(duration)==4) and buzz4s:
-					self.buzzer.buzz()
-					buzz4s = False
-					exposure = 600
-					logger.info("Button 2 held for 4 seconds - exposure=600 seconds")
-
-			try:
-				if not self._measureLock.locked():
-					self._measure_q.put_nowait((exposure, False))
-			except queue.Full:
-				logger.info('\nAlready busy measuring')
 	
-	def btn3_callback(self, channel):
-		'''This is the TOP buton
+	def btn3_transition_logic(self, duration):
+		'''This is the TOP button
 		'''
 
-		logger.info("Button 1 pressed.")
+		logger.info("Button 3 (top) pressed.")
 		if self.state == MenuStates.MAIN_MENU:
 			nextState = MenuStates.MEASUREMENT_MENU
 
@@ -533,7 +462,6 @@ class Luminometer():
 			self.time_elapsed = 0
 			self.target_time = None
 
-			# TODO Ask Paul if this is how you trigger an autoexposure
 			exposure = 0
 			try:
 				if not self._measureLock.locked():
@@ -544,18 +472,11 @@ class Luminometer():
 		elif self.state == MenuStates.MEASUREMENT_IN_PROGRESS:
 			# Measurement in progress
 			# Abort and return to measurement menu if top button held for 3s
-			startTime = time.perf_counter()
-			while not GPIO.input(channel):
-				time.sleep(0.1)
-				duration = int(time.perf_counter() - startTime)
-				buzz3s = True
-				if duration >= 3:
-					logger.info(f"Button 3 held for 3 seconds - halting measurement.")
-					if buzz3s:
-						buzz3s = False
-						self.buzzer.buzz()
-						self._haltMeasurement = True
-			nextState = MenuStates.MEASUREMENT_MENU
+			if duration >= 3:
+				logger.info(f"Button 3 held for 3 seconds - halting measurement.")
+				self.buzzer.buzz()
+				self._haltMeasurement = True
+				nextState = MenuStates.MEASUREMENT_MENU
 		
 		elif self.state == MenuStates.CALIBRATION_MENU:
 			# Switch to standard calibration and return to main
@@ -572,41 +493,16 @@ class Luminometer():
 				
 			nextState = MenuStates.MAIN_MENU
 
+		elif self.state == MenuStates.CONFIRM_CALIBRATION:
+			# Perform calibration
+			if not self._measureLock.locked():
+				try:
+					logger.info("Performing calibration.")
+					self._measure_q.put_nowait((DEF_DARK_TIME,True))
+				except queue.Full:
+					pass
+
 		self.set_state(nextState)
-
-	def _btn3_callback(self, channel):
-		"""
-		Handle presses to button 3
-		Desired behavior:
-		If the device is idle, pressing the button for any duration 
-		will result in a measurement using auto-exposure.
-		If the device is currently measuring, then we monitor for the 
-		stop signal (a 3 second hold on the button)
-		"""
-
-		logger.info("Button 3 pressed.")
-		
-		# A measurement is ongoing. Monitor for the stop condition
-		if self._measuring:
-			startTime = time.perf_counter()
-			buzz3s = True
-			while not GPIO.input(channel):
-				time.sleep(0.2)
-				duration = time.perf_counter() - startTime
-				if duration > 3:
-					logger.info(f"Button 3 held for 3 seconds - halting measurement.")
-					if buzz3s:
-						buzz3s = False
-						self.buzzer.buzz()
-						self._haltMeasurement = True
-		
-		# Add a measurement to the queue
-		else:
-			try:
-				if not self._measureLock.locked():
-					self._measure_q.put_nowait((0,False))
-			except queue.Full:
-				pass
 
 	def measure(self, \
 		measure_time: int = 30, \
@@ -635,13 +531,6 @@ class Luminometer():
 		if not self._measuring:
 			with self._measureLock:
 				logger.info("Starting measurement")
-				
-				# Confirm to user that a calibration is being performed
-				if isCalibration:
-					try:
-						self._display_q.put((LumiMode.TITLE, 'CALIBRATION'))
-					except queue.Full:
-						pass
 
 				# Close shutters
 				try:
@@ -973,12 +862,12 @@ class Luminometer():
 
 						# Fetch a job from the queue
 						try:
-							message = self._display_q.get_nowait()
+							kwargs = self._display_q.get_nowait()
 						except queue.Empty:
 							pass
 
 						# Start the load operation and mark the future with its URL
-						future_result[executor.submit(self.display.parser, *message)] = "Message displayed: " + repr(message[0])
+						future_result[executor.submit(self.display.screenSwitcher, **kwargs)] = "Message displayed: " + repr(kwargs["state"])
 
 					# Process any completed futures
 					for future in done:
@@ -993,43 +882,6 @@ class Luminometer():
 		except KeyboardInterrupt:
 			pass
 
-def displayMenuAndTransition(luminometer: Luminometer, menu: Menu):
-	while True:
-		# Display screens 
-		if luminometer.screenLoaded:
-			pass
-
-		if luminometer.state == MenuStates.MAIN_MENU:
-			menu.set_battery_status(luminometer.battery_status)
-			menu.set_selected_calibration(luminometer.selected_calibration)
-			menu.mainMenu()
-			luminometer.screenLoaded = True
-
-		elif luminometer.state == MenuStates.MEASUREMENT_MENU:
-			menu.measurementMenu()
-			luminometer.screenLoaded = True
-
-		elif luminometer.state == MenuStates.MEASUREMENT_IN_PROGRESS:
-			menu.measurementInProgress(luminometer.measurementMode, luminometer.time_elapsed, luminometer.target_time)
-			luminometer.screenLoaded = True
-
-		elif luminometer.state == MenuStates.SHOW_FINAL_MEASUREMENT:
-			menu.showMeasurement(luminometer._measurementIsDone, luminometer.resultA, luminometer.semA, luminometer.resultB, luminometer.semB, luminometer.time_elapsed)
-			luminometer.screenLoaded = True
-
-		elif luminometer.state == MenuStates.STATUS_MENU:
-			menu.statusMenu(luminometer.adc_vals)
-			luminometer.screenLoaded = True
-
-		elif luminometer.state == MenuStates.CALIBRATION_MENU:
-			menu.calibrationMenu(calA, calB)
-			luminometer.screenLoaded = True
-
-		elif luminometer.state == MenuStates.CALIBRATION_IN_PROGRESS:
-			menu.calibrationInProgress()
-			luminometer.screenLoaded = True
-
-
 if __name__ == "__main__":
 	luminometer = Luminometer()
 	
@@ -1038,21 +890,17 @@ if __name__ == "__main__":
 	menu = Menu(luminometer.selected_calibration, batt)
 
 	calA = "NOT SET"
-	calB = "NOT SET"
 	if os.path.isfile(CUSTOM_CAL_A_PATH):
 		calA = CUSTOM_CAL_A_NAME
-	if os.path.isfile(CUSTOM_CAL_B_PATH):
-		calB = CUSTOM_CAL_B_NAME
 
 	try:
-		threading.Thread(target=luminometer.run).start()
-		threading.Thread(target=displayMenuAndTransition, args=[luminometer, menu])
+		luminometer.run()
 
 	except Exception as exc:
 		logger.exception(f'Luminometer encountered exception: {exc}')
 	finally:
 		GPIO.cleanup()
-		del(Luminometer)
+		del(luminometer)
 		
 		# Power down system
 		# os.system('sudo poweroff')
