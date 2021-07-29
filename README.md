@@ -44,7 +44,7 @@ pip install wheel
 pip install .
 ```
 11. Follow the instructions in `gpclk_configi/README.md` in order to configure the general purpose clock on-board the RPi, which the ADC requires as input.
-13. Configure the RPi to run the luminometer software after boot is completed. After these commands are entered, the RPi will automatically start executing the luminometer software upon startup, but it will still be possible to ssh into the device at the same time.
+12. Configure the RPi to run the luminometer software after boot is completed. After these commands are entered, the RPi will automatically start executing the luminometer software upon startup, but it will still be possible to ssh into the device at the same time.
 ```shell
 sudo nano /lib/systemd/system/lumiboot.service
 ```
@@ -69,12 +69,12 @@ sudo systemctl daemon-reload
 sudo systemctl enable lumiboot.service
 ```
 13. Run the following command to start the pigpiod daemon on startup:
-14. ```
-15. sudo systemctl enable pigpiod
-16. ```
-17. Power down the RPi: ```sudo poweroff```
-18. Attach the Inky pHat to the GPIO header, then securely plug the RPi into the socket header on the luminometer board.
-19. Power on the device and make measurements.
+```
+sudo systemctl enable pigpiod
+```
+14. Power down the RPi: ```sudo poweroff```
+15. Attach the Inky pHat to the GPIO header, then securely plug the RPi into the socket header on the luminometer board.
+16. Power on the device and make measurements.
 
 ## Module contents
 
