@@ -15,6 +15,7 @@ class MenuStates(enum.Enum):
     SHOW_FINAL_MEASUREMENT = enum.auto()
     STATUS_MENU = enum.auto()
     CALIBRATION_MENU = enum.auto()
+    CONFIRM_CALIBRATION = enum.auto()
     CALIBRATION_IN_PROGRESS = enum.auto()
     POWER_OFF = enum.auto()
 
@@ -82,11 +83,12 @@ class Menu():
             self.measurementMenu()
 
         elif state == MenuStates.MEASUREMENT_IN_PROGRESS:
-            self.measurementInProgress(kwargs["measurementMode"], kwargs["time_elapsed"], kwargs["target_time"])
+            self.measurementInProgress(kwargs["resultA"], kwargs["semA"], kwargs["resultB"], 
+                                    kwargs["semB"], kwargs["target_time"], kwargs["time_elapsed"])
 
         elif state == MenuStates.SHOW_FINAL_MEASUREMENT:
             self.showMeasurement(kwargs["_measurementIsDone"], kwargs["resultA"], kwargs["semA"], kwargs["resultB"], 
-                                    kwargs["semB"], kwargs["time_elapsed"])
+                                    kwargs["semB"], kwargs["target_time"])
 
         elif state == MenuStates.STATUS_MENU:
             self.statusMenu(kwargs["adc_vals"])
@@ -94,8 +96,14 @@ class Menu():
         elif state == MenuStates.CALIBRATION_MENU:
             self.calibrationMenu(kwargs["calA"])
 
+        elif state == MenuStates.CONFIRM_CALIBRATION:
+            self.confirmCalibrationOverwrite()
+
         elif state == MenuStates.CALIBRATION_IN_PROGRESS:
             self.calibrationInProgress()
+        
+        elif state == MenuStates.POWER_OFF:
+            self.powerOff()
 
     def statusBar(self, draw):
         status = f"Cal: {self.selected_calibration} / Batt: {self.battery_status}"
@@ -169,28 +177,30 @@ class Menu():
         self.inky_display.set_image(img)
         self.inky_display.show()
 
-    def measurementInProgress(self, measurement_type, time_elapsed, target_time=None):
+    def measurementInProgress(self, sensorA: float=0.0, sensorA_sem: float=0.0,
+                            sensorB: float=0.0, sensorB_sem: float=0.0, duration_s: int=0, 
+                            time_elapsed: int=0):
         self.clearScreen()
-        
+
         img = Image.new("P", self.inky_display.resolution)
         draw = ImageDraw.Draw(img)
         self.statusBar(draw)
 
-        width = self.inky_display.resolution[0]
-        height = self.inky_display.resolution[1]
-
-        target_time = str(target_time) + "s" if (target_time is not None) else "N/A"
-        option1 = "Measurement in progress"
-        option1_sub1 = f"{measurement_type}  Elapsed: {time_elapsed}s Target: {target_time}"
-        option1_sub2 = "(Hold top button for 3s to abort)"
-
-        option1x, option1y = self.hanken_medium_font.getsize(option1)
-        option1xsub1, option1ysub1 = self.hanken_small_font.getsize(option1_sub1)
-        option1xsub2, option1ysub2 = self.hanken_small_font.getsize(option1_sub2)
-
-        draw.text((width/2 - option1x/2, height/2 - option1y), option1, self.inky_display.BLACK, font=self.hanken_medium_font)
-        draw.text((width/2 - option1xsub1/2, height/2), option1_sub1, self.inky_display.BLACK, font=self.hanken_small_font)
-        draw.text((width/2 - option1xsub2/2, height/2 + option1ysub1 + 20), option1_sub2, self.inky_display.BLACK, font=self.hanken_small_font)
+        line0 = "> Hold TOP button for 3s to abort"
+        line1 = "Measurement in progress..."
+        line2 = f"A: {sensorA:.2f}+/-{sensorA_sem:.2f}"
+        line3 = f"B: {sensorB:.2f}+/-{sensorB_sem:.2f}"
+        line4 = f"Time: {int(duration_s):n} s / Elapsed: {int(time_elapsed):n} s"
+        
+        lines = [line1, line2, line3, line4]
+        
+        top_offset = self._status_bar_offset + self.hanken_small_font.getsize(line0)[1] + 5
+        draw.text((0, self._status_bar_offset), line0, self.inky_display.BLACK, font=self.hanken_small_font)
+        y_offset = top_offset
+        for i, line in enumerate(lines):
+            if i != 0:
+                y_offset = y_offset + self.hanken_small_font.getsize(line)[1] + 5
+            draw.text((0, y_offset), line, self.inky_display.BLACK, font=self.hanken_medium_font)
 
         self.inky_display.set_image(img)
         self.inky_display.show()
@@ -294,21 +304,23 @@ class Menu():
 
         option1 = "> Restore standard (default) calibration"
         option2 = f"> Custom calibration A: {calibrationA_name}"
-        
+        option3 = "> Click to return to main"
         subtext = "- Choose any option to return to main"
-        subtext2 = "- HOLD 5s middle/bottom buttons to"
+        subtext2 = "- HOLD the middle button for 5s to"
         subtext3 = "  overwrite custom calibration"
 
         option_offset = 5
         
         option1y = self._status_bar_offset + self.hanken_small_font.getsize(option1)[1] + option_offset
-        option2y = option1y + self.hanken_small_font.getsize(option2)[1] + 25
-        sub1y = option2y + self.hanken_small_font.getsize(subtext)[1]
+        option2y = option1y + self.hanken_small_font.getsize(option2)[1] + option_offset
+        option3y = option2y + self.hanken_small_font.getsize(option3)[1] + 15
+        sub1y = option3y + self.hanken_small_font.getsize(subtext)[1]
         sub2y = sub1y + self.hanken_small_font.getsize(subtext2)[1]
 
         draw.text((0, self._status_bar_offset), option1, self.inky_display.BLACK, font=self.hanken_small_font)
         draw.text((0, option1y), option2, self.inky_display.BLACK, font=self.hanken_small_font)
-        draw.text((0, option2y), subtext, self.inky_display.BLACK, font=self.hanken_small_font)
+        draw.text((0, option2y), option3, self.inky_display.BLACK, font=self.hanken_small_font)
+        draw.text((0, option3y), subtext, self.inky_display.BLACK, font=self.hanken_small_font)
         draw.text((0, sub1y), subtext2, self.inky_display.BLACK, font=self.hanken_small_font)
         draw.text((0, sub2y), subtext3, self.inky_display.BLACK, font=self.hanken_small_font)
 
@@ -321,36 +333,36 @@ class Menu():
         img = Image.new("P", self.inky_display.resolution)
         draw = ImageDraw.Draw(img)
         self.statusBar(draw)
-
-        line1 = "This will overwrite your existing custom calibration. Are you sure?"
-        line2 = "> YES (top button)"
-        line3 = "---"
-        line4 = "NO (bottom button)"
+        
+        line0 = "CAUTION"
+        line1 = "This will overwrite any existing custom"
+        line2 = " calibration. Are you sure?"
+        line3 = "> YES (top button)"
+        line4 = "> ----------"
+        line5 = "> NO (bottom button)"
         
         width = self.inky_display.resolution[0]
         height = self.inky_display.resolution[1]
-        line1x, line1y = self.hanken_medium_font.getsize(line1)
-        line2x, line2y = self.hanken_small_font.getsize(line2)
-        line3y = self.hanken_small_font.getsize(line3)[1] + line2y
-        
-        draw.text((width - line1x/2, height/2 - line1y), line1, self.inky_display.BLACK, font=self.hanken_medium_font)
-        draw.text((0, height/2), line2, self.inky_display.BLACK, font=self.hanken_small_font)
-        draw.text((0, height/2 + line2y), line3, self.inky_display.BLACK, self.hanken_small_font)
-        draw.text((0, height/2 + line3y), line4, self.inky_display.BLACK, self.hanken_small_font)
+        line0y = self.hanken_medium_font.getsize(line0)[1] + self._status_bar_offset
+        line1y = self.hanken_small_font.getsize(line1)[1] + line0y
+        line2y = self.hanken_small_font.getsize(line2)[1] + line1y + 10
+        line3y = self.hanken_small_font.getsize(line3)[1] + line2y + 2
+        line4y = self.hanken_small_font.getsize(line4)[1] + line3y + 2
+
+        draw.text((0, self._status_bar_offset), line0, self.inky_display.BLACK, self.hanken_medium_font)
+        draw.text((0, line0y), line1, self.inky_display.BLACK, font=self.hanken_small_font)
+        draw.text((0, line1y), line2, self.inky_display.BLACK, font=self.hanken_small_font)
+        draw.text((0, line2y), line3, self.inky_display.BLACK, self.hanken_small_font)
+        draw.text((0, line3y), line4, self.inky_display.BLACK, self.hanken_small_font)
+        draw.text((0, line4y), line5, self.inky_display.BLACK, self.hanken_small_font)
 
         self.inky_display.set_image(img)
         self.inky_display.show()
-
-
-    def displayOptions(self):
-        for state, member in MenuStates.__members__.items():
-            print(f"State: {state} - {member.value}")
 
 if __name__ == "__main__":
     menu = Menu("STD", "OK")
 
     while True:
-        menu.displayOptions()
         userInput = input("Enter menu option: ")
         if userInput == str(0):
             menu.mainMenu()
@@ -363,7 +375,7 @@ if __name__ == "__main__":
         elif userInput == str(4):
             menu.calibrationMenu(CUSTOM_CAL_A_NAME)
         elif userInput == str(5):
-            menu.measurementInProgress("TIMED", 10, 30)
+            menu.measurementInProgress(1.1, 0.01, 0.9, 0.01, 30, 15)
         elif userInput == str(6):
             menu.calibrationInProgress()
         elif userInput == str(7):
