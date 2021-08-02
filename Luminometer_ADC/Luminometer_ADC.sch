@@ -1684,7 +1684,7 @@ Text Notes 3875 5275 1    50   ~ 0
 Text Notes 4550 5450 2    50   ~ 0
 1.8 mA
 Text Notes 5200 6100 2    50   ~ 0
-1.8 V
+1.63 V
 $Comp
 L Device:R R18
 U 1 1 60285095
