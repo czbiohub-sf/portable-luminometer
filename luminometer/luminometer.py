@@ -38,7 +38,7 @@ if not os.path.exists(MEASUREMENT_OUTPUT_DIR):
 
 ############################## SETUP LOGGER ##############################
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
+logger.setLevel(logging.DEBUG)
 log_location = os.path.join(LOG_OUTPUT_DIR, "luminometer.log")
 
 # Set up logging to a file
@@ -66,7 +66,6 @@ class LumiBuzzer():
 			raise
 		GPIO.setmode(GPIO.BCM)
 		GPIO.setup(buzzPin, GPIO.OUT, initial=0)
-		logger.info("Successfully instantiated LumiBuzzer.")
 
 	def buzz(self):
 		GPIO.output(self._buzzPin, 1)
@@ -96,6 +95,7 @@ class LumiShutter():
 		# self._pwm.start(0)
 		self._pi = pigpio.pi()
 		self._pi.hardware_PWM(self._pwmPin, 0, 0)
+		self.hbridge_err = "OK"
 
 		GPIO.setup(self._sleepPin, GPIO.OUT, initial = 1)
 		GPIO.setup(self._faultPin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
@@ -158,7 +158,7 @@ class LumiShutter():
 		GPIO.output(self._dirPin, 0)
 	
 	def driveClosed(self):
-		logger.debug(f"\nClosing shutter")
+		logger.debug(f"Closing shutter")
 		self._pi.hardware_PWM(self._pwmPin, SHT_PWM_FREQ, 0)
 		GPIO.output(self._dirPin, 1)
 	
@@ -176,6 +176,7 @@ class LumiShutter():
 		# Callback for handling an H-bridge fault pin event
 		# Ref datasheet:
 		# https://www.ti.com/lit/ds/symlink/drv8833.pdf?ts=1617084507643&ref_url=https%253A%252F%252Fwww.google.com%252F
+		self.hbridge_err = "ERR"
 		raise HBridgeFault
 
 	def __delete__(self):
@@ -196,29 +197,42 @@ class Luminometer():
 		self.measurementMode = ""
 		self.target_time = 0
 		self.selected_calibration = ""
-		self.screenLoaded = False
-
+		self._duration_s = 0
+		self.resultA = 0
+		self.semA = 0
+		self.resultB = 0
+		self.semB = 0
+		self.diag_vals = {
+			"batt": "OK",
+			"34V": "OK",
+			"pbias": "OK",
+			"num_CRC_errs": 0,
+			"hbridge_err": "OK",
+		}
+		self.adc_vals = 0
+		self.screen_settled = True
+		
 		# Get last selected calibration
 		try:
 			with open(LAST_CAL) as json_file:
 				data = json.load(json_file)
 				self.selected_calibration = data
+				logger.info(f"Previously used calibration file found. Using {self.selected_calibration}.")
 		except:
-			logger.warning("Could not open last_chosen_cal.json, resorting to default...")
-			self.selected_calibration = "STD"
+			logger.warning("Could not open last_chosen_cal.json, defaulting to standard calibration.")
+			self.selected_calibration = "Default"
 
 		self._tempCoeffs = {}
 		try:
 			if self.selected_calibration == "A":
 				PATH = CUSTOM_CAL_A_PATH
-			elif self.selected_calibration == "B":
-				PATH = CUSTOM_CAL_B_PATH
 			else:
 				PATH = STANDARD_CAL_PATH
 
 			with open(PATH,'r') as json_file:
 				data = json.load(json_file)
 				self._tempCoeffs = data
+				logger.info(f"Successfully loaded {self.selected_calibration} file.")
 		except Exception as exc:
 			logger.exception(f"Unable to load calibration {self.selected_calibration} temp_coeffs file!")
 			self._tempCoeffs["A"] = [SENSOR_A_DARK_V, SENSOR_A_CP_RATIO]
@@ -254,18 +268,32 @@ class Luminometer():
 		GPIO.setup(self._ADC_PWR_EN, GPIO.OUT, initial=1)
 		GPIO.setup(self._FAN, GPIO.OUT, initial=1)
 
-		# Add callback for button pushes
-		GPIO.add_event_detect(self._btn1, GPIO.FALLING, callback=self._btn1_callback, bouncetime=200)
-		GPIO.add_event_detect(self._btn2, GPIO.FALLING, callback=self._btn2_callback, bouncetime=200)
-		GPIO.add_event_detect(self._btn3, GPIO.FALLING, callback=self._btn3_callback, bouncetime=200)
+		# TODO, Get battery status dynamically
+		self.batt_status = "OK"
+		self.calA = " - NOT SET"
+		logger.info("Checking to see if custom calibration file exists.")
+		if os.path.isfile(CUSTOM_CAL_A_PATH):
+			logger.info("Custom calibration file exists.")
+			self.calA = ""
 
-		self.display = Menu()
-		self.shutter = LumiShutter(SHT_1, SHT_PWM, SHT_FAULT, NSLEEP)
-		self.shutter.rest()
-		self.buzzer = LumiBuzzer(BUZZ)
+		logger.info("Instantiating display, shutter, and buzzer.")
+		self.display = Menu(self.selected_calibration, self.batt_status)
+		# logger.info("Successfully instantiated Menu display.")
+		try:
+			self.shutter = LumiShutter(SHT_1, SHT_PWM, SHT_FAULT, NSLEEP)
+			self.shutter.rest()
+			logger.info("Successfully instantiated LumiShutter.")
+		except Exception as e:
+			logger.exception("Error instantiating LumiShutter!")
+		try:
+			self.buzzer = LumiBuzzer(BUZZ)
+			logger.info("Successfully instantiated LumiBuzzer.")
+		except Exception as e:
+			logger.exception("Error instantiating LumiBuzzer!")
 
 		# Start up sensor chip
 		try:
+			logger.info("Starting up sensor chip.")
 			self._adc = ADS131M08Reader()
 			self._adc.setup_adc(SPI_CE, channels=[0,1])
 			self._simulate = False
@@ -274,6 +302,7 @@ class Luminometer():
 			self._simulate = True
 
 		try: 
+			logger.info("Printing ADC status.")
 			self._adc.status_print()
 		except Exception as e:
 			logger.exception('Could not print ADC status!')
@@ -286,19 +315,45 @@ class Luminometer():
 			GPIO.add_event_detect(self._adc._DRDY, GPIO.FALLING, callback=self._cb_adc_data_ready)
 
 		# Create thread-safe queues for hardware jobs
+		logger.info("Creating display, shutter, and measure queues.")
 		self._display_q = queue.Queue(maxsize=1)
 		self._shutter_q = queue.Queue(maxsize=1)
 		self._measure_q = queue.Queue(maxsize=1)
+		logger.info("Successfully created queues.")
 		self._measureLock = threading.Lock()
+
+		# Add callback for button pushes
+		logger.info("Setting up button callbacks.")
+		GPIO.add_event_detect(self._btn1, GPIO.FALLING, callback=self.unified_callback, bouncetime=200)
+		GPIO.add_event_detect(self._btn2, GPIO.FALLING, callback=self.unified_callback, bouncetime=200)
+		GPIO.add_event_detect(self._btn3, GPIO.FALLING, callback=self.unified_callback, bouncetime=200)
 
 		self.set_state(MenuStates.MAIN_MENU)
 		logger.info("Successfully instantiated Luminometer.")
 
 	def set_state(self, state: MenuStates):
+		# Check for a low battery
+		if not GPIO.input(self._PMIC_LBO):
+			self.batt_status = "LO"
+		
+		# If transitioning to main menu or status, update the diag and adc values
+		try:
+			if state == MenuStates.MAIN_MENU or state == MenuStates.STATUS_MENU:
+				# TODO self.adc_vals = pauls_function()
+				# self.adc_vals = averageNMeasurements()
+				self.diag_vals["batt"] = self.batt_status
+				self.diag_vals["34V"] = self.adc_vals[4]
+				self.diag_vals["pbias"] = self.adc_vals[3]
+				self.diag_vals["num_CRC_errs"] = self._crcErrs
+				self.diag_vals["hbridge_err"] = self.shutter.hbridge_err
+		except:
+			logger.exception("Error setting adc/diag vals")
+
 		display_kwargs = {
 			"state": state,
-			"battery_status": "OK", #TODO make this dynamic,
+			"battery_status": self.batt_status,
 			"selected_calibration": self.selected_calibration,
+			"calA": self.calA,
 			"measurementMode": self.measurementMode,
 			"time_elapsed": self._duration_s,
 			"target_time": self.target_time,
@@ -307,17 +362,28 @@ class Luminometer():
 			"semA": self.semA,
 			"resultB": self.resultB,
 			"semB": self.semB,
+			"diag_vals": self.diag_vals,
 			"adc_vals": self.adc_vals,
-			
 		}
 		try:
-			self.state = state
-			self._display_q.put(display_kwargs)
+			if self.screen_settled:
+				self.buzzer.buzz()
+				logger.info(f"Current state: {self.state}")
+				logger.info(f"Moving to: {state}")
+				self.screen_settled = False
+				self._display_q.put(display_kwargs)
+				self.state = state
+			else:
+				logger.info("Screen not yet settled.")
 		except queue.Full:
+			logger.info("Display queue full.")
 			pass
 
-	
 	def unified_callback(self, channel):
+
+		if not self.screen_settled and not self._measuring:
+			return
+
 		button = None
 		if channel == BTN_1:
 			button = 1
@@ -364,10 +430,14 @@ class Luminometer():
 		'''This is the bottom button
 		'''
 
+		logger.info("Button 1 (bottom) pressed.")
+		nextState = None
+
 		# Power off if bottom button held for 5s
 		if int(duration) == 5:
 			nextState = MenuStates.POWER_OFF
 			logger.info('POWER OFF')
+			self._haltMeasurement = True
 			self._powerOn = False
 
 		elif self.state == MenuStates.MAIN_MENU:
@@ -388,16 +458,21 @@ class Luminometer():
 		elif self.state == MenuStates.CONFIRM_CALIBRATION:
 			nextState = MenuStates.MAIN_MENU
 
-		self.set_state(nextState)
+		if nextState != None:
+			self.set_state(nextState)
 
 	def btn2_transition_logic(self, duration):
 		'''This is the MIDDLE button
 		'''
 
+		logger.info(f"Button 2 (middle) pressed. {self.state}")
+		nextState = None
+
 		if self.state == MenuStates.MAIN_MENU:
 			nextState = MenuStates.STATUS_MENU
 
 		elif self.state == MenuStates.MEASUREMENT_MENU:
+			
 			# Perform timed measurement
 			if not self._measuring:
 				exposure = 10
@@ -418,48 +493,64 @@ class Luminometer():
 				except queue.Full:
 					logger.info('\nAlready busy measuring')
 
-				nextState = MenuStates.MEASUREMENT_IN_PROGRESS
+				self._duration_s = 0
 				self.measurementMode = "TIMED"
+				nextState = MenuStates.MEASUREMENT_IN_PROGRESS
 
-			elif self.state == MenuStates.CALIBRATION_MENU:
-				# Switch to custom calibration A and return to main
-				# or begin new calibration if held for 5 seconds
-				self.selected_calibration = "A"
-				calibrate = False
+		elif self.state == MenuStates.CALIBRATION_MENU:
+			# Switch to custom calibration A and return to main
+			# or begin new calibration if held for 5 seconds
+			
+			calibrate = False
 
-				if int(duration) == 5:
-					calibrate = True
-				
-				# If held for 5s, prompt user to confirm they want to calibrate, otherwise load default
-				if calibrate:
-					nextState = MenuStates.CONFIRM_CALIBRATION
-				else:
-					# Get constants
-					with open(CUSTOM_CAL_A_PATH,'r') as json_file:
-						data = json.load(json_file)
-						self._tempCoeffs = data
-					
-					# Set A as last chosen calibration
-					with open(LAST_CAL, "w") as json_file:
-						json.dump(self.selected_calibration, json_file)
-					
+			if int(duration) == 5:
+				calibrate = True
+			
+			# If held for 5s, prompt user to confirm they want to calibrate, otherwise load default
+			if calibrate:
+				logger.info("Button 2 held for 5 seconds, move to confirm calibration with user.")
+				nextState = MenuStates.CONFIRM_CALIBRATION
+			else:
+				# Get constants
+				logger.info("Attempt to load existing custom calibration.")
+				try:
+					if os.path.isfile(CUSTOM_CAL_A_PATH):
+						logger.info("Found custom calibration file.")
+						with open(CUSTOM_CAL_A_PATH,'r') as json_file:
+							data = json.load(json_file)
+							self._tempCoeffs = data
+						
+						# Set custom as last chosen calibration
+						self.selected_calibration = "Custom"
+						with open(LAST_CAL, "w") as json_file:
+							json.dump(self.selected_calibration, json_file)
+						self.display.set_selected_calibration(self.selected_calibration)
+						nextState = MenuStates.MAIN_MENU
+					else:
+						logger.info("No custom calibration found. No changes made.")
+						nextState = MenuStates.MAIN_MENU
+				except Exception as e:
+					print("Error encountered while opening custom calibration")
 					nextState = MenuStates.MAIN_MENU
 
-		self.set_state(nextState)
-		return
+		if nextState != None:
+			self.set_state(nextState)
+		
 	
 	def btn3_transition_logic(self, duration):
 		'''This is the TOP button
 		'''
 
 		logger.info("Button 3 (top) pressed.")
+		nextState = None
+
 		if self.state == MenuStates.MAIN_MENU:
 			nextState = MenuStates.MEASUREMENT_MENU
 
 		elif self.state == MenuStates.MEASUREMENT_MENU:
 			nextState = MenuStates.MEASUREMENT_IN_PROGRESS
 			self.measurementMode = "AUTO"
-			self.time_elapsed = 0
+			self._duration_s = 0
 			self.target_time = None
 
 			exposure = 0
@@ -477,17 +568,20 @@ class Luminometer():
 				self.buzzer.buzz()
 				self._haltMeasurement = True
 				nextState = MenuStates.MEASUREMENT_MENU
+				while not self.screen_settled or self._measuring:
+					pass
 		
 		elif self.state == MenuStates.CALIBRATION_MENU:
 			# Switch to standard calibration and return to main
-			self.selected_calibration = "STD"
+			self.selected_calibration = "Default"
+			self.display.set_selected_calibration(self.selected_calibration)
 
 			# Get constants
 			with open(STANDARD_CAL_PATH,'r') as json_file:
 				data = json.load(json_file)
 				self._tempCoeffs = data
 			
-			# Set STD as last chosen calibration
+			# Set default as last chosen calibration
 			with open(LAST_CAL, "w") as json_file:
 				json.dump(self.selected_calibration, json_file)
 				
@@ -501,8 +595,9 @@ class Luminometer():
 					self._measure_q.put_nowait((DEF_DARK_TIME,True))
 				except queue.Full:
 					pass
-
-		self.set_state(nextState)
+		
+		if nextState != None:
+			self.set_state(nextState)
 
 	def measure(self, \
 		measure_time: int = 30, \
@@ -553,7 +648,7 @@ class Luminometer():
 
 						# Do this once each time a full cycle (closed-open-closed) has completed:
 						if (self._sc > sampleCount) and ((self._sc % 2)==0) and (self._sc > 2):
-							logger.info(f"\nMeasure: sample count = {self._sc}")
+							logger.info(f"Measure: sample count = {self._sc}")
 
 							# Gate traces 
 							self.dataA, _ = self.gateTrace(self.rawdataA[:self._rsc], self.shutter_samples, "A", False)
@@ -607,7 +702,7 @@ class Luminometer():
 						logger.debug(f"Offset B: {offsetB}")
 						logger.debug(f"Coupling coeff B: {crB}")
 
-						with open(STANDARD_CAL_PATH,'w') as outfile:
+						with open(CUSTOM_CAL_A_PATH,'w') as outfile:
 							json.dump(self._tempCoeffs, outfile)
 
 					logger.info(f"\nSensor A final result: {RLU_PER_V*self.resultA:.2f} +/- {RLU_PER_V*self.semA:.2f} (s.e.m.) ")
@@ -624,9 +719,11 @@ class Luminometer():
 				finally:
 					self._measuring = False
 					self._measurementIsDone = True
+					self._duration_s = time.perf_counter() - t0
 					self.shutter.rest()
+					if not self._haltMeasurement:
+						self._updateDisplayResult(True)
 					time.sleep(5)
-					self._updateDisplayResult(True)
 
 		return
 
@@ -643,7 +740,7 @@ class Luminometer():
 					((self._duration_s < MAX_EXPOSURE) and \
 					(self._haltMeasurement == False) and \
 					((abs(self.resultB) / self.semB)) < MIN_SNR) or \
-					((self._sc) < MIN_PERIODS)
+					((self._sc) < MIN_PERIODS and self._haltMeasurement == False)
 			return result
 
 	def _cb_adc_data_ready(self, channel):
@@ -690,23 +787,24 @@ class Luminometer():
 
 	def _updateDisplayResult(self, wait: bool = False):
 		# Update display with intermediate results
-		args = (\
-				LumiMode.RESULT, \
-				self._darkIsStored,\
-				self._measurementIsDone,\
-				RLU_PER_V*mean(self.dataA)+ADD_OFFSET_RLU,\
-				RLU_PER_V*self.semA,\
-				RLU_PER_V*mean(self.dataB)+ADD_OFFSET_RLU,\
-				RLU_PER_V*self.semB,\
-				self._duration_s)
+		logger.debug("Updating intermediate results.")
+		self.resultA = RLU_PER_V*mean(self.dataA)+ADD_OFFSET_RLU
+		self.semA = RLU_PER_V*self.semA
+		self.resultB = RLU_PER_V*mean(self.dataB)+ADD_OFFSET_RLU
+		self.semB = RLU_PER_V*self.semB
 		try:
 			if wait:
 				# Ensure the final result is displayed
-				while self._display_q.full():
+				logger.debug("Waiting to display final...")
+				while not self.screen_settled:
 					pass
-				self._display_q.put(args)
+				logger.debug("Setting final measurement state")
+				self.set_state(MenuStates.SHOW_FINAL_MEASUREMENT)
+				self._duration_s = 0
 			else:
-				self._display_q.put_nowait(args)
+				if self.screen_settled:
+					logger.debug("Setting measurement in progress state")
+					self.set_state(MenuStates.MEASUREMENT_IN_PROGRESS)
 		except queue.Full:
 			logger.error('\nDisplay queue full. Could not display result')
 
@@ -747,16 +845,21 @@ class Luminometer():
 	def writeToFile(self):
 		now = datetime.now()
 		dt_string = now.strftime("%Y-%m-%d-%H-%M-%S")
-		title = os.join(MEASUREMENT_OUTPUT_DIR, dt_string)
-		with open(title + '.csv', 'w', newline='') as csvFile:
-			csvWriter = csv.writer(csvFile)
-			for i in range(self.nRawSamples):
-				csvWriter.writerow((self.rawdataA[i], self.rawdataB[i]))
+		title = os.path.join(MEASUREMENT_OUTPUT_DIR, dt_string)
+		try:
+			logger.info(f"Attepmting to save to {title}")
+			with open(title + '.csv', 'w', newline='') as csvFile:
+				csvWriter = csv.writer(csvFile)
+				for i in range(self.nRawSamples):
+					csvWriter.writerow((self.rawdataA[i], self.rawdataB[i]))
 
-		with open(title + '_gated' + '.csv', 'w', newline='') as csvFile:
-			csvWriter = csv.writer(csvFile)
-			for i in range(len(self.dataA)):
-				csvWriter.writerow((self.dataA[i], self.dataB[i]))
+			with open(title + '_gated' + '.csv', 'w', newline='') as csvFile:
+				csvWriter = csv.writer(csvFile)
+				for i in range(len(self.dataA)):
+					csvWriter.writerow((self.dataA[i], self.dataB[i]))
+			logger.info("File successfully saved.")
+		except:
+			logger.exception("Could not save measurement to file.")
 
 	def gateTrace(self, rawData: List[float], gateSize: int, channel: str, isCalibration: bool = False) -> List[float]:
 		"""
@@ -823,7 +926,7 @@ class Luminometer():
 					}
 
 				# Display to the user that the system is started and ready
-				self._display_q.put_nowait((LumiMode.READY, self._darkIsStored))
+				# self._display_q.put_nowait((LumiMode.READY, self._darkIsStored))
 
 
 				logger.info('\nReady and waiting for button pushes...')
@@ -859,7 +962,6 @@ class Luminometer():
 					# Display queue has size 1 and will not add additional items to the queue
 					# If there is an incoming message, start a new future
 					while not self._display_q.empty():
-
 						# Fetch a job from the queue
 						try:
 							kwargs = self._display_q.get_nowait()
@@ -867,40 +969,40 @@ class Luminometer():
 							pass
 
 						# Start the load operation and mark the future with its URL
-						future_result[executor.submit(self.display.screenSwitcher, **kwargs)] = "Message displayed: " + repr(kwargs["state"])
+						logger.debug(f"Display queue with: {kwargs['state']}")
+						future_result[executor.submit(self.display.screenSwitcher, **kwargs)] = "Screen displayed: " + repr(kwargs["state"])
+						# time.sleep(10)
+						# self.screen_settled = True
 
 					# Process any completed futures
 					for future in done:
 						result = future_result[future]
 						try:
 							data = future.result()
+							if "Screen displayed" in result:
+								self.screen_settled = True
+							logger.debug(result)
 						except Exception as exc:
 							logger.exception('%r generated an exception: %s' % (result, exc))
 
 						# Remove the now completed future
 						del future_result[future]
+					
+				self.display.powerOff()
 		except KeyboardInterrupt:
 			pass
 
 if __name__ == "__main__":
-	luminometer = Luminometer()
-	
-	# TODO, Get battery status dynamically
-	batt = "OK"
-	menu = Menu(luminometer.selected_calibration, batt)
-
-	calA = "NOT SET"
-	if os.path.isfile(CUSTOM_CAL_A_PATH):
-		calA = CUSTOM_CAL_A_NAME
+	Luminometer = Luminometer()
 
 	try:
-		luminometer.run()
+		Luminometer.run()
 
 	except Exception as exc:
 		logger.exception(f'Luminometer encountered exception: {exc}')
 	finally:
 		GPIO.cleanup()
-		del(luminometer)
+		del(Luminometer)
 		
 		# Power down system
 		# os.system('sudo poweroff')
