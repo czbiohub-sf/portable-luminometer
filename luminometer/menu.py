@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import logging
+import logging.handlers as handlers
 import enum
 import os
 from PIL import Image, ImageFont, ImageDraw
@@ -10,6 +11,7 @@ from inky import InkyPHAT
 import numpy as np
 from luminometer_constants import CUSTOM_CAL_A_NAME
 
+# Set up logging directory and logger
 LOG_OUTPUT_DIR = "/home/pi/luminometer-logs/"
 if not os.path.exists(LOG_OUTPUT_DIR):
 	os.mkdir(LOG_OUTPUT_DIR)
@@ -19,6 +21,7 @@ log_location = os.path.join(LOG_OUTPUT_DIR, "menu.log")
 
 # Set up logging to a file
 file_handler = logging.FileHandler(log_location)
+file_handler = handlers.RotatingFileHandler(log_location, maxBytes=5*1024*1024, backupCount=3)
 formatter = logging.Formatter("%(asctime)s:%(name)s:%(levelname)s: %(message)s", "%Y-%m-%d-%H:%M:%S")
 file_handler.setFormatter(formatter)
 logger.addHandler(file_handler)
@@ -29,12 +32,12 @@ stream_handler.setLevel(logging.DEBUG)
 stream_handler.setFormatter(formatter)
 logger.addHandler(stream_handler)
 
-'''
+"""
 An enum which lists the possible MenuStates. enum.auto() is used to 
 automatically generate unique constants corresponding to each state.
 If a new menu screen is to be added, a new state should be added to the enum
 as well.
-'''
+"""
 class MenuStates(enum.Enum):
     MAIN_MENU = enum.auto()
     MEASUREMENT_MENU = enum.auto()
@@ -67,16 +70,36 @@ class Menu():
         self.hanken_medium_font = ImageFont.truetype(HankenGroteskMedium, int(13 * scale_size))
         self.hanken_small_font = ImageFont.truetype(HankenGroteskMedium, int(8 * scale_size))
 
-        # self.mainMenu()
+        logger.info("Successfully instantiated Menu.")
 
     def set_selected_calibration(self, calibration):
-        
+        """
+        Changes the currently set calibration. statusBar() uses this
+        parameter.
+        """
+        logger.info(f"Setting calibration: {calibration}.")
         self.selected_calibration = calibration
 
     def set_battery_status(self, battery_status):
+        """
+        Changes the currently set battery status. statusBar() uses this
+        parameter.
+        """
+        logger.info(f"Changing battery status: {battery_status}")
         self.battery_status = battery_status
 
     def statusCheckAll(self, adc_vals):
+        """TODO
+        Takes in a set of five adc values which correspond to: 
+        - Sensor A
+        - Sensor B
+        - SiPM Ref
+        - SiPM Bias
+        - 34V
+        and checks that those values fall within an expected range.
+        This returns "OK" or "ERR", which is then displayed in the "Status" option
+        on the main menu screen.
+        """
         all_good = True
 
         if all_good:
@@ -165,7 +188,7 @@ class Menu():
         self.statusBar(draw)
 
         option1 = "> Autoexposure"
-        option1_sub = "- HOLD 3s during measurement to abort"
+        option1_sub = "- HOLD 3s during any measurement to abort"
         option2 = "> Timed exposure"
         option2_sub1 = "- TAP button=10s"
         option2_sub2 = "- HOLD 1s=30s, 2s=60s, 3s=300s, 4s=600s"
