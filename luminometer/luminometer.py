@@ -721,7 +721,7 @@ class Luminometer():
 					logger.info(f"{self._crcErrs} CRC Errors encountered.")
 
 					self.writeToFile()
-					self.buzzer.buzz()
+					# self.buzzer.buzz()
 				
 				except KeyboardInterrupt as exc:
 					#self.writeToFile('Interrupted_')
@@ -1027,13 +1027,13 @@ class Luminometer():
 							data = future.result()
 							if "Screen displayed" in result:
 								self.screen_settled = True
-								# Indicate to the user the screen has settled 
-								# with a brief double buzz, except for during
-								# measurement screen updates
-								if not self._measuring and not self.state == MenuStates.MEASUREMENT_IN_PROGRESS:
-									self.buzzer.buzz()
-									time.sleep(0.1)
-									self.buzzer.buzz()
+								# # Indicate to the user the screen has settled 
+								# # with a brief double buzz, except for during
+								# # measurement screen updates
+								# if not self._measuring and not self.state == MenuStates.MEASUREMENT_IN_PROGRESS:
+								# 	self.buzzer.buzz()
+								# 	time.sleep(0.1)
+								# 	self.buzzer.buzz()
 							logger.debug(result)
 						except Exception as exc:
 							logger.exception('%r generated an exception: %s' % (result, exc))
