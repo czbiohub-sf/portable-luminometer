@@ -376,7 +376,8 @@ class Luminometer():
 		}
 		try:
 			if self.screen_settled:
-				self.buzzer.buzz()
+				if not state == MenuStates.MEASUREMENT_IN_PROGRESS:
+					self.buzzer.buzz()
 				logger.info(f"Current state: {self.state}")
 				logger.info(f"Moving to: {state}")
 				self.screen_settled = False
