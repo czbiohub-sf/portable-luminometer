@@ -11,6 +11,7 @@ Sensor Datasheet
 
 """
 import time, math, csv, argparse, logging
+import logging.handlers as handlers
 from datetime import datetime
 import numpy as np
 import os, json
@@ -28,7 +29,7 @@ from lumiscreen import LumiScreen, LumiMode
 from ads131m08_reader import ADS131M08Reader, bytes_to_readable, CRCError
 from menu import Menu, MenuStates
 
-############################## SET UP MEASUREMENT AND LOGGING DIRECTORIES ##############################
+# Set up measurement, logging directories, and logger
 LOG_OUTPUT_DIR = "/home/pi/luminometer-logs/"
 MEASUREMENT_OUTPUT_DIR = "/home/pi/measurements/"
 if not os.path.exists(LOG_OUTPUT_DIR):
@@ -36,13 +37,12 @@ if not os.path.exists(LOG_OUTPUT_DIR):
 if not os.path.exists(MEASUREMENT_OUTPUT_DIR):
 	os.mkdir(MEASUREMENT_OUTPUT_DIR)
 
-############################## SETUP LOGGER ##############################
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 log_location = os.path.join(LOG_OUTPUT_DIR, "luminometer.log")
 
 # Set up logging to a file
-file_handler = logging.FileHandler(log_location)
+file_handler = handlers.RotatingFileHandler(log_location, maxBytes=5*1024*1024, backupCount=3)
 formatter = logging.Formatter("%(asctime)s:%(name)s:%(levelname)s: %(message)s", "%Y-%m-%d-%H:%M:%S")
 file_handler.setFormatter(formatter)
 logger.addHandler(file_handler)
@@ -54,7 +54,7 @@ stream_handler.setFormatter(formatter)
 logger.addHandler(stream_handler)
 
 class HBridgeFault(Exception):
-	logger.exception("\nH-bridge fault detected!")
+	logger.exception("H-bridge fault detected!")
 	pass
 
 class LumiBuzzer():
@@ -119,7 +119,7 @@ class LumiShutter():
 		try:
 			action = str(action)
 		except TypeError:
-			print("\naction must be a string!")
+			print("Action must be a string!")
 			return
 
 		if not self._lock.locked():
@@ -136,7 +136,7 @@ class LumiShutter():
 						self.holdClosed()
 
 					else:
-						print(f"\nShutter command not recognized!")
+						print(f"Shutter command not recognized!")
 				except Exception as e:
 					logger.exception(f"Shutter actuation error: {e}")
 					self.rest()
@@ -153,7 +153,7 @@ class LumiShutter():
 
 
 	def driveOpen(self):
-		logger.info(f"\nOpening shutter")
+		logger.info(f"Opening shutter")
 		self._pi.hardware_PWM(self._pwmPin, SHT_PWM_FREQ, SHUTTER_DRIVE_DR)
 		GPIO.output(self._dirPin, 0)
 	
@@ -209,8 +209,8 @@ class Luminometer():
 			"num_CRC_errs": 0,
 			"hbridge_err": "OK",
 		}
-		self.adc_vals = 0
 		self.screen_settled = True
+		self.cb_buffer_size = 100
 		
 		# Get last selected calibration
 		try:
@@ -270,7 +270,7 @@ class Luminometer():
 
 		# TODO, Get battery status dynamically
 		self.batt_status = "OK"
-		self.calA = " - NOT SET"
+		self.calA = " - NONE"
 		logger.info("Checking to see if custom calibration file exists.")
 		if os.path.isfile(CUSTOM_CAL_A_PATH):
 			logger.info("Custom calibration file exists.")
@@ -313,7 +313,14 @@ class Luminometer():
 			threading.Timer(SAMPLE_TIME_S, self._cb_adc_data_ready, args=(DRDY,)).start()
 		else:
 			GPIO.add_event_detect(self._adc._DRDY, GPIO.FALLING, callback=self._cb_adc_data_ready)
-
+		self._accumBufferA = []
+		self._accumBufferB = []
+		self._accumSiPMRef = []
+		self._accumSiPMBias = []
+		self._accum34V = []
+		self._accumulate = True
+		self.adc_vals = self.averageNMeasurements()
+		
 		# Create thread-safe queues for hardware jobs
 		logger.info("Creating display, shutter, and measure queues.")
 		self._display_q = queue.Queue(maxsize=1)
@@ -322,7 +329,6 @@ class Luminometer():
 		logger.info("Successfully created queues.")
 
 		self._measureLock = threading.Lock()
-		self._resetBuffers()
 		
 		# Add callback for button pushes	
 		logger.info("Setting up button callbacks.")
@@ -342,6 +348,7 @@ class Luminometer():
 		# If transitioning to main menu or status, update the diag and adc values
 		try:
 			if state == MenuStates.MAIN_MENU or state == MenuStates.STATUS_MENU:
+				logger.info("Updating adc_vals and diag_vals")
 				self.adc_vals = self.averageNMeasurements()
 				self.diag_vals["batt"] = self.batt_status
 				self.diag_vals["34V"] = self.adc_vals[4]
@@ -384,6 +391,7 @@ class Luminometer():
 	def unified_callback(self, channel):
 
 		if not self.screen_settled and not self._measuring:
+			logger.info("Screen not settled / not currently measuring.")
 			return
 
 		button = None
@@ -493,7 +501,7 @@ class Luminometer():
 					if not self._measureLock.locked():
 						self._measure_q.put_nowait((exposure, False))
 				except queue.Full:
-					logger.info('\nAlready busy measuring')
+					logger.info('Already busy measuring')
 
 				self._duration_s = 0
 				self.measurementMode = "TIMED"
@@ -560,7 +568,7 @@ class Luminometer():
 				if not self._measureLock.locked():
 					self._measure_q.put_nowait((exposure, False))
 			except queue.Full:
-				logger.info('\nAlready busy measuring')
+				logger.info('Already busy measuring')
 
 		elif self.state == MenuStates.MEASUREMENT_IN_PROGRESS:
 			# Measurement in progress
@@ -658,7 +666,7 @@ class Luminometer():
 							
 							# Recalculate mean
 							self.resultA = mean(self.dataA)
-							self.resultB = mean(self.dataB)							
+							self.resultB = mean(self.dataB)					
 
 							logger.info(f"Sensor A after {int(self._sc/2)} cycles: {RLU_PER_V*self.resultA:.2f}")
 							logger.info(f"Sensor A raw: {self.rawdataA[self._rsc-1]:.8f}")
@@ -707,9 +715,9 @@ class Luminometer():
 						with open(CUSTOM_CAL_A_PATH,'w') as outfile:
 							json.dump(self._tempCoeffs, outfile)
 
-					logger.info(f"\nSensor A final result: {RLU_PER_V*self.resultA:.2f} +/- {RLU_PER_V*self.semA:.2f} (s.e.m.) ")
-					logger.info(f"\nSensor B final result: {RLU_PER_V*self.resultB:.2f} +/- {RLU_PER_V*self.semB:.2f} (s.e.m.) ")
-					logger.info(f"\n{self._rsc} samples in {time.perf_counter() - t0} seconds. Sample rate of {self._rsc / (time.perf_counter() - t0)} Hz")
+					logger.info(f"Sensor A final result: {RLU_PER_V*self.resultA:.2f} +/- {RLU_PER_V*self.semA:.2f} (s.e.m.) ")
+					logger.info(f"Sensor B final result: {RLU_PER_V*self.resultB:.2f} +/- {RLU_PER_V*self.semB:.2f} (s.e.m.) ")
+					logger.info(f"{self._rsc} samples in {time.perf_counter() - t0} seconds. Sample rate of {self._rsc / (time.perf_counter() - t0)} Hz")
 					logger.info(f"{self._crcErrs} CRC Errors encountered.")
 
 					self.writeToFile()
@@ -721,10 +729,10 @@ class Luminometer():
 				finally:
 					self._measuring = False
 					self._measurementIsDone = True
-					self._duration_s = time.perf_counter() - t0
-					self.shutter.rest()
 					if not self._haltMeasurement:
 						self._updateDisplayResult(True)
+					self._duration_s = time.perf_counter() - t0
+					self.shutter.rest()
 					time.sleep(5)
 
 		return
@@ -737,7 +745,6 @@ class Luminometer():
 
 		# Auto-exposure
 		else:
-
 			result = \
 					((self._duration_s < MAX_EXPOSURE) and \
 					(self._haltMeasurement == False) and \
@@ -745,33 +752,21 @@ class Luminometer():
 					((self._sc) < MIN_PERIODS and self._haltMeasurement == False)
 			return result
 
-	def averageNMeasurements(self, N: int=100) -> List[float]:
+	def averageNMeasurements(self) -> List[float]:
 		'''
 		Average N sequential measurements from the sensors without using the shutters.
 		This method uses the _cb_adc_data_ready() callback that always runs while the
 		ADC is on. We simply initialize new lists (one for each channel), set the 
 		_accumulate flag to True, and wait for them to fill up.
 		'''
-
-		self._accumBufferA = []
-		self._accumBufferB = []
-		self._accumSiPMRef = []
-		self._accumSiPMBias = []
-		self._accum34V = []
+		output = [0]*5
 
 		try:
-			self._accumulate = True
-
-			while len(self._accumBufferA) < N:
-				pass
+			output = [mean(self._accumBufferA), mean(self._accumBufferB), \
+			mean(self._accumSiPMRef), mean(self._accumSiPMBias), \
+			mean(self._accum34V)]
 		except Exception as e:
 			print(e)
-		finally:
-			self._accumulate = False
-
-		output = [mean(self._accumBufferA), mean(self._accumBufferB), \
-		mean(self._accumSiPMRef), mean(self._accumSiPMBias), \
-		mean(self._accum34V)]
 
 		return output
 
@@ -780,10 +775,9 @@ class Luminometer():
 		# Callback function executed when data ready is asserted from ADC
 		# The callback also queues the shutter actions, in order to stay synchronized 
 		# with the data readout.
-
 		if self._simulate:
 			# Simulation mode
-			d = [0.0, 0.0]
+			d = [0.0, 0.0, 0.0, 0.0, 0.0]
 			threading.Timer(SAMPLE_TIME_S, self._cb_adc_data_ready, args=(DRDY,)).start()
 		else:
 			try:
@@ -818,6 +812,13 @@ class Luminometer():
 			self._sc = int(self._rsc/self.shutter_samples)
 
 		if self._accumulate:
+			if len(self._accumBufferA) > self.cb_buffer_size:
+				self._accumBufferA.pop(0)
+				self._accumBufferB.pop(0)
+				self._accumSiPMRef.pop(0)
+				self._accumSiPMBias.pop(0)
+				self._accum34V.pop(0)
+
 			self._accumBufferA.append(d[0])
 			self._accumBufferB.append(d[1])
 			self._accumSiPMRef.append(d[2])
@@ -847,7 +848,7 @@ class Luminometer():
 					logger.debug("Setting measurement in progress state")
 					self.set_state(MenuStates.MEASUREMENT_IN_PROGRESS)
 		except queue.Full:
-			logger.error('\nDisplay queue full. Could not display result')
+			logger.error('Display queue full. Could not display result')
 
 	def _resetBuffers(self, measure_time: int = 10):
 
@@ -894,7 +895,7 @@ class Luminometer():
 		dt_string = now.strftime("%Y-%m-%d-%H-%M-%S")
 		title = os.path.join(MEASUREMENT_OUTPUT_DIR, dt_string)
 		try:
-			logger.info(f"Attepmting to save to {title}")
+			logger.info(f"Attempting to save to {title}")
 			with open(title + '.csv', 'w', newline='') as csvFile:
 				csvWriter = csv.writer(csvFile)
 				for i in range(self.nRawSamples):
@@ -976,7 +977,7 @@ class Luminometer():
 				# self._display_q.put_nowait((LumiMode.READY, self._darkIsStored))
 
 
-				logger.info('\nReady and waiting for button pushes...')
+				logger.info('Ready and waiting for button pushes...')
 
 				# Main realtime loop:
 				while self._powerOn:
@@ -1018,8 +1019,6 @@ class Luminometer():
 						# Start the load operation and mark the future with its URL
 						logger.debug(f"Display queue with: {kwargs['state']}")
 						future_result[executor.submit(self.display.screenSwitcher, **kwargs)] = "Screen displayed: " + repr(kwargs["state"])
-						# time.sleep(10)
-						# self.screen_settled = True
 
 					# Process any completed futures
 					for future in done:
@@ -1028,6 +1027,13 @@ class Luminometer():
 							data = future.result()
 							if "Screen displayed" in result:
 								self.screen_settled = True
+								# Indicate to the user the screen has settled 
+								# with a brief double buzz, except for during
+								# measurement screen updates
+								if not self._measuring and not self.state == MenuStates.MEASUREMENT_IN_PROGRESS:
+									self.buzzer.buzz()
+									time.sleep(0.1)
+									self.buzzer.buzz()
 							logger.debug(result)
 						except Exception as exc:
 							logger.exception('%r generated an exception: %s' % (result, exc))
