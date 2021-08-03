@@ -7,7 +7,7 @@ from PIL import Image, ImageFont, ImageDraw
 from font_hanken_grotesk import HankenGroteskBold, HankenGroteskMedium
 from font_intuitive import Intuitive
 from inky.auto import auto
-from inky import InkyPHAT
+from inky import InkyPHAT, InkyPHAT_SSD1608
 import numpy as np
 
 # Set up logging directory and logger
@@ -51,10 +51,17 @@ class MenuStates(enum.Enum):
 class Menu():
     """
     """
-    def __init__(self, calibration, battery_status):
+    def __init__(self, screen_type, calibration, battery_status):
         
         logger.info("Creating an InkyPHAT...")
-        self.inky_display = InkyPHAT("black")
+        if screen_type == 1:
+            logger.info("Screen: InkyPHAT")
+            self.inky_display = InkyPHAT("black")
+            scale_size = 1.3
+        else:
+            logger.info("Screen: InkyPHAT_SSD1608")
+            self.inky_display = InkyPHAT_SSD1608("black")
+            scale_size = 1.5
         self.rotation_deg = 0
         
         self._status_bar_offset = 15
@@ -63,7 +70,7 @@ class Menu():
 
         # Load the fonts
         logger.info("Setting up fonts.")
-        scale_size = 1.3
+        # scale_size = 1.3
         self.intuitive_font = ImageFont.truetype(Intuitive, int(20 * scale_size))
         self.hanken_bold_font = ImageFont.truetype(HankenGroteskBold, int(33 * scale_size))
         self.hanken_medium_font = ImageFont.truetype(HankenGroteskMedium, int(13 * scale_size))
@@ -395,7 +402,7 @@ class Menu():
         draw.text((0, line2y), lines[2], self.inky_display.BLACK, font=self.hanken_small_font)
         draw.text((0, line3y), lines[3], self.inky_display.BLACK, font=self.hanken_small_font)
         draw.text((0, line4y), lines[4], self.inky_display.BLACK, font=self.hanken_small_font)
-        draw.text((0, line5y+20), line6, self.inky_display.BLACK, font=self.hanken_small_font)
+        draw.text((0, self.inky_display.resolution[1]-20), line6, self.inky_display.BLACK, font=self.hanken_small_font)
 
         self.inky_display.set_image(img.rotate(self.rotation_deg))
         self.inky_display.show()

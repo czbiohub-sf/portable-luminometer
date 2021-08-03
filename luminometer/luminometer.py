@@ -191,7 +191,7 @@ class LumiShutter():
 
 class Luminometer():
 
-	def __init__(self):
+	def __init__(self, screen_type):
 
 		self.state = MenuStates.MAIN_MENU
 		self.measurementMode = ""
@@ -277,7 +277,7 @@ class Luminometer():
 			self.calA = ""
 
 		logger.info("Instantiating display, shutter, and buzzer.")
-		self.display = Menu(self.selected_calibration, self.batt_status)
+		self.display = Menu(screen_type, self.selected_calibration, self.batt_status)
 		# logger.info("Successfully instantiated Menu display.")
 		try:
 			self.shutter = LumiShutter(SHT_1, SHT_PWM, SHT_FAULT, NSLEEP)
@@ -443,8 +443,8 @@ class Luminometer():
 		logger.info("Button 1 (bottom) pressed.")
 		nextState = None
 
-		# Power off if bottom button held for 5s
-		if int(duration) == 5:
+		# Power off if bottom button held for 3s
+		if int(duration) == 3:
 			nextState = MenuStates.POWER_OFF
 			logger.info('POWER OFF')
 			self._haltMeasurement = True
@@ -1046,7 +1046,12 @@ class Luminometer():
 			pass
 
 if __name__ == "__main__":
-	Luminometer = Luminometer()
+	parser = argparse.ArgumentParser()
+	parser.add_argument('--screen', '-s', type=str, required=True, help="Screen type ('1' or '2')")
+	args, _ = parser.parse_known_args()
+	screen = int(args.screen)
+
+	Luminometer = Luminometer(screen)
 
 	try:
 		Luminometer.run()
