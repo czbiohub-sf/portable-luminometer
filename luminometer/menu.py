@@ -9,7 +9,6 @@ from font_intuitive import Intuitive
 from inky.auto import auto
 from inky import InkyPHAT
 import numpy as np
-from luminometer_constants import CUSTOM_CAL_A_NAME
 
 # Set up logging directory and logger
 LOG_OUTPUT_DIR = "/home/pi/luminometer-logs/"
