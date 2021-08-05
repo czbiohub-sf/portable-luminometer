@@ -3,12 +3,15 @@ import logging
 import logging.handlers as handlers
 import enum
 import os
+import threading
+from time import sleep
 from PIL import Image, ImageFont, ImageDraw
 from font_hanken_grotesk import HankenGroteskBold, HankenGroteskMedium
 from font_intuitive import Intuitive
 from inky.auto import auto
 from inky import InkyPHAT, InkyPHAT_SSD1608
 import numpy as np
+from luminometer_constants import SCREEN2_DELAY
 
 # Set up logging directory and logger
 LOG_OUTPUT_DIR = "/home/pi/luminometer-logs/"
@@ -46,7 +49,8 @@ class MenuStates(enum.Enum):
     CALIBRATION_MENU = enum.auto()
     CONFIRM_CALIBRATION = enum.auto()
     CALIBRATION_IN_PROGRESS = enum.auto()
-    POWER_OFF = enum.auto()
+    POWER_OFF = enum.auto(),
+    RLU_CALIBRATION = enum.auto()
 
 class Menu():
     """
@@ -67,6 +71,8 @@ class Menu():
         self._status_bar_offset = 15
         self.selected_calibration = calibration
         self.battery_status = battery_status
+        self.screen_type = screen_type
+        self._lock = threading.Lock()
 
         # Load the fonts
         logger.info("Setting up fonts.")
@@ -114,51 +120,61 @@ class Menu():
             return "ERR"
 
     def screenSwitcher(self, **kwargs):
-        state = kwargs["state"]
 
-        try:
-            # Display screens 
-            if state == MenuStates.MAIN_MENU:
-                self.set_battery_status(kwargs["battery_status"])
-                self.set_selected_calibration(kwargs["selected_calibration"])
-                self.mainMenu(kwargs["adc_vals"])
+        if not self._lock.locked():
+            with self._lock:
+                state = kwargs["state"]
 
-            elif state == MenuStates.MEASUREMENT_MENU:
-                self.measurementMenu()
-                logger.info("Switched to Measurement screen.")
+                try:
+                    # Display screens 
+                    if state == MenuStates.MAIN_MENU:
+                        self.set_battery_status(kwargs["battery_status"])
+                        self.set_selected_calibration(kwargs["selected_calibration"])
+                        self.mainMenu(kwargs["adc_vals"])
 
-            elif state == MenuStates.MEASUREMENT_IN_PROGRESS:
-                self.measurementInProgress(kwargs["resultA"], kwargs["semA"], kwargs["resultB"], 
-                                            kwargs["semB"], kwargs["target_time"], kwargs["time_elapsed"])
-                logger.info("Switched to MeasurementInProgress screen.")
+                    elif state == MenuStates.MEASUREMENT_MENU:
+                        self.measurementMenu()
+                        logger.info("Switched to Measurement screen.")
 
-            elif state == MenuStates.SHOW_FINAL_MEASUREMENT:
-                self.showMeasurement(kwargs["_measurementIsDone"], kwargs["resultA"], kwargs["semA"], 
-                                        kwargs["resultB"], kwargs["semB"], kwargs["target_time"], kwargs["time_elapsed"])
-                logger.info("Switched to ShowFinalMeasurement screen.")
+                    elif state == MenuStates.MEASUREMENT_IN_PROGRESS:
+                        self.measurementInProgress(kwargs["resultA"], kwargs["semA"], kwargs["resultB"], 
+                                                    kwargs["semB"], kwargs["target_time"], kwargs["time_elapsed"])
+                        logger.info("Switched to MeasurementInProgress screen.")
 
-            elif state == MenuStates.STATUS_MENU:
-                self.statusMenu(kwargs["diag_vals"], kwargs["adc_vals"])
-                logger.info("Switched to Status screen.")
+                    elif state == MenuStates.SHOW_FINAL_MEASUREMENT:
+                        self.showMeasurement(kwargs["_measurementIsDone"], kwargs["resultA"], kwargs["semA"], 
+                                                kwargs["resultB"], kwargs["semB"], kwargs["target_time"], kwargs["time_elapsed"])
+                        logger.info("Switched to ShowFinalMeasurement screen.")
 
-            elif state == MenuStates.CALIBRATION_MENU:
-                self.calibrationMenu(kwargs["calA"])
-                logger.info("Switched to Calibration screen.")
+                    elif state == MenuStates.STATUS_MENU:
+                        self.statusMenu(kwargs["diag_vals"], kwargs["adc_vals"])
+                        logger.info("Switched to Status screen.")
 
-            elif state == MenuStates.CONFIRM_CALIBRATION:
-                self.confirmCalibrationOverwrite()
-                logger.info("Switched to ConfirmCalibration screen.")
+                    elif state == MenuStates.CALIBRATION_MENU:
+                        self.calibrationMenu(kwargs["calA"])
+                        logger.info("Switched to Calibration screen.")
 
-            elif state == MenuStates.CALIBRATION_IN_PROGRESS:
-                self.calibrationInProgress()
-                logger.info("Switched to CalibrationInProgress screen.")
-            
-            elif state == MenuStates.POWER_OFF:
-                self.powerOff()
-                logger.info("Switched to PowerOff screen.")
+                    elif state == MenuStates.CONFIRM_CALIBRATION:
+                        self.confirmCalibrationOverwrite()
+                        logger.info("Switched to ConfirmCalibration screen.")
 
-        except Exception as e:
-            logger.exception("Error encountered while switching screens.")
+                    elif state == MenuStates.CALIBRATION_IN_PROGRESS:
+                        self.calibrationInProgress()
+                        logger.info("Switched to CalibrationInProgress screen.")
+                    
+                    elif state == MenuStates.POWER_OFF:
+                        self.powerOff()
+                        logger.info("Switched to PowerOff screen.")
+
+                    elif state == MenuStates.RLU_CALIBRATION:
+                        self.rluCalibration(kwargs["rlu_time"], kwargs["rlu_per_v"])
+                        logger.info("Switched to rluCalibration screen.") 
+
+                    if self.screen_type == 2:
+                        sleep(SCREEN2_DELAY)
+                        
+                except Exception as e:
+                    logger.exception("Error encountered while switching screens.")
 
     def statusBar(self, draw):
         status = f"Cal: {self.selected_calibration} / Batt: {self.battery_status}"
@@ -338,7 +354,7 @@ class Menu():
         line3 = "PBias in range:"
         line4 = "CRC Err:"
         line5 = "H-Bridge Err:"
-        line6 = "> Click to return to main menu"
+        line6 = "> Return to main menu"
         lines = [line1, line2, line3, line4, line5]
         diag_val_keys = ["batt", "34V", "pbias", "num_CRC_errs", "hbridge_err"]
         adc_val_keys = ["SensorA", "SensorB", "SiPMRef", "SiPMBias", "34V"]
@@ -415,7 +431,7 @@ class Menu():
 
         option1 = "> Restore default calibration"
         option2 = f"> Custom calibration{calibrationA_name}"
-        option3 = "> Click to return to main"
+        option3 = "> Return to main menu"
         subtext = "- HOLD the middle button for 5s to"
         subtext2 = "  overwrite custom calibration"
 
@@ -462,6 +478,40 @@ class Menu():
         draw.text((0, line2y), line3, self.inky_display.BLACK, self.hanken_small_font)
         draw.text((0, line3y), line4, self.inky_display.BLACK, self.hanken_small_font)
         draw.text((0, line4y), line5, self.inky_display.BLACK, self.hanken_small_font)
+
+        self.inky_display.set_image(img.rotate(self.rotation_deg))
+        self.inky_display.show()
+
+    def rluCalibration(self, rlu_calibration_time, curr_rlu):
+        img = Image.new("P", self.inky_display.resolution)
+        draw = ImageDraw.Draw(img)
+        # self.statusBar(draw)
+
+        width = self.inky_display.resolution[0]
+        height = self.inky_display.resolution[1]
+
+        start_line = "> Press top button to start calibration."
+        line = "RLU Calibration"
+        line2 = f"This calibration will take {rlu_calibration_time}s"
+        line3 = f"Current RLU: {curr_rlu}"
+        return_line = "> Return to main menu"
+        line1x, line1y = self.hanken_medium_font.getsize(line)
+        line2x, line2y = self.hanken_medium_font.getsize(line2)
+        line3x, line3y = self.hanken_small_font.getsize(line3)
+
+        top_offset = height/2 - (line1y + line2y + line3y)/2
+        x_pos1 = width/2 - line1x/2
+        x_pos2 = width/2 - line2x/2
+        x_pos3 = width/2 - line3x/2
+        y_pos1 = top_offset
+        y_pos2 = y_pos1 + line1y
+        y_pos3 = y_pos2 + line2y
+
+        draw.text((0, 0), start_line, self.inky_display.BLACK, font=self.hanken_small_font)
+        draw.text((x_pos1, y_pos1), line, self.inky_display.BLACK, font=self.hanken_medium_font)
+        draw.text((x_pos2, y_pos2), line2, self.inky_display.BLACK, font=self.hanken_medium_font)
+        draw.text((x_pos3, y_pos3), line3, self.inky_display.BLACK, font=self.hanken_small_font)
+        draw.text((0, height - 20), return_line, self.inky_display.BLACK, font=self.hanken_small_font)
 
         self.inky_display.set_image(img.rotate(self.rotation_deg))
         self.inky_display.show()

@@ -10,11 +10,13 @@ Sensor Datasheet
 	https://www.mouser.com/datasheet/2/308/MICROC-SERIES-D-1811553.pdf
 
 """
-import time, math, csv, argparse, logging
+import time, math, csv, argparse, logging, enum
 import logging.handlers as handlers
 from datetime import datetime
 import numpy as np
 import os, json
+
+from numpy.testing import measure
 import RPi.GPIO as GPIO
 import pigpio
 import concurrent.futures
@@ -30,8 +32,6 @@ from ads131m08_reader import ADS131M08Reader, bytes_to_readable, CRCError
 from menu import Menu, MenuStates
 
 # Set up measurement, logging directories, and logger
-LOG_OUTPUT_DIR = "/home/pi/luminometer-logs/"
-MEASUREMENT_OUTPUT_DIR = "/home/pi/measurements/"
 if not os.path.exists(LOG_OUTPUT_DIR):
 	os.mkdir(LOG_OUTPUT_DIR)
 if not os.path.exists(MEASUREMENT_OUTPUT_DIR):
@@ -52,6 +52,11 @@ stream_handler = logging.StreamHandler()
 stream_handler.setLevel(logging.DEBUG)
 stream_handler.setFormatter(formatter)
 logger.addHandler(stream_handler)
+
+class MeasurementType(enum.Enum):
+	MEASUREMENT = enum.auto()
+	TEMPERATURE_COMP = enum.auto()
+	SENSITIVITY_NORM = enum.auto()
 
 class HBridgeFault(Exception):
 	logger.exception("H-bridge fault detected!")
@@ -194,14 +199,15 @@ class Luminometer():
 	def __init__(self, screen_type):
 
 		self.state = MenuStates.MAIN_MENU
+		self.screen_settled = True
 		self.measurementMode = ""
 		self.target_time = 0
 		self.selected_calibration = ""
 		self._duration_s = 0
 		self.resultA = 0
-		self.semA = 0
+		self.semA = float('inf')
 		self.resultB = 0
-		self.semB = 0
+		self.semB = float('inf')
 		self.diag_vals = {
 			"batt": "OK",
 			"34V": "OK",
@@ -209,7 +215,6 @@ class Luminometer():
 			"num_CRC_errs": 0,
 			"hbridge_err": "OK",
 		}
-		self.screen_settled = True
 		self.cb_buffer_size = 100
 		
 		# Get last selected calibration
@@ -238,7 +243,17 @@ class Luminometer():
 			self._tempCoeffs["A"] = [SENSOR_A_DARK_V, SENSOR_A_CP_RATIO]
 			self._tempCoeffs["B"] = [SENSOR_B_DARK_V, SENSOR_B_CP_RATIO]
 
-
+		try:
+			# Get RLU_PER_V
+			with open(RLU_CAL_PATH) as json_file:
+				data = json.load(json_file)
+				self.rlu_per_v_a, self.rlu_per_v_b = data["RLU_PER_V_A"], data["RLU_PER_V_B"]
+				logger.info("Sucessfully loaded RLU_PER_V from rlu.json.")
+		except:
+			# In case of an error, fallback on this default for rlu_per_v
+			self.rlu_per_v_a = 20000
+			self.rlu_per_v_b = 20000
+			logger.exception(f"Errored while reading rlu_per_v from rlu.json.\nResorting to: ({self.rlu_per_v_a:}, {self.rlu_per_v_b:})")
 		# Pin assignments
 		self._btn1 = BTN_1
 		self._btn2 = BTN_2
@@ -277,6 +292,7 @@ class Luminometer():
 			self.calA = ""
 
 		logger.info("Instantiating display, shutter, and buzzer.")
+		self.screen_type = screen_type
 		self.display = Menu(screen_type, self.selected_calibration, self.batt_status)
 		# logger.info("Successfully instantiated Menu display.")
 		try:
@@ -310,7 +326,7 @@ class Luminometer():
 		# Start handling incoming ADC data
 		if self._simulate:
 			logger.info("SIMULATION MODE: Starting timer callback")
-			threading.Timer(SAMPLE_TIME_S, self._cb_adc_data_ready, args=(DRDY,)).start()
+			threading.Timer(SAMPLE_TIME_S, self._cb_adc_data_ready, args=(DRDY,), kwargs={'daemon': True}).start()
 		else:
 			GPIO.add_event_detect(self._adc._DRDY, GPIO.FALLING, callback=self._cb_adc_data_ready)
 		self._accumBufferA = []
@@ -344,19 +360,8 @@ class Luminometer():
 		# Check for a low battery
 		if not GPIO.input(self._PMIC_LBO):
 			self.batt_status = "LO"
-		
-		# If transitioning to main menu or status, update the diag and adc values
-		try:
-			if state == MenuStates.MAIN_MENU or state == MenuStates.STATUS_MENU:
-				logger.info("Updating adc_vals and diag_vals")
-				self.adc_vals = self.averageNMeasurements()
-				self.diag_vals["batt"] = self.batt_status
-				self.diag_vals["34V"] = self.adc_vals[4]
-				self.diag_vals["pbias"] = self.adc_vals[3]
-				self.diag_vals["num_CRC_errs"] = self._crcErrs
-				self.diag_vals["hbridge_err"] = self.shutter.hbridge_err
-		except:
-			logger.exception("Error setting adc/diag vals")
+		else:
+			self.batt_status = "OK"
 
 		display_kwargs = {
 			"state": state,
@@ -373,35 +378,56 @@ class Luminometer():
 			"semB": self.semB,
 			"diag_vals": self.diag_vals,
 			"adc_vals": self.adc_vals,
+			"rlu_per_v": [self.rlu_per_v_a, self.rlu_per_v_b],
+			"rlu_time": SENSITIVITY_NORM_TIME
 		}
 		try:
 			if self.screen_settled:
-				if not state == MenuStates.MEASUREMENT_IN_PROGRESS:
+				# If transitioning to main menu or status, update the diag and adc values
+				try:
+					if state == MenuStates.MAIN_MENU or state == MenuStates.STATUS_MENU:
+						logger.info("Updating adc_vals and diag_vals")
+						self.adc_vals = self.averageNMeasurements()
+						self.diag_vals["batt"] = self.batt_status
+						self.diag_vals["34V"] = self.adc_vals[4]
+						self.diag_vals["pbias"] = self.adc_vals[3]
+						self.diag_vals["num_CRC_errs"] = self._crcErrs
+						self.diag_vals["hbridge_err"] = self.shutter.hbridge_err
+				except:
+					logger.exception("Error setting adc/diag vals")
+
+				if not (self.state == MenuStates.MEASUREMENT_IN_PROGRESS and state == MenuStates.MEASUREMENT_IN_PROGRESS):
 					self.buzzer.buzz()
 				logger.info(f"Current state: {self.state}")
 				logger.info(f"Moving to: {state}")
-				self.screen_settled = False
+			
 				self._display_q.put(display_kwargs)
 				self.state = state
-			else:
-				logger.info("Screen not yet settled.")
+				self.screen_settled = False
 		except queue.Full:
 			logger.info("Display queue full.")
 			pass
+	
+	def secretMenu(self, channel):
+		if self.state == MenuStates.STATUS_MENU:
+			nextState = None
+			self.button_combo.append(channel)
+			if self.button_combo == RLU_CALIBRATION_COMBO:
+				nextState = MenuStates.RLU_CALIBRATION
+
+			if nextState != None:
+				self.set_state(nextState)
 
 	def unified_callback(self, channel):
 
-		if not self.screen_settled and not self._measuring:
-			logger.info("Screen not settled / not currently measuring.")
+		# If the device is currently measuring
+		# we only want the user to be able to trigger this callback if they are
+		# pressing button 1 to trigger an abort
+		if self._measuring and (channel == BTN_1 or channel == BTN_2):
 			return
-
-		button = None
-		if channel == BTN_1:
-			button = 1
-		elif channel == BTN_2:
-			button = 2
-		elif channel == BTN_3:
-			button = 3
+		
+		button_pos = BTN_PIN_TO_POS[channel]
+		self.secretMenu(channel)
 
 		# Get duration of button hold
 		buzz1s = buzz2s = buzz3s = buzz4s = buzz5s = True
@@ -412,29 +438,29 @@ class Luminometer():
 			if (int(duration) == 1) and buzz1s:
 				self.buzzer.buzz()
 				buzz1s = False
-				logger.info(f"Button {button} held for 1 second.")
+				logger.info(f"{button_pos} button held for 1 second.")
 			elif (int(duration)==2) and buzz2s:
 				self.buzzer.buzz()
 				buzz2s = False
-				logger.info(f"Button {button} held for 2 seconds.")
+				logger.info(f"{button_pos} button held for 2 seconds.")
 			elif (int(duration)==3) and buzz3s:
 				self.buzzer.buzz()
 				buzz3s = False
-				logger.info(f"Button {button} held for 3 seconds.")			
+				logger.info(f"{button_pos} button held for 3 seconds.")			
 			elif (int(duration)==4) and buzz4s:
 				self.buzzer.buzz()
 				buzz4s = False
-				logger.info(f"Button {button} held for 4 seconds.")
+				logger.info(f"{button_pos} button held for 4 seconds.")
 			elif (int(duration)==5) and buzz5s:
 				self.buzzer.buzz()
 				buzz5s = False
-				logger.info(f"Button {button} held for 5 seconds.")
+				logger.info(f"{button_pos} button held for 5 seconds.")
 
-		if button == 1:
+		if channel == BTN_1:
 			self.btn1_transition_logic(duration)
-		elif button == 2:
+		elif channel == BTN_2:
 			self.btn2_transition_logic(duration)
-		elif button == 3:
+		elif channel == BTN_3:
 			self.btn3_transition_logic(duration)
 
 	def btn1_transition_logic(self, duration):
@@ -449,6 +475,7 @@ class Luminometer():
 			nextState = MenuStates.POWER_OFF
 			logger.info('POWER OFF')
 			self._haltMeasurement = True
+			self.set_state(nextState)
 			self._powerOn = False
 
 		elif self.state == MenuStates.MAIN_MENU:
@@ -469,11 +496,14 @@ class Luminometer():
 		elif self.state == MenuStates.CONFIRM_CALIBRATION:
 			nextState = MenuStates.MAIN_MENU
 
+		elif self.state == MenuStates.RLU_CALIBRATION:
+			nextState = MenuStates.MAIN_MENU
+
 		if nextState != None:
 			self.set_state(nextState)
 
 	def btn2_transition_logic(self, duration):
-		'''This is the MIDDLE button
+		'''This is the middle button
 		'''
 
 		logger.info(f"Button 2 (middle) pressed. {self.state}")
@@ -481,26 +511,20 @@ class Luminometer():
 
 		if self.state == MenuStates.MAIN_MENU:
 			nextState = MenuStates.STATUS_MENU
+			# Set up special button combo memory
+			self.button_combo = []
 
 		elif self.state == MenuStates.MEASUREMENT_MENU:
 			
 			# Perform timed measurement
 			if not self._measuring:
-				exposure = 10
-				
-				if int(duration) == 1:
-					exposure = 30
-				elif int(duration) == 2:
-					exposure = 60
-				elif int(duration) == 3:
-					exposure = 300
-				elif int(duration) == 4:
-					exposure = 600
+				duration = int(duration)
+				exposure = DURATION_TO_EXPOSURE[duration]
 				self.target_time = exposure
 		
 				try:
 					if not self._measureLock.locked():
-						self._measure_q.put_nowait((exposure, False))
+						self._measure_q.put_nowait((exposure, MeasurementType.MEASUREMENT))
 				except queue.Full:
 					logger.info('Already busy measuring')
 
@@ -549,7 +573,7 @@ class Luminometer():
 		
 	
 	def btn3_transition_logic(self, duration):
-		'''This is the TOP button
+		'''This is the top button
 		'''
 
 		logger.info("Button 3 (top) pressed.")
@@ -567,7 +591,7 @@ class Luminometer():
 			exposure = 0
 			try:
 				if not self._measureLock.locked():
-					self._measure_q.put_nowait((exposure, False))
+					self._measure_q.put_nowait((exposure, MeasurementType.MEASUREMENT))
 			except queue.Full:
 				logger.info('Already busy measuring')
 
@@ -579,7 +603,7 @@ class Luminometer():
 				self.buzzer.buzz()
 				self._haltMeasurement = True
 				nextState = MenuStates.MEASUREMENT_MENU
-				while not self.screen_settled or self._measuring:
+				while self._measuring:
 					pass
 		
 		elif self.state == MenuStates.CALIBRATION_MENU:
@@ -603,16 +627,60 @@ class Luminometer():
 			if not self._measureLock.locked():
 				try:
 					logger.info("Performing calibration.")
-					self._measure_q.put_nowait((DEF_DARK_TIME,True))
+					self._measure_q.put_nowait((DEF_DARK_TIME, MeasurementType.TEMPERATURE_COMP))
 				except queue.Full:
 					pass
-		
+		elif self.state == MenuStates.RLU_CALIBRATION:
+			# Start RLU calibration
+			if not self._measureLock.locked():
+				try:
+					logger.info("Performing RLU calibration.")
+					self.target_time = 30
+					self._measure_q.put_nowait((SENSITIVITY_NORM_TIME, MeasurementType.SENSITIVITY_NORM))
+				except queue.Full:
+					pass
 		if nextState != None:
 			self.set_state(nextState)
 
+	def convertToRLU(self, data, sensor: str):
+		'''Converts the raw data and standard error of mean with the RLU scaling and offset'''
+
+		if sensor == "A":
+			rlu_per_v = self.rlu_per_v_a
+		elif sensor == "B":
+			rlu_per_v = self.rlu_per_v_b
+
+		data_RLU = ( rlu_per_v * mean(data) ) + ADD_OFFSET_RLU
+
+		# Can't compute stdev unless there are >3 shutter-open periods _|-|_|-|_|-|_
+		if self._sc > 5:
+			sem_RLU = rlu_per_v * ( stdev(data)/math.sqrt(float(len(data))) ) 
+		else:
+			sem_RLU = float('inf')
+
+		return data_RLU, sem_RLU
+
+	def updateAndSaveRLU(self):
+		'''Updates the RLU_PER_V for both sensors and saves it to rlu.json'''
+		logger.info("Updating RLU_PER_V_A and RLU_PER_V_B values.")
+		try:
+			self.rlu_per_v_a = (TARGET_RLU - ADD_OFFSET_RLU) / mean(self.dataA)
+			self.rlu_per_v_b = (TARGET_RLU - ADD_OFFSET_RLU) / mean(self.dataB)
+			updated_rlu = {
+				"RLU_PER_V_A": self.rlu_per_v_a,
+				"RLU_PER_V_B": self.rlu_per_v_b
+			}
+
+			# Save to rlu.json
+			with open(RLU_CAL_PATH,'w') as outfile:
+					json.dump(updated_rlu, outfile)
+		except:
+			logger.exception("Errored while updating/saving RLU A/B values.")
+
+	
 	def measure(self, \
 		measure_time: int = 30, \
-		isCalibration: bool = False):
+		measurement_type: MeasurementType = MeasurementType.MEASUREMENT):
 		"""
 		Arguments:
 		measure_time is the duration of the entire measurement, in seconds
@@ -662,22 +730,17 @@ class Luminometer():
 							logger.info(f"Measure: sample count = {self._sc}")
 
 							# Gate traces 
-							self.dataA, _ = self.gateTrace(self.rawdataA[:self._rsc], self.shutter_samples, "A", False)
-							self.dataB, _ = self.gateTrace(self.rawdataB[:self._rsc], self.shutter_samples, "B", False)
+							self.dataA, _ = self.gateTrace(self.rawdataA[:self._rsc], self.shutter_samples, "A", MeasurementType.MEASUREMENT)
+							self.dataB, _ = self.gateTrace(self.rawdataB[:self._rsc], self.shutter_samples, "B", MeasurementType.MEASUREMENT)
 							
 							# Recalculate mean
-							self.resultA = mean(self.dataA)
-							self.resultB = mean(self.dataB)					
+							self.resultA, self.semA = self.convertToRLU(self.dataA, "A")
+							self.resultB, self.semB = self.convertToRLU(self.dataB, "B")
 
-							logger.info(f"Sensor A after {int(self._sc/2)} cycles: {RLU_PER_V*self.resultA:.2f}")
-							logger.info(f"Sensor A raw: {self.rawdataA[self._rsc-1]:.8f}")
-							logger.info(f"Sensor B after {int(self._sc/2)} cycles: {RLU_PER_V*self.resultB:.2f}")
-							logger.info(f"Sensor B raw: {self.rawdataB[self._rsc-1]:.8f}")
-
-							# Can't compute stdev unless there are >3 shutter-open periods _|-|_|-|_|-|_
-							if self._sc > 5:
-								self.semA = stdev(self.dataA)/math.sqrt(float(len(self.dataA)))
-								self.semB = stdev(self.dataB)/math.sqrt(float(len(self.dataB)))
+							logger.debug(f"Sensor A after {int(self._sc/2)} cycles: {self.resultA:.2f}")
+							logger.debug(f"Sensor A raw: {self.rawdataA[self._rsc-1]:.8f}")
+							logger.debug(f"Sensor B after {int(self._sc/2)} cycles: {self.resultB:.2f}")
+							logger.debug(f"Sensor B raw: {self.rawdataB[self._rsc-1]:.8f}")
 
 							self._duration_s = time.perf_counter() - t0
 
@@ -686,17 +749,15 @@ class Luminometer():
 							sampleCount += 1
 
 					# Final: gate traces. If calibration, do the fit and write the file
-					self.dataA, rawDownsampledA = self.gateTrace(self.rawdataA[:self._rsc], self.shutter_samples, "A", isCalibration)
-					self.dataB, rawDownsampledB = self.gateTrace(self.rawdataB[:self._rsc], self.shutter_samples, "B", isCalibration)	
+					self.dataA, rawDownsampledA = self.gateTrace(self.rawdataA[:self._rsc], self.shutter_samples, "A", measurement_type)
+					self.dataB, rawDownsampledB = self.gateTrace(self.rawdataB[:self._rsc], self.shutter_samples, "B", measurement_type)	
 
 					# Final result is the mean of all the gated shutter-open periods
-					self.resultA = mean(self.dataA)
-					self.resultB = mean(self.dataB)
-					self.semA = stdev(self.dataA)/math.sqrt(float(len(self.dataA)))
-					self.semB = stdev(self.dataB)/math.sqrt(float(len(self.dataB)))
+					self.resultA, self.semA = self.convertToRLU(self.dataA, "A")
+					self.resultB, self.semB = self.convertToRLU(self.dataB, "B")
 
 					# If doing a calibration, then store the result
-					if isCalibration:
+					if measurement_type == MeasurementType.TEMPERATURE_COMP:
 						fitParamsA = np.polyfit(rawDownsampledA, self.dataA, 1, full=False)
 						fitParamsB = np.polyfit(rawDownsampledB, self.dataB, 1, full=False)
 						
@@ -716,8 +777,12 @@ class Luminometer():
 						with open(CUSTOM_CAL_A_PATH,'w') as outfile:
 							json.dump(self._tempCoeffs, outfile)
 
-					logger.info(f"Sensor A final result: {RLU_PER_V*self.resultA:.2f} +/- {RLU_PER_V*self.semA:.2f} (s.e.m.) ")
-					logger.info(f"Sensor B final result: {RLU_PER_V*self.resultB:.2f} +/- {RLU_PER_V*self.semB:.2f} (s.e.m.) ")
+					# If doing a sensitivity normalization, calculate normalization and save to rlu.json
+					elif measurement_type == MeasurementType.SENSITIVITY_NORM:
+						self.updateAndSaveRLU()
+
+					logger.info(f"Sensor A final result: {self.resultA:.2f} +/- {self.semA:.2f} (s.e.m.) ")
+					logger.info(f"Sensor B final result: {self.resultB:.2f} +/- {self.semB:.2f} (s.e.m.) ")
 					logger.info(f"{self._rsc} samples in {time.perf_counter() - t0} seconds. Sample rate of {self._rsc / (time.perf_counter() - t0)} Hz")
 					logger.info(f"{self._crcErrs} CRC Errors encountered.")
 
@@ -730,8 +795,12 @@ class Luminometer():
 				finally:
 					self._measuring = False
 					self._measurementIsDone = True
-					if not self._haltMeasurement:
-						self._updateDisplayResult(True)
+					if measurement_type == MeasurementType.SENSITIVITY_NORM:
+						while not self.screen_settled:
+							pass
+						self.set_state(MenuStates.RLU_CALIBRATION)
+					elif not self._haltMeasurement:
+						self._updateDisplayResult(show_final=True)
 					self._duration_s = time.perf_counter() - t0
 					self.shutter.rest()
 					time.sleep(5)
@@ -828,15 +897,14 @@ class Luminometer():
 		
 		return		
 
-	def _updateDisplayResult(self, wait: bool = False):
+	def _updateDisplayResult(self, show_final: bool = False):
 		# Update display with intermediate results
 		logger.debug("Updating intermediate results.")
-		self.resultA = RLU_PER_V*mean(self.dataA)+ADD_OFFSET_RLU
-		self.semA = RLU_PER_V*self.semA
-		self.resultB = RLU_PER_V*mean(self.dataB)+ADD_OFFSET_RLU
-		self.semB = RLU_PER_V*self.semB
+		self.resultA, self.semA = self.convertToRLU(self.dataA, "A")
+		self.resultB, self.semB = self.convertToRLU(self.dataB, "B")
+	
 		try:
-			if wait:
+			if show_final:
 				# Ensure the final result is displayed
 				logger.debug("Waiting to display final...")
 				while not self.screen_settled:
@@ -845,7 +913,7 @@ class Luminometer():
 				self.set_state(MenuStates.SHOW_FINAL_MEASUREMENT)
 				self._duration_s = 0
 			else:
-				if self.screen_settled:
+				if self._display_q.empty():
 					logger.debug("Setting measurement in progress state")
 					self.set_state(MenuStates.MEASUREMENT_IN_PROGRESS)
 		except queue.Full:
@@ -894,9 +962,50 @@ class Luminometer():
 	def writeToFile(self):
 		now = datetime.now()
 		dt_string = now.strftime("%Y-%m-%d-%H-%M-%S")
+
+		### Write the final result to the all-measurements.csv file
+		file = os.path.join(MEASUREMENT_OUTPUT_DIR, ALL_MEASUREMENTS_CSV_FILENAME)
+		try:
+			# Create the all measurements file if it doesn't already exist
+			if not os.path.exists(file):
+				# Create file
+				open(file, 'w+')
+				headers = [
+					"date", 
+					"measurementMode", 
+					"exposure", 
+					"resultA", 
+					"standard_err_of_mean_A",
+					"resultB",
+					"standard_err_of_mean_B",
+				]
+				# Add header row
+				with open(file, 'a', newline='') as final_measurements_csv:
+					csvWriter = csv.writer(final_measurements_csv)
+					csvWriter.writerow(headers)
+		except:
+			logger.exception("Errored while creating all-measurements.csv.")
+		try:
+			# Append final measurement to all-measurements.csv
+			measurements = [
+				dt_string,
+				self.measurementMode,
+				self.target_time,
+				self.resultA,
+				self.semA,
+				self.resultB,
+				self.semB
+			]
+			with open(file, 'a', newline='') as final_measurements_csv:
+				csvWriter = csv.writer(final_measurements_csv)
+				csvWriter.writerow(measurements)
+		except:
+			logger.exception("Errored while appending to all-measurements.csv.")
+		
+		### Write all intermediate raw and gated data results to a DATE.csv and DATE_gated.csv
 		title = os.path.join(MEASUREMENT_OUTPUT_DIR, dt_string)
 		try:
-			logger.info(f"Attempting to save to {title}")
+			logger.info(f"Saving to {title}")
 			with open(title + '.csv', 'w', newline='') as csvFile:
 				csvWriter = csv.writer(csvFile)
 				for i in range(self.nRawSamples):
@@ -910,7 +1019,7 @@ class Luminometer():
 		except:
 			logger.exception("Could not save measurement to file.")
 
-	def gateTrace(self, rawData: List[float], gateSize: int, channel: str, isCalibration: bool = False) -> List[float]:
+	def gateTrace(self, rawData: List[float], gateSize: int, channel: str, measurement_type: MeasurementType = MeasurementType.MEASUREMENT) -> List[float]:
 		"""
 		Helper method that computes the mean of each even chunk of data, subtracted by the mean of the flanking odd
 		chunks of data. The chunk size is specified by gateSize, and the total size of the rawData should be an odd
@@ -951,7 +1060,7 @@ class Luminometer():
 			rawDownsampled.append(darkMean)
 			gatedSample = sample - darkMean
 
-			if isCalibration:
+			if measurement_type == MeasurementType.TEMPERATURE_COMP:
 				samples.append(gatedSample)
 			else:
 				samples.append(self.correctTemperature(gatedSample, darkMean, self._tempCoeffs[channel]))
@@ -973,10 +1082,6 @@ class Luminometer():
 				future_result = { \
 					executor.submit(Luminometer.shutter.actuate, 'close'): 'SHUTTER CLOSED', \
 					}
-
-				# Display to the user that the system is started and ready
-				# self._display_q.put_nowait((LumiMode.READY, self._darkIsStored))
-
 
 				logger.info('Ready and waiting for button pushes...')
 
@@ -1020,7 +1125,7 @@ class Luminometer():
 						# Start the load operation and mark the future with its URL
 						logger.debug(f"Display queue with: {kwargs['state']}")
 						future_result[executor.submit(self.display.screenSwitcher, **kwargs)] = "Screen displayed: " + repr(kwargs["state"])
-
+					
 					# Process any completed futures
 					for future in done:
 						result = future_result[future]
@@ -1028,13 +1133,6 @@ class Luminometer():
 							data = future.result()
 							if "Screen displayed" in result:
 								self.screen_settled = True
-								# # Indicate to the user the screen has settled 
-								# # with a brief double buzz, except for during
-								# # measurement screen updates
-								# if not self._measuring and not self.state == MenuStates.MEASUREMENT_IN_PROGRESS:
-								# 	self.buzzer.buzz()
-								# 	time.sleep(0.1)
-								# 	self.buzzer.buzz()
 							logger.debug(result)
 						except Exception as exc:
 							logger.exception('%r generated an exception: %s' % (result, exc))
@@ -1047,12 +1145,12 @@ class Luminometer():
 			pass
 
 if __name__ == "__main__":
-	parser = argparse.ArgumentParser()
-	parser.add_argument('--screen', '-s', type=str, required=True, help="Screen type ('1' or '2')")
-	args, _ = parser.parse_known_args()
-	screen = int(args.screen)
-
-	Luminometer = Luminometer(screen)
+	# parser = argparse.ArgumentParser()
+	# parser.add_argument('--screen', '-s', type=str, required=True, help="Screen type ('1' or '2')")
+	# args, _ = parser.parse_known_args()
+	# screen_type = int(args.screen)
+	screen_type = 2
+	Luminometer = Luminometer(screen_type)
 
 	try:
 		Luminometer.run()
