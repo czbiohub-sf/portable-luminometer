@@ -326,7 +326,7 @@ class Luminometer():
 		# Start handling incoming ADC data
 		if self._simulate:
 			logger.info("SIMULATION MODE: Starting timer callback")
-			threading.Timer(SAMPLE_TIME_S, self._cb_adc_data_ready, args=(DRDY,), kwargs={'daemon': True}).start()
+			threading.Timer(SAMPLE_TIME_S, self._cb_adc_data_ready, args=(DRDY,)).start()
 		else:
 			GPIO.add_event_detect(self._adc._DRDY, GPIO.FALLING, callback=self._cb_adc_data_ready)
 		self._accumBufferA = []
@@ -475,7 +475,6 @@ class Luminometer():
 			nextState = MenuStates.POWER_OFF
 			logger.info('POWER OFF')
 			self._haltMeasurement = True
-			self.set_state(nextState)
 			self._powerOn = False
 
 		elif self.state == MenuStates.MAIN_MENU:
