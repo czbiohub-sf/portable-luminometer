@@ -59,7 +59,7 @@ class MeasurementType(enum.Enum):
 	SENSITIVITY_NORM = enum.auto()
 
 class HBridgeFault(Exception):
-	logger.exception("H-bridge fault detected!")
+	#logger.exception("H-bridge fault detected!")
 	pass
 
 class LumiBuzzer():
@@ -71,6 +71,7 @@ class LumiBuzzer():
 			raise
 		GPIO.setmode(GPIO.BCM)
 		GPIO.setup(buzzPin, GPIO.OUT, initial=0)
+		logger.info("Successfully instantiated LumiBuzzer.")
 
 	def buzz(self):
 		GPIO.output(self._buzzPin, 1)
@@ -250,12 +251,10 @@ class Luminometer():
 		
 		try:
 			self.shutter = LumiShutter(SHT_1, SHT_PWM, SHT_FAULT, NSLEEP)
-			logger.info("Successfully instantiated LumiShutter.")
 		except Exception as e:
 			logger.exception("Error instantiating LumiShutter!")
 		try:
 			self.buzzer = LumiBuzzer(BUZZ)
-			logger.info("Successfully instantiated LumiBuzzer.")
 		except Exception as e:
 			logger.exception("Error instantiating LumiBuzzer!")
 
