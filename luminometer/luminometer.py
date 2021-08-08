@@ -105,6 +105,7 @@ class LumiShutter():
 		GPIO.setup(self._sleepPin, GPIO.OUT, initial = 1)
 		GPIO.setup(self._faultPin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 		GPIO.output(self._sleepPin, 1)
+		time.sleep(.2)
 
 		# Set up edge detection for this channel. Passing on exception because two shutters
 		# share the same driver chip, and will have the same pin. RuntimeError is raised
