@@ -156,7 +156,6 @@ class LumiShutter():
 		except:
 			pass
 
-
 	def driveOpen(self):
 		logger.info(f"Opening shutter")
 		self._pi.hardware_PWM(self._pwmPin, SHT_PWM_FREQ, SHUTTER_DRIVE_DR)
@@ -217,44 +216,6 @@ class Luminometer():
 		}
 		self.cb_buffer_size = 100
 		
-		# Get last selected calibration
-		try:
-			with open(LAST_CAL) as json_file:
-				data = json.load(json_file)
-				self.selected_calibration = data
-				logger.info(f"Previously used calibration file found. Using {self.selected_calibration}.")
-		except:
-			logger.warning("Could not open last_chosen_cal.json, defaulting to standard calibration.")
-			self.selected_calibration = "Default"
-
-		self._tempCoeffs = {}
-
-		try:
-			if self.selected_calibration == "A":
-				PATH = CUSTOM_CAL_A_PATH
-			else:
-				PATH = STANDARD_CAL_PATH
-
-			with open(PATH,'r') as json_file:
-				data = json.load(json_file)
-				self._tempCoeffs = data
-				logger.info(f"Successfully loaded {self.selected_calibration} file.")
-		except Exception as exc:
-			logger.exception(f"Unable to load calibration {self.selected_calibration} temp_coeffs file!")
-			self._tempCoeffs["A"] = [SENSOR_A_DARK_V, SENSOR_A_CP_RATIO]
-			self._tempCoeffs["B"] = [SENSOR_B_DARK_V, SENSOR_B_CP_RATIO]
-
-		try:
-			# Get RLU_PER_V
-			with open(RLU_CAL_PATH) as json_file:
-				data = json.load(json_file)
-				self.rlu_per_v_a, self.rlu_per_v_b = data["RLU_PER_V_A"], data["RLU_PER_V_B"]
-				logger.info("Sucessfully loaded RLU_PER_V from rlu.json.")
-		except:
-			# In case of an error, fallback on this default for rlu_per_v
-			self.rlu_per_v_a = 50000
-			self.rlu_per_v_b = 50000
-			logger.exception(f"Errored while reading rlu_per_v from rlu.json.\nResorting to: ({self.rlu_per_v_a:}, {self.rlu_per_v_b:})")
 		# Pin assignments
 		self._btn1 = BTN_1
 		self._btn2 = BTN_2
@@ -271,7 +232,11 @@ class Luminometer():
 		# ADC Cyclic Redundancy Check - error counter
 		self._crcErrs = 0
 
+		# Read RLU conversions and temperature calibrations
+		self._readCalibrationFiles()
+
 		# Set up channels for button pushes
+		GPIO.setmode(GPIO.BCM)
 		GPIO.setup(self._btn1, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 		GPIO.setup(self._btn2, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 		GPIO.setup(self._btn3, GPIO.IN, pull_up_down=GPIO.PUD_UP)
@@ -355,6 +320,48 @@ class Luminometer():
 		self.set_state(MenuStates.MAIN_MENU)
 
 		logger.info("Successfully instantiated Luminometer.")
+
+	
+	def _readCalibrationFiles(self):
+
+		# Get last selected calibration
+		try:
+			with open(LAST_CAL) as json_file:
+				data = json.load(json_file)
+				self.selected_calibration = data
+				logger.info(f"Previously used calibration file found. Using {self.selected_calibration}.")
+		except:
+			logger.warning("Could not open last_chosen_cal.json, defaulting to standard calibration.")
+			self.selected_calibration = "Default"
+
+		self._tempCoeffs = {}
+
+		try:
+			if self.selected_calibration == "A":
+				PATH = CUSTOM_CAL_A_PATH
+			else:
+				PATH = STANDARD_CAL_PATH
+
+			with open(PATH,'r') as json_file:
+				data = json.load(json_file)
+				self._tempCoeffs = data
+				logger.info(f"Successfully loaded {self.selected_calibration} file.")
+		except Exception as exc:
+			logger.exception(f"Unable to load calibration {self.selected_calibration} temp_coeffs file!")
+			self._tempCoeffs["A"] = [SENSOR_A_DARK_V, SENSOR_A_CP_RATIO]
+			self._tempCoeffs["B"] = [SENSOR_B_DARK_V, SENSOR_B_CP_RATIO]
+
+		try:
+			# Get RLU_PER_V
+			with open(RLU_CAL_PATH) as json_file:
+				data = json.load(json_file)
+				self.rlu_per_v_a, self.rlu_per_v_b = data["RLU_PER_V_A"], data["RLU_PER_V_B"]
+				logger.info("Sucessfully loaded RLU_PER_V from rlu.json.")
+		except:
+			# In case of an error, fallback on this default for rlu_per_v
+			self.rlu_per_v_a = 50000
+			self.rlu_per_v_b = 50000
+			logger.exception(f"Errored while reading rlu_per_v from rlu.json.\nResorting to: ({self.rlu_per_v_a:}, {self.rlu_per_v_b:})")
 
 	def set_state(self, state: MenuStates):
 		# Check for a low battery
@@ -838,7 +845,6 @@ class Luminometer():
 			print(e)
 
 		return output
-
 
 	def _cb_adc_data_ready(self, channel):
 		# Callback function executed when data ready is asserted from ADC
