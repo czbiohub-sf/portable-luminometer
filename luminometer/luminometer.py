@@ -152,8 +152,9 @@ class LumiShutter():
 	def rest(self):
 		try:
 			GPIO.output(self._dirPin, 0)
-			logger.info("Turning off PWM, resting.")
 			self._pi.hardware_PWM(self._pwmPin, SHT_PWM_FREQ, 0)
+			logger.info("Turning off PWM, resting.")
+
 		except:
 			pass
 
@@ -270,12 +271,6 @@ class Luminometer():
 		self._shutter_q = queue.Queue(maxsize=1)
 		self._measure_q = queue.Queue(maxsize=1)
 		self._measureLock = threading.Lock()
-		
-		# Add callback for button pushes	
-		logger.info("Setting up button callbacks.")
-		GPIO.add_event_detect(self._btn1, GPIO.FALLING, callback=self.unified_callback, bouncetime=200)
-		GPIO.add_event_detect(self._btn2, GPIO.FALLING, callback=self.unified_callback, bouncetime=200)
-		GPIO.add_event_detect(self._btn3, GPIO.FALLING, callback=self.unified_callback, bouncetime=200)
 
 		self.set_state(MenuStates.MAIN_MENU)
 
@@ -325,8 +320,12 @@ class Luminometer():
 		# Set up sensor board power enable, and fan enable
 		GPIO.setup(self._ADC_PWR_EN, GPIO.OUT, initial=1)
 		GPIO.setup(self._FAN, GPIO.OUT, initial=1)
-		# Pause to allow analog board to power up
-		time.sleep(.1)
+
+		# Add callback for button pushes	
+		logger.info("Setting up button callbacks.")
+		GPIO.add_event_detect(self._btn1, GPIO.FALLING, callback=self.unified_callback, bouncetime=200)
+		GPIO.add_event_detect(self._btn2, GPIO.FALLING, callback=self.unified_callback, bouncetime=200)
+		GPIO.add_event_detect(self._btn3, GPIO.FALLING, callback=self.unified_callback, bouncetime=200)
 
 	def _readCalibrationFiles(self):
 
@@ -1089,7 +1088,7 @@ class Luminometer():
 
 				# Start a future for thread to submit work through the queue
 				future_result = { \
-					executor.submit(Luminometer.shutter.actuate, 'close'): 'SHUTTER CLOSED', \
+					executor.submit(Luminometer.shutter.rest): 'SHUTTER RESTING', \
 					}
 
 				logger.info('Ready and waiting for button pushes...')
