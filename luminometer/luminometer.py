@@ -228,6 +228,7 @@ class Luminometer():
 			self.selected_calibration = "Default"
 
 		self._tempCoeffs = {}
+
 		try:
 			if self.selected_calibration == "A":
 				PATH = CUSTOM_CAL_A_PATH
@@ -251,8 +252,8 @@ class Luminometer():
 				logger.info("Sucessfully loaded RLU_PER_V from rlu.json.")
 		except:
 			# In case of an error, fallback on this default for rlu_per_v
-			self.rlu_per_v_a = 20000
-			self.rlu_per_v_b = 20000
+			self.rlu_per_v_a = 50000
+			self.rlu_per_v_b = 50000
 			logger.exception(f"Errored while reading rlu_per_v from rlu.json.\nResorting to: ({self.rlu_per_v_a:}, {self.rlu_per_v_b:})")
 		# Pin assignments
 		self._btn1 = BTN_1
