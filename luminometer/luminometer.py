@@ -59,7 +59,6 @@ class MeasurementType(enum.Enum):
 	SENSITIVITY_NORM = enum.auto()
 
 class HBridgeFault(Exception):
-	#logger.exception("H-bridge fault detected!")
 	pass
 
 class LumiBuzzer():
@@ -154,7 +153,7 @@ class LumiShutter():
 		try:
 			GPIO.output(self._dirPin, 0)
 			logger.info("Turning off PWM, resting.")
-			self._pi.hardware_PWM(self._pwmPin, 0, 0)
+			self._pi.hardware_PWM(self._pwmPin, SHT_PWM_FREQ, 0)
 		except:
 			pass
 
@@ -183,6 +182,7 @@ class LumiShutter():
 		# Ref datasheet:
 		# https://www.ti.com/lit/ds/symlink/drv8833.pdf?ts=1617084507643&ref_url=https%253A%252F%252Fwww.google.com%252F
 		self.hbridge_err = "ERR"
+		logger.exception("H-bridge fault detected!")
 		raise HBridgeFault
 
 	def __delete__(self):
@@ -813,8 +813,6 @@ class Luminometer():
 						self._updateDisplayResult(show_final=True)
 					self._duration_s = time.perf_counter() - t0
 					self.shutter.rest()
-					time.sleep(5)
-
 		return
 
 	def _loopCondition(self, exposure:int) -> bool:
