@@ -158,23 +158,23 @@ class LumiShutter():
 
 	def driveOpen(self):
 		logger.info(f"Opening shutter")
-		self._pi.hardware_PWM(self._pwmPin, SHT_PWM_FREQ, SHUTTER_DRIVE_DR)
-		GPIO.output(self._dirPin, 0)
-	
-	def driveClosed(self):
-		logger.debug(f"Closing shutter")
 		self._pi.hardware_PWM(self._pwmPin, SHT_PWM_FREQ, 0)
 		GPIO.output(self._dirPin, 1)
 	
+	def driveClosed(self):
+		logger.debug(f"Closing shutter")
+		self._pi.hardware_PWM(self._pwmPin, SHT_PWM_FREQ, SHUTTER_DRIVE_DR)
+		GPIO.output(self._dirPin, 0)
+	
 	def holdOpen(self):
 		logger.debug("Holding open.")
-		self._pi.hardware_PWM(self._pwmPin, SHT_PWM_FREQ, SHUTTER_HOLD_DR)
-		GPIO.output(self._dirPin, 0)
+		self._pi.hardware_PWM(self._pwmPin, SHT_PWM_FREQ, 1000000 - SHUTTER_HOLD_DR)
+		GPIO.output(self._dirPin, 1)
 
 	def holdClosed(self):
 		logger.debug("Holding closed.")
-		self._pi.hardware_PWM(self._pwmPin, SHT_PWM_FREQ, 1000000 - SHUTTER_HOLD_DR)
-		GPIO.output(self._dirPin, 1)
+		self._pi.hardware_PWM(self._pwmPin, SHT_PWM_FREQ, SHUTTER_HOLD_DR)
+		GPIO.output(self._dirPin, 0)
 
 	def _faultDetected(self, channel):
 		# Callback for handling an H-bridge fault pin event
@@ -1156,11 +1156,10 @@ class Luminometer():
 			pass
 
 if __name__ == "__main__":
-	# parser = argparse.ArgumentParser()
-	# parser.add_argument('--screen', '-s', type=str, required=True, help="Screen type ('1' or '2')")
-	# args, _ = parser.parse_known_args()
-	# screen_type = int(args.screen)
-	screen_type = 2
+	parser = argparse.ArgumentParser()
+	parser.add_argument('--screen', '-s', type=str, required=True, help="Screen type ('1' or '2')")
+	args, _ = parser.parse_known_args()
+	screen_type = int(args.screen)
 	Luminometer = Luminometer(screen_type)
 
 	try:
