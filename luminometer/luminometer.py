@@ -266,7 +266,6 @@ class Luminometer():
 		# Boolean internal variables
 		self._powerOn = True
 		self._measuring = False
-		self._darkIsStored = False
 		self._measurementIsDone = False
 
 		# ADC Cyclic Redundancy Check - error counter
