@@ -22,6 +22,9 @@ LAST_CAL = "/home/pi/Documents/ulc-tube-reader/luminometer/last_chosen_cal.json"
 # RLU calibration location
 RLU_CAL_PATH = "/home/pi/Documents/ulc-tube-reader/luminometer/rlu.json"
 
+# Screen type location
+SCREEN_TYPE_PATH = "/home/pi/Documents/ulc-tube-reader/luminometer/screen_type.json"
+
 # Log and measurement csv output directories
 LOG_OUTPUT_DIR = "/home/pi/luminometer-logs/"
 MEASUREMENT_OUTPUT_DIR = "/home/pi/measurements/"

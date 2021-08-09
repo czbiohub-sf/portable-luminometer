@@ -189,7 +189,7 @@ class Menu():
         status = self.statusCheckAll(adc_vals)
         self.statusBar(draw)
 
-        option1 = "> Start measurement"
+        option1 = "> Measurement"
         option2 = "> Status - " + status #TODO Change to update '- OK' dynamically
         option3 = "> Choose calibration"
 

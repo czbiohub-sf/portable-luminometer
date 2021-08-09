@@ -1153,10 +1153,15 @@ class Luminometer():
 			pass
 
 if __name__ == "__main__":
-	parser = argparse.ArgumentParser()
-	parser.add_argument('--screen', '-s', type=str, required=True, help="Screen type ('1' or '2')")
-	args, _ = parser.parse_known_args()
-	screen_type = int(args.screen)
+	screen_type = 2
+	try:
+		with open(SCREEN_TYPE_PATH) as json_file:
+			data = json.load(json_file)
+			screen_type = data["SCREEN_TYPE"]
+			logger.info("Sucessfully loaded screen_type from screen_type.json.")
+	except:
+		logger.exception("Error reading screen_type from screen_type.json. Defaulting to screen_type=2.")
+
 	Luminometer = Luminometer(screen_type)
 
 	try:
