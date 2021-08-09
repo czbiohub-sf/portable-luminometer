@@ -59,7 +59,6 @@ class MeasurementType(enum.Enum):
 	SENSITIVITY_NORM = enum.auto()
 
 class HBridgeFault(Exception):
-	logger.exception("H-bridge fault detected!")
 	pass
 
 class LumiBuzzer():
@@ -71,6 +70,7 @@ class LumiBuzzer():
 			raise
 		GPIO.setmode(GPIO.BCM)
 		GPIO.setup(buzzPin, GPIO.OUT, initial=0)
+		logger.info("Successfully instantiated LumiBuzzer.")
 
 	def buzz(self):
 		GPIO.output(self._buzzPin, 1)
@@ -105,6 +105,7 @@ class LumiShutter():
 		GPIO.setup(self._sleepPin, GPIO.OUT, initial = 1)
 		GPIO.setup(self._faultPin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 		GPIO.output(self._sleepPin, 1)
+		time.sleep(.2)
 
 		# Set up edge detection for this channel. Passing on exception because two shutters
 		# share the same driver chip, and will have the same pin. RuntimeError is raised
@@ -151,37 +152,38 @@ class LumiShutter():
 	def rest(self):
 		try:
 			GPIO.output(self._dirPin, 0)
+			self._pi.hardware_PWM(self._pwmPin, SHT_PWM_FREQ, 0)
 			logger.info("Turning off PWM, resting.")
-			self._pi.hardware_PWM(self._pwmPin, 0, 0)
+
 		except:
 			pass
 
-
 	def driveOpen(self):
 		logger.info(f"Opening shutter")
-		self._pi.hardware_PWM(self._pwmPin, SHT_PWM_FREQ, SHUTTER_DRIVE_DR)
-		GPIO.output(self._dirPin, 0)
-	
-	def driveClosed(self):
-		logger.debug(f"Closing shutter")
 		self._pi.hardware_PWM(self._pwmPin, SHT_PWM_FREQ, 0)
 		GPIO.output(self._dirPin, 1)
 	
+	def driveClosed(self):
+		logger.debug(f"Closing shutter")
+		self._pi.hardware_PWM(self._pwmPin, SHT_PWM_FREQ, SHUTTER_DRIVE_DR)
+		GPIO.output(self._dirPin, 0)
+	
 	def holdOpen(self):
 		logger.debug("Holding open.")
-		self._pi.hardware_PWM(self._pwmPin, SHT_PWM_FREQ, SHUTTER_HOLD_DR)
-		GPIO.output(self._dirPin, 0)
+		self._pi.hardware_PWM(self._pwmPin, SHT_PWM_FREQ, 1000000 - SHUTTER_HOLD_DR)
+		GPIO.output(self._dirPin, 1)
 
 	def holdClosed(self):
 		logger.debug("Holding closed.")
-		self._pi.hardware_PWM(self._pwmPin, SHT_PWM_FREQ, 1000000 - SHUTTER_HOLD_DR)
-		GPIO.output(self._dirPin, 1)
+		self._pi.hardware_PWM(self._pwmPin, SHT_PWM_FREQ, SHUTTER_HOLD_DR)
+		GPIO.output(self._dirPin, 0)
 
 	def _faultDetected(self, channel):
 		# Callback for handling an H-bridge fault pin event
 		# Ref datasheet:
 		# https://www.ti.com/lit/ds/symlink/drv8833.pdf?ts=1617084507643&ref_url=https%253A%252F%252Fwww.google.com%252F
 		self.hbridge_err = "ERR"
+		logger.exception("H-bridge fault detected!")
 		raise HBridgeFault
 
 	def __delete__(self):
@@ -199,7 +201,6 @@ class Luminometer():
 	def __init__(self, screen_type):
 
 		self.state = MenuStates.MAIN_MENU
-		self.screen_settled = True
 		self.measurementMode = ""
 		self.target_time = 0
 		self.selected_calibration = ""
@@ -208,6 +209,22 @@ class Luminometer():
 		self.semA = float('inf')
 		self.resultB = 0
 		self.semB = float('inf')
+		self.cb_buffer_size = 100
+		self._crcErrs = 0
+		self._accumBufferA = []
+		self._accumBufferB = []
+		self._accumSiPMRef = []
+		self._accumSiPMBias = []
+		self._accum34V = []
+		
+		# Boolean internal variables
+		self._powerOn = True
+		self._measuring = False
+		self._measurementIsDone = False
+		self.screen_settled = True
+		self._accumulate = True
+
+		# Diagnostic menu info
 		self.diag_vals = {
 			"batt": "OK",
 			"34V": "OK",
@@ -215,8 +232,103 @@ class Luminometer():
 			"num_CRC_errs": 0,
 			"hbridge_err": "OK",
 		}
-		self.cb_buffer_size = 100
+
+		self._setupGPIO()
+
+		# Read RLU conversions and temperature calibrations
+		self._readCalibrationFiles()
+
+		# TODO, Get battery status dynamically
+		self.batt_status = "OK"
+		self.calA = " - NONE"
+		logger.info("Checking to see if custom calibration file exists.")
+		if os.path.isfile(CUSTOM_CAL_A_PATH):
+			logger.info("Custom calibration file exists.")
+			self.calA = ""
+
+		logger.info("Instantiating display, shutter, and buzzer.")
+		self.screen_type = screen_type
+		self.display = Menu(screen_type, self.selected_calibration, self.batt_status)
 		
+		try:
+			self.shutter = LumiShutter(SHT_1, SHT_PWM, SHT_FAULT, NSLEEP)
+		except Exception as e:
+			logger.exception("Error instantiating LumiShutter!")
+		try:
+			self.buzzer = LumiBuzzer(BUZZ)
+		except Exception as e:
+			logger.exception("Error instantiating LumiBuzzer!")
+
+		# Start up the ADC
+		self._initADC()
+
+		# Get initial values from ADC
+		self.adc_vals = self.averageNMeasurements()
+		
+		# Create thread-safe queues for hardware jobs
+		logger.info("Creating display, shutter, and measure queues.")
+		self._display_q = queue.Queue(maxsize=1)
+		self._shutter_q = queue.Queue(maxsize=1)
+		self._measure_q = queue.Queue(maxsize=1)
+		self._measureLock = threading.Lock()
+
+		self.set_state(MenuStates.MAIN_MENU)
+
+		logger.info("Successfully instantiated Luminometer.")
+
+	def _initADC(self):
+		# Start up sensor chip
+		try:
+			logger.info("Starting up sensor chip.")
+			self._adc = ADS131M08Reader()
+			self._adc.setup_adc(SPI_CE, channels=[0,1,2,3,4])
+			self._simulate = False
+		except Exception as e:
+			logger.exception("Error creating ADC reader!")
+			self._simulate = True
+		try: 
+			logger.info("Printing ADC status.")
+			self._adc.status_print()
+		except Exception as e:
+			logger.exception('Could not print ADC status!')
+
+		# Start handling incoming ADC data
+		if self._simulate:
+			logger.info("SIMULATION MODE: Starting timer callback")
+			threading.Timer(SAMPLE_TIME_S, self._cb_adc_data_ready, args=(DRDY,)).start()
+		else:
+			GPIO.add_event_detect(self._adc._DRDY, GPIO.FALLING, callback=self._cb_adc_data_ready)
+
+	def _setupGPIO(self):
+		# Pin assignments
+		self._btn1 = BTN_1
+		self._btn2 = BTN_2
+		self._btn3 = BTN_3
+		self._FAN = FAN
+		self._ADC_PWR_EN = ADC_PWR_EN
+		self._PMIC_LBO = PMIC_LBO
+
+		# Set up channels for button pushes
+		GPIO.setmode(GPIO.BCM)
+		GPIO.setup(self._btn1, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+		GPIO.setup(self._btn2, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+		GPIO.setup(self._btn3, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+
+		# Set up low battery input
+		GPIO.setup(self._PMIC_LBO, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+
+		# Set up sensor board power enable, and fan enable
+		GPIO.setup(self._ADC_PWR_EN, GPIO.OUT, initial=1)
+		GPIO.setup(self._FAN, GPIO.OUT, initial=1)
+
+		# Add callback for button pushes	
+		logger.info("Setting up button callbacks.")
+		GPIO.add_event_detect(self._btn1, GPIO.FALLING, callback=self.unified_callback, bouncetime=200)
+		GPIO.add_event_detect(self._btn2, GPIO.FALLING, callback=self.unified_callback, bouncetime=200)
+		GPIO.add_event_detect(self._btn3, GPIO.FALLING, callback=self.unified_callback, bouncetime=200)
+
+	def _readCalibrationFiles(self):
+
 		# Get last selected calibration
 		try:
 			with open(LAST_CAL) as json_file:
@@ -228,6 +340,7 @@ class Luminometer():
 			self.selected_calibration = "Default"
 
 		self._tempCoeffs = {}
+
 		try:
 			if self.selected_calibration == "A":
 				PATH = CUSTOM_CAL_A_PATH
@@ -251,110 +364,9 @@ class Luminometer():
 				logger.info("Sucessfully loaded RLU_PER_V from rlu.json.")
 		except:
 			# In case of an error, fallback on this default for rlu_per_v
-			self.rlu_per_v_a = 20000
-			self.rlu_per_v_b = 20000
+			self.rlu_per_v_a = 50000
+			self.rlu_per_v_b = 50000
 			logger.exception(f"Errored while reading rlu_per_v from rlu.json.\nResorting to: ({self.rlu_per_v_a:}, {self.rlu_per_v_b:})")
-		# Pin assignments
-		self._btn1 = BTN_1
-		self._btn2 = BTN_2
-		self._btn3 = BTN_3
-		self._FAN = FAN
-		self._ADC_PWR_EN = ADC_PWR_EN
-		self._PMIC_LBO = PMIC_LBO
-		
-		# Boolean internal variables
-		self._powerOn = True
-		self._measuring = False
-		self._darkIsStored = False
-		self._measurementIsDone = False
-
-		# ADC Cyclic Redundancy Check - error counter
-		self._crcErrs = 0
-
-		# Set up channels for button pushes
-		GPIO.setup(self._btn1, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-		GPIO.setup(self._btn2, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-		GPIO.setup(self._btn3, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-
-		# Set up low battery input
-		GPIO.setup(self._PMIC_LBO, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-
-		# Set up sensor board power enable, and fan enable
-		GPIO.setup(self._ADC_PWR_EN, GPIO.OUT, initial=1)
-		GPIO.setup(self._FAN, GPIO.OUT, initial=1)
-
-		# TODO, Get battery status dynamically
-		self.batt_status = "OK"
-		self.calA = " - NONE"
-		logger.info("Checking to see if custom calibration file exists.")
-		if os.path.isfile(CUSTOM_CAL_A_PATH):
-			logger.info("Custom calibration file exists.")
-			self.calA = ""
-
-		logger.info("Instantiating display, shutter, and buzzer.")
-		self.screen_type = screen_type
-		self.display = Menu(screen_type, self.selected_calibration, self.batt_status)
-		# logger.info("Successfully instantiated Menu display.")
-		try:
-			self.shutter = LumiShutter(SHT_1, SHT_PWM, SHT_FAULT, NSLEEP)
-			self.shutter.rest()
-			logger.info("Successfully instantiated LumiShutter.")
-		except Exception as e:
-			logger.exception("Error instantiating LumiShutter!")
-		try:
-			self.buzzer = LumiBuzzer(BUZZ)
-			logger.info("Successfully instantiated LumiBuzzer.")
-		except Exception as e:
-			logger.exception("Error instantiating LumiBuzzer!")
-
-		# Start up sensor chip
-		try:
-			logger.info("Starting up sensor chip.")
-			self._adc = ADS131M08Reader()
-			self._adc.setup_adc(SPI_CE, channels=[0,1,2,3,4])
-			self._simulate = False
-		except Exception as e:
-			logger.exception("Error creating ADC reader!")
-			self._simulate = True
-
-		try: 
-			logger.info("Printing ADC status.")
-			self._adc.status_print()
-		except Exception as e:
-			logger.exception('Could not print ADC status!')
-
-		# Start handling incoming ADC data
-		if self._simulate:
-			logger.info("SIMULATION MODE: Starting timer callback")
-			threading.Timer(SAMPLE_TIME_S, self._cb_adc_data_ready, args=(DRDY,)).start()
-		else:
-			GPIO.add_event_detect(self._adc._DRDY, GPIO.FALLING, callback=self._cb_adc_data_ready)
-		self._accumBufferA = []
-		self._accumBufferB = []
-		self._accumSiPMRef = []
-		self._accumSiPMBias = []
-		self._accum34V = []
-		self._accumulate = True
-		self.adc_vals = self.averageNMeasurements()
-		
-		# Create thread-safe queues for hardware jobs
-		logger.info("Creating display, shutter, and measure queues.")
-		self._display_q = queue.Queue(maxsize=1)
-		self._shutter_q = queue.Queue(maxsize=1)
-		self._measure_q = queue.Queue(maxsize=1)
-		logger.info("Successfully created queues.")
-
-		self._measureLock = threading.Lock()
-		
-		# Add callback for button pushes	
-		logger.info("Setting up button callbacks.")
-		GPIO.add_event_detect(self._btn1, GPIO.FALLING, callback=self.unified_callback, bouncetime=200)
-		GPIO.add_event_detect(self._btn2, GPIO.FALLING, callback=self.unified_callback, bouncetime=200)
-		GPIO.add_event_detect(self._btn3, GPIO.FALLING, callback=self.unified_callback, bouncetime=200)
-
-		self.set_state(MenuStates.MAIN_MENU)
-
-		logger.info("Successfully instantiated Luminometer.")
 
 	def set_state(self, state: MenuStates):
 		# Check for a low battery
@@ -569,7 +581,6 @@ class Luminometer():
 
 		if nextState != None:
 			self.set_state(nextState)
-		
 	
 	def btn3_transition_logic(self, duration):
 		'''This is the top button
@@ -675,7 +686,6 @@ class Luminometer():
 					json.dump(updated_rlu, outfile)
 		except:
 			logger.exception("Errored while updating/saving RLU A/B values.")
-
 	
 	def measure(self, \
 		measure_time: int = 30, \
@@ -801,10 +811,7 @@ class Luminometer():
 						self._updateDisplayResult(show_final=True)
 					self._duration_s = time.perf_counter() - t0
 					self.shutter.rest()
-					time.sleep(5)
-
 		return
-
 
 	def _loopCondition(self, exposure:int) -> bool:
 		if exposure > 0:
@@ -837,7 +844,6 @@ class Luminometer():
 			print(e)
 
 		return output
-
 
 	def _cb_adc_data_ready(self, channel):
 		# Callback function executed when data ready is asserted from ADC
@@ -1018,7 +1024,11 @@ class Luminometer():
 		except:
 			logger.exception("Could not save measurement to file.")
 
-	def gateTrace(self, rawData: List[float], gateSize: int, channel: str, measurement_type: MeasurementType = MeasurementType.MEASUREMENT) -> List[float]:
+	def gateTrace(self, \
+		rawData: List[float], \
+		gateSize: int, \
+		channel: str, \
+		measurement_type: MeasurementType = MeasurementType.MEASUREMENT) -> List[float]:
 		"""
 		Helper method that computes the mean of each even chunk of data, subtracted by the mean of the flanking odd
 		chunks of data. The chunk size is specified by gateSize, and the total size of the rawData should be an odd
@@ -1066,7 +1076,6 @@ class Luminometer():
 
 		return samples, rawDownsampled
 
-
 	def correctTemperature(self, gatedIn: float, darkMeanIn: float, tempCoeffs: List[float]) -> float:
 		return gatedIn - tempCoeffs[1]*(darkMeanIn - tempCoeffs[0])
 
@@ -1079,7 +1088,7 @@ class Luminometer():
 
 				# Start a future for thread to submit work through the queue
 				future_result = { \
-					executor.submit(Luminometer.shutter.actuate, 'close'): 'SHUTTER CLOSED', \
+					executor.submit(Luminometer.shutter.rest): 'SHUTTER RESTING', \
 					}
 
 				logger.info('Ready and waiting for button pushes...')
@@ -1144,11 +1153,10 @@ class Luminometer():
 			pass
 
 if __name__ == "__main__":
-	# parser = argparse.ArgumentParser()
-	# parser.add_argument('--screen', '-s', type=str, required=True, help="Screen type ('1' or '2')")
-	# args, _ = parser.parse_known_args()
-	# screen_type = int(args.screen)
-	screen_type = 2
+	parser = argparse.ArgumentParser()
+	parser.add_argument('--screen', '-s', type=str, required=True, help="Screen type ('1' or '2')")
+	args, _ = parser.parse_known_args()
+	screen_type = int(args.screen)
 	Luminometer = Luminometer(screen_type)
 
 	try:
