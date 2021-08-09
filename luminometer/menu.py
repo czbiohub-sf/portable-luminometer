@@ -490,10 +490,13 @@ class Menu():
         width = self.inky_display.resolution[0]
         height = self.inky_display.resolution[1]
 
+        rlu_a = curr_rlu[0]
+        rlu_b = curr_rlu[1]
+
         start_line = "> Press top button to start calibration."
         line = "RLU Calibration"
         line2 = f"This calibration will take {rlu_calibration_time}s"
-        line3 = f"Current RLU: {curr_rlu}"
+        line3 = f"RLU A/B : {rlu_a:.3f}, {rlu_b:.3f}"
         return_line = "> Return to main menu"
         line1x, line1y = self.hanken_medium_font.getsize(line)
         line2x, line2y = self.hanken_medium_font.getsize(line2)

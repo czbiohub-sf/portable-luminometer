@@ -720,7 +720,6 @@ class Luminometer():
 
 					# Keeps track of the overall measurement duration
 					sampleCount = 0
-
 					# Start data acquisition loop
 					while self._loopCondition(measure_time):
 
@@ -912,7 +911,7 @@ class Luminometer():
 				self.set_state(MenuStates.SHOW_FINAL_MEASUREMENT)
 				self._duration_s = 0
 			else:
-				if self._display_q.empty():
+				if self.screen_settled:
 					logger.debug("Setting measurement in progress state")
 					self.set_state(MenuStates.MEASUREMENT_IN_PROGRESS)
 		except queue.Full:
@@ -968,7 +967,6 @@ class Luminometer():
 			# Create the all measurements file if it doesn't already exist
 			if not os.path.exists(file):
 				# Create file
-				open(file, 'w+')
 				headers = [
 					"date", 
 					"measurementMode", 
@@ -979,9 +977,10 @@ class Luminometer():
 					"standard_err_of_mean_B",
 				]
 				# Add header row
-				with open(file, 'a', newline='') as final_measurements_csv:
+				with open(file, 'w+', newline='') as final_measurements_csv:
 					csvWriter = csv.writer(final_measurements_csv)
 					csvWriter.writerow(headers)
+					final_measurements_csv.close()
 		except:
 			logger.exception("Errored while creating all-measurements.csv.")
 		try:
@@ -998,6 +997,7 @@ class Luminometer():
 			with open(file, 'a', newline='') as final_measurements_csv:
 				csvWriter = csv.writer(final_measurements_csv)
 				csvWriter.writerow(measurements)
+				final_measurements_csv.close()
 		except:
 			logger.exception("Errored while appending to all-measurements.csv.")
 		
