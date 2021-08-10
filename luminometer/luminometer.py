@@ -778,12 +778,21 @@ class Luminometer():
 						self._tempCoeffs["B"] = [offsetB, crB]
 
 						logger.debug(f"Offset A: {offsetA}")
-						logger.debug(f"Coupling coeff A: {crA}")						
+						logger.debug(f"Coupling coeff A: {crA}")
 						logger.debug(f"Offset B: {offsetB}")
 						logger.debug(f"Coupling coeff B: {crB}")
 
+						# Save calibration temperature coefficients
 						with open(CUSTOM_CAL_A_PATH,'w') as outfile:
+							logger.info("Saving custom temperature calibration coefficients.")
 							json.dump(self._tempCoeffs, outfile)
+
+						# Set the custom calibration to be the one used on next boot
+						self.selected_calibration = "Custom"
+						with open(LAST_CAL, "w") as json_file:
+							logger.info("Setting last calibration as custom.")
+							json.dump(self.selected_calibration, json_file)
+						self.display.set_selected_calibration(self.selected_calibration)
 
 					# If doing a sensitivity normalization, calculate normalization and save to rlu.json
 					elif measurement_type == MeasurementType.SENSITIVITY_NORM:
