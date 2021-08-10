@@ -342,7 +342,7 @@ class Luminometer():
 		self._tempCoeffs = {}
 
 		try:
-			if self.selected_calibration == "A":
+			if self.selected_calibration == CUSTOM_CAL_NAME:
 				PATH = CUSTOM_CAL_A_PATH
 			else:
 				PATH = STANDARD_CAL_PATH
@@ -567,7 +567,7 @@ class Luminometer():
 							self._tempCoeffs = data
 						
 						# Set custom as last chosen calibration
-						self.selected_calibration = "Custom"
+						self.selected_calibration = CUSTOM_CAL_NAME
 						with open(LAST_CAL, "w") as json_file:
 							json.dump(self.selected_calibration, json_file)
 						self.display.set_selected_calibration(self.selected_calibration)
@@ -788,7 +788,7 @@ class Luminometer():
 							json.dump(self._tempCoeffs, outfile)
 
 						# Set the custom calibration to be the one used on next boot
-						self.selected_calibration = "Custom"
+						self.selected_calibration = CUSTOM_CAL_NAME
 						with open(LAST_CAL, "w") as json_file:
 							logger.info("Setting last calibration as custom.")
 							json.dump(self.selected_calibration, json_file)
