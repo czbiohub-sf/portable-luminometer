@@ -757,8 +757,8 @@ class Luminometer():
 							sampleCount += 1
 
 					# Final: gate traces. If calibration, do the fit and write the file
-					self.dataA, rawDownsampledA = self.gateTrace(self.rawdataA[:self._rsc], self.shutter_samples, "A", measurement_type)
-					self.dataB, rawDownsampledB = self.gateTrace(self.rawdataB[:self._rsc], self.shutter_samples, "B", measurement_type)	
+					self.dataA, self._darkDownsampledA = self.gateTrace(self.rawdataA[:self._rsc], self.shutter_samples, "A", measurement_type)
+					self.dataB, self._darkDownsampledB = self.gateTrace(self.rawdataB[:self._rsc], self.shutter_samples, "B", measurement_type)	
 
 					# Final result is the mean of all the gated shutter-open periods
 					self.resultA, self.semA = self.convertToRLU(self.dataA, "A")
@@ -766,8 +766,8 @@ class Luminometer():
 
 					# If doing a calibration, then store the result
 					if measurement_type == MeasurementType.TEMPERATURE_COMP:
-						fitParamsA = np.polyfit(rawDownsampledA, self.dataA, 1, full=False)
-						fitParamsB = np.polyfit(rawDownsampledB, self.dataB, 1, full=False)
+						fitParamsA = np.polyfit(darkDownsampledA, self.dataA, 1, full=False)
+						fitParamsB = np.polyfit(darkDownsampledB, self.dataB, 1, full=False)
 						
 						# Convert fit parameters to V_dark at zero temperature
 						offsetA = -fitParamsA[1]/fitParamsA[0]
@@ -804,7 +804,7 @@ class Luminometer():
 					logger.info(f"{self._crcErrs} CRC Errors encountered.")
 
 					self.writeToFile()
-					# self.buzzer.buzz()
+					self.buzzer.buzz()
 				
 				except KeyboardInterrupt as exc:
 					#self.writeToFile('Interrupted_')
@@ -936,6 +936,8 @@ class Luminometer():
 
 			self.dataA = [0.0]
 			self.dataB = [0.0]
+			self._darkDownsampledA = [0.0]
+			self._darkDownsampledB = [0.0]
 			self.semA = float('inf')
 			self.semB = float('inf')
 			self.resultA = 0.0
@@ -1029,6 +1031,11 @@ class Luminometer():
 				csvWriter = csv.writer(csvFile)
 				for i in range(len(self.dataA)):
 					csvWriter.writerow((self.dataA[i], self.dataB[i]))
+
+			with open(title + '_darkDownsampled' + '.csv', 'w', newline='') as csvFile:
+				csvWriter = csv.writer(csvFile)
+				for i in range(len(self.dataA)):
+					csvWriter.writerow((self._darkDownsampledA[i], self._darkDownsampledB[i]))
 			logger.info("File successfully saved.")
 		except:
 			logger.exception("Could not save measurement to file.")
@@ -1067,7 +1074,7 @@ class Luminometer():
 			nPeriods = nPeriods -1
 
 		samples = []
-		rawDownsampled = []
+		darkDownsampled = []
 
 		for i in range(gateSize, gateSize*nPeriods, 2*gateSize):
 			sample = mean(rawData[(i+SKIP_SAMPLES):i+(gateSize-1)])
@@ -1075,7 +1082,7 @@ class Luminometer():
 			darkAfter = mean(rawData[(i+gateSize+SKIP_SAMPLES):(i+2*gateSize - 1)])
 			darkMean = 0.5*(darkBefore + darkAfter)
 
-			rawDownsampled.append(darkMean)
+			darkDownsampled.append(darkMean)
 			gatedSample = sample - darkMean
 
 			if measurement_type == MeasurementType.TEMPERATURE_COMP:
@@ -1083,7 +1090,7 @@ class Luminometer():
 			else:
 				samples.append(self.correctTemperature(gatedSample, darkMean, self._tempCoeffs[channel]))
 
-		return samples, rawDownsampled
+		return samples, darkDownsampled
 
 	def correctTemperature(self, gatedIn: float, darkMeanIn: float, tempCoeffs: List[float]) -> float:
 		return gatedIn - tempCoeffs[1]*(darkMeanIn - tempCoeffs[0])
