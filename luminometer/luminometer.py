@@ -604,17 +604,18 @@ class Luminometer():
 
 		elif self.state == MenuStates.MEASUREMENT_MENU and duration == TRANSITION_DURATION:
 			if self.screen_settled:
-				nextState = MenuStates.MEASUREMENT_IN_PROGRESS
-				self.measurementMode = "AUTO"
-				self._duration_s = 0
-				self.target_time = None
+				if not self._measuring:
+					nextState = MenuStates.MEASUREMENT_IN_PROGRESS
+					self.measurementMode = "AUTO"
+					self._duration_s = 0
+					self.target_time = None
 
-				exposure = 0
-				try:
-					if not self._measureLock.locked():
-						self._measure_q.put_nowait((exposure, MeasurementType.MEASUREMENT))
-				except queue.Full:
-					logger.info('Already busy measuring')
+					exposure = 0
+					try:
+						if not self._measureLock.locked():
+							self._measure_q.put_nowait((exposure, MeasurementType.MEASUREMENT))
+					except queue.Full:
+						logger.info('Already busy measuring')
 
 		elif self.state == MenuStates.MEASUREMENT_IN_PROGRESS and duration == ABORT_MEASUREMENT_DURATION:
 			# Measurement in progress
