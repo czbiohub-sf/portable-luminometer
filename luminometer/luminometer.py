@@ -551,7 +551,6 @@ class Luminometer():
 
 					self._duration_s = 0
 					self.measurementMode = "TIMED"
-					nextState = MenuStates.MEASUREMENT_IN_PROGRESS
 
 		elif self.state == MenuStates.CALIBRATION_MENU:
 			# Switch to custom calibration and return to main
@@ -605,7 +604,6 @@ class Luminometer():
 		elif self.state == MenuStates.MEASUREMENT_MENU and duration == TRANSITION_DURATION:
 			if self.screen_settled:
 				if not self._measuring:
-					nextState = MenuStates.MEASUREMENT_IN_PROGRESS
 					self.measurementMode = "AUTO"
 					self._duration_s = 0
 					self.target_time = None
@@ -821,12 +819,13 @@ class Luminometer():
 					logger.info(f"{self._crcErrs} CRC Errors encountered.")
 
 					self.writeToFile()
-					self.buzzer.buzz()
 				
 				except KeyboardInterrupt as exc:
 					#self.writeToFile('Interrupted_')
 					logger.error("Keyboard interrupted measurement")
 				finally:
+					self._measuring = False
+					self._measurementIsDone = True
 					if measurement_type == MeasurementType.SENSITIVITY_NORM:
 						while not self.screen_settled:
 							pass
@@ -835,8 +834,6 @@ class Luminometer():
 						self._updateDisplayResult(show_final=True)
 					self._duration_s = time.perf_counter() - t0
 					self.shutter.rest()
-					self._measuring = False
-					self._measurementIsDone = True
 		return
 
 	def _loopCondition(self, exposure:int) -> bool:

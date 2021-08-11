@@ -39,7 +39,7 @@ SENSOR_B_CP_RATIO = 0.0003
 
 # RLU calibration parameters
 TARGET_RLU = 1000
-ADD_OFFSET_RLU = 0.5
+ADD_OFFSET_RLU = 10
 
 # BCM pins
 BTN_1 = 18
