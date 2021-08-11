@@ -49,7 +49,8 @@ class MenuStates(enum.Enum):
     CALIBRATION_MENU = enum.auto()
     CONFIRM_CALIBRATION = enum.auto()
     CALIBRATION_IN_PROGRESS = enum.auto()
-    POWER_OFF = enum.auto(),
+    CONFIRM_POWER_OFF = enum.auto()
+    POWER_OFF = enum.auto()
     RLU_CALIBRATION = enum.auto()
 
 class Menu():
@@ -166,6 +167,10 @@ class Menu():
                         self.powerOff()
                         logger.info("Switched to PowerOff screen.")
 
+                    elif state == MenuStates.CONFIRM_POWER_OFF:
+                        self.confirmPowerOff()
+                        logger.info("Switched to ConfirmPowerOff screen.")
+
                     elif state == MenuStates.RLU_CALIBRATION:
                         self.rluCalibration(kwargs["rlu_time"], kwargs["rlu_per_v"])
                         logger.info("Switched to rluCalibration screen.") 
@@ -266,7 +271,7 @@ class Menu():
         line1 = "Measurement in progress..."
         line2 = f"A: {sensorA:.2f}+/-{sensorA_sem:.2f}"
         line3 = f"B: {sensorB:.2f}+/-{sensorB_sem:.2f}"
-        line4 = f"Elapsed: {int(time_elapsed):n} s  |  TRGT: {target_s}"
+        line4 = f"Elapsed: {int(time_elapsed):n} s  |  Trgt: {target_s}"
         
         lines = [line1, line2, line3, line4]
         
@@ -277,6 +282,29 @@ class Menu():
             if i != 0:
                 y_offset = y_offset + self.hanken_small_font.getsize(line)[1] + 5
             draw.text((0, y_offset), line, self.inky_display.BLACK, font=self.hanken_medium_font)
+
+        self.inky_display.set_image(img.rotate(self.rotation_deg))
+        self.inky_display.show()
+
+    def confirmPowerOff(self):
+        
+        img = Image.new("P", self.inky_display.resolution)
+        draw = ImageDraw.Draw(img)
+        # self.statusBar(draw)
+
+        width = self.inky_display.resolution[0]
+        height = self.inky_display.resolution[1]
+
+        line = "Do you want to power off?"
+        line2 = "> YES - top button"
+        line3 = "> NO - bottom button"
+
+        line1x, line1y = self.hanken_medium_font.getsize(line)
+        line1y = height/2 - line1y/2
+
+        draw.text((width/2 - line1x/2, line1y), line, self.inky_display.BLACK, font=self.hanken_medium_font)
+        draw.text((0, height-45), line2, self.inky_display.BLACK, font=self.hanken_small_font)
+        draw.text((0, height-15), line3, self.inky_display.BLACK, font=self.hanken_small_font)
 
         self.inky_display.set_image(img.rotate(self.rotation_deg))
         self.inky_display.show()
@@ -315,8 +343,8 @@ class Menu():
         line1 = "Final:" + ('Yes' if final == True else 'No') 
         line2 = f"A: {sensorA:.2f}+/-{sensorA_sem:.2f}"
         line3 = f"B: {sensorB:.2f}+/-{sensorB_sem:.2f}"
-        line4 = f"Elapsed: {int(time_elapsed):n} s  |  TRGT: {target_s}"
-        line5 = "> Clear and start new measurement"
+        line4 = f"Elapsed: {int(time_elapsed):n} s  |  Trgt: {target_s}"
+        line5 = "> Clear and go to measurement menu"
         lines = [line1, line2, line3, line4]
 
         y_offset = 10
@@ -398,14 +426,7 @@ class Menu():
             linex, _ = self.hanken_small_font.getsize(line)
             val_spaces = (adc_val_spaces-linex) // space_x
             line = line + " "*int(val_spaces) + f"{adc_vals[i]:.3f}"
-            # if adc_vals[i] < 0:
-            #     spaces = " "
-            # else:
-            #     spaces = "  "
             lines[i] = line
-
-            # if adc_vals[i] < 0:
-            #     adc_spaces += 1
         
         line1y = self.hanken_small_font.getsize(lines[0])[1] + self._status_bar_offset
         line2y = self.hanken_small_font.getsize(lines[1])[1] + line1y
