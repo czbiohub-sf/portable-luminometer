@@ -1207,6 +1207,6 @@ if __name__ == "__main__":
 		del(Luminometer)
 		
 		# Power down system
-		# os.system('sudo poweroff')
+		os.system('sudo poweroff')
 
 
