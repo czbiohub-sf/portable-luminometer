@@ -551,6 +551,7 @@ class Luminometer():
 
 					self._duration_s = 0
 					self.measurementMode = "TIMED"
+					self.buzzer.buzz()
 
 		elif self.state == MenuStates.CALIBRATION_MENU:
 			# Switch to custom calibration and return to main
@@ -614,7 +615,7 @@ class Luminometer():
 							self._measure_q.put_nowait((exposure, MeasurementType.MEASUREMENT))
 					except queue.Full:
 						logger.info('Already busy measuring')
-
+					self.buzzer.buzz()
 		elif self.state == MenuStates.MEASUREMENT_IN_PROGRESS and duration == ABORT_MEASUREMENT_DURATION:
 			# Measurement in progress
 			# Abort and return to measurement menu if top button held for 3s
