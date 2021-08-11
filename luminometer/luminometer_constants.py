@@ -92,7 +92,19 @@ DURATION_TO_EXPOSURE = {
 
 # Hard-coded delay (in seconds) for the newer InkyPHAT screens
 # (which seem to return too early from their "_busy_wait()" function)
-SCREEN2_DELAY = 6
+SCREEN2_DELAY = 5
 
 # Special button combo secrets
 RLU_CALIBRATION_COMBO = [BTN_3, BTN_2, BTN_3, BTN_2]
+
+# Duration to hold bottom button to power off
+POWER_OFF_DURATION = 5
+
+# Duration to hold top button to abort during a measurement
+ABORT_MEASUREMENT_DURATION = 3
+
+# Duration to hold button to initiate moving to a new screen (0 is a tap)
+TRANSITION_DURATION = 0
+
+# Time to hold button to initiate a calibration when in the appropriate menu
+HOLD_TO_CALIBRATE_TIME = 5
