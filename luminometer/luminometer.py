@@ -10,10 +10,13 @@ Sensor Datasheet
 	https://www.mouser.com/datasheet/2/308/MICROC-SERIES-D-1811553.pdf
 
 """
-import time, math, csv, argparse, logging
+import time, math, csv, argparse, logging, enum
+import logging.handlers as handlers
 from datetime import datetime
 import numpy as np
 import os, json
+
+from numpy.testing import measure
 import RPi.GPIO as GPIO
 import pigpio
 import concurrent.futures
@@ -26,22 +29,20 @@ from adc_constants import *
 from luminometer_constants import *
 from lumiscreen import LumiScreen, LumiMode
 from ads131m08_reader import ADS131M08Reader, bytes_to_readable, CRCError
+from menu import Menu, MenuStates
 
-############################## SET UP MEASUREMENT AND LOGGING DIRECTORIES ##############################
-LOG_OUTPUT_DIR = "/home/pi/luminometer-logs/"
-MEASUREMENT_OUTPUT_DIR = "/home/pi/measurements/"
+# Set up measurement, logging directories, and logger
 if not os.path.exists(LOG_OUTPUT_DIR):
 	os.mkdir(LOG_OUTPUT_DIR)
 if not os.path.exists(MEASUREMENT_OUTPUT_DIR):
 	os.mkdir(MEASUREMENT_OUTPUT_DIR)
 
-############################## SETUP LOGGER ##############################
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
+logger.setLevel(logging.DEBUG)
 log_location = os.path.join(LOG_OUTPUT_DIR, "luminometer.log")
 
 # Set up logging to a file
-file_handler = logging.FileHandler(log_location)
+file_handler = handlers.RotatingFileHandler(log_location, maxBytes=5*1024*1024, backupCount=3)
 formatter = logging.Formatter("%(asctime)s:%(name)s:%(levelname)s: %(message)s", "%Y-%m-%d-%H:%M:%S")
 file_handler.setFormatter(formatter)
 logger.addHandler(file_handler)
@@ -52,8 +53,12 @@ stream_handler.setLevel(logging.DEBUG)
 stream_handler.setFormatter(formatter)
 logger.addHandler(stream_handler)
 
+class MeasurementType(enum.Enum):
+	MEASUREMENT = enum.auto()
+	TEMPERATURE_COMP = enum.auto()
+	SENSITIVITY_NORM = enum.auto()
+
 class HBridgeFault(Exception):
-	logger.exception("\nH-bridge fault detected!")
 	pass
 
 class LumiBuzzer():
@@ -95,10 +100,12 @@ class LumiShutter():
 		# self._pwm.start(0)
 		self._pi = pigpio.pi()
 		self._pi.hardware_PWM(self._pwmPin, 0, 0)
+		self.hbridge_err = "OK"
 
 		GPIO.setup(self._sleepPin, GPIO.OUT, initial = 1)
 		GPIO.setup(self._faultPin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 		GPIO.output(self._sleepPin, 1)
+		time.sleep(.2)
 
 		# Set up edge detection for this channel. Passing on exception because two shutters
 		# share the same driver chip, and will have the same pin. RuntimeError is raised
@@ -118,7 +125,7 @@ class LumiShutter():
 		try:
 			action = str(action)
 		except TypeError:
-			print("\naction must be a string!")
+			print("Action must be a string!")
 			return
 
 		if not self._lock.locked():
@@ -135,7 +142,7 @@ class LumiShutter():
 						self.holdClosed()
 
 					else:
-						print(f"\nShutter command not recognized!")
+						print(f"Shutter command not recognized!")
 				except Exception as e:
 					logger.exception(f"Shutter actuation error: {e}")
 					self.rest()
@@ -145,36 +152,38 @@ class LumiShutter():
 	def rest(self):
 		try:
 			GPIO.output(self._dirPin, 0)
+			self._pi.hardware_PWM(self._pwmPin, SHT_PWM_FREQ, 0)
 			logger.info("Turning off PWM, resting.")
-			self._pi.hardware_PWM(self._pwmPin, 0, 0)
+
 		except:
 			pass
 
-
 	def driveOpen(self):
-		logger.info(f"\nOpening shutter")
-		self._pi.hardware_PWM(self._pwmPin, SHT_PWM_FREQ, SHUTTER_DRIVE_DR)
-		GPIO.output(self._dirPin, 0)
-	
-	def driveClosed(self):
-		logger.debug(f"\nClosing shutter")
+		logger.info(f"Opening shutter")
 		self._pi.hardware_PWM(self._pwmPin, SHT_PWM_FREQ, 0)
 		GPIO.output(self._dirPin, 1)
 	
+	def driveClosed(self):
+		logger.debug(f"Closing shutter")
+		self._pi.hardware_PWM(self._pwmPin, SHT_PWM_FREQ, SHUTTER_DRIVE_DR)
+		GPIO.output(self._dirPin, 0)
+	
 	def holdOpen(self):
 		logger.debug("Holding open.")
-		self._pi.hardware_PWM(self._pwmPin, SHT_PWM_FREQ, SHUTTER_HOLD_DR)
-		GPIO.output(self._dirPin, 0)
+		self._pi.hardware_PWM(self._pwmPin, SHT_PWM_FREQ, 1000000 - SHUTTER_HOLD_DR)
+		GPIO.output(self._dirPin, 1)
 
 	def holdClosed(self):
 		logger.debug("Holding closed.")
-		self._pi.hardware_PWM(self._pwmPin, SHT_PWM_FREQ, 1000000 - SHUTTER_HOLD_DR)
-		GPIO.output(self._dirPin, 1)
+		self._pi.hardware_PWM(self._pwmPin, SHT_PWM_FREQ, SHUTTER_HOLD_DR)
+		GPIO.output(self._dirPin, 0)
 
 	def _faultDetected(self, channel):
 		# Callback for handling an H-bridge fault pin event
 		# Ref datasheet:
 		# https://www.ti.com/lit/ds/symlink/drv8833.pdf?ts=1617084507643&ref_url=https%253A%252F%252Fwww.google.com%252F
+		self.hbridge_err = "ERR"
+		logger.exception("H-bridge fault detected!")
 		raise HBridgeFault
 
 	def __delete__(self):
@@ -189,69 +198,98 @@ class LumiShutter():
 
 class Luminometer():
 
-	def __init__(self):
+	def __init__(self, screen_type):
 
-		self._tempCoeffs = {}
-
-		try:
-			with open(CAL_PATH,'r') as json_file:
-				data = json.load(json_file)
-				self._tempCoeffs = data
-		except Exception as exc:
-			logger.exception("Unable to load temp_coeffs file!")
-			self._tempCoeffs["A"] = [SENSOR_A_DARK_V, SENSOR_A_CP_RATIO]
-			self._tempCoeffs["B"] = [SENSOR_B_DARK_V, SENSOR_B_CP_RATIO]
-
-
-		# Pin assignments
-		self._btn1 = BTN_1
-		self._btn2 = BTN_2
-		self._btn3 = BTN_3
-		self._FAN = FAN
-		self._ADC_PWR_EN = ADC_PWR_EN
-		self._PMIC_LBO = PMIC_LBO
+		self.state = MenuStates.MAIN_MENU
+		self.measurementMode = ""
+		self.target_time = 0
+		self.selected_calibration = ""
+		self._duration_s = 0
+		self.resultA = 0
+		self.semA = float('inf')
+		self.resultB = 0
+		self.semB = float('inf')
+		self.cb_buffer_size = 100
+		self._crcErrs = 0
+		self._accumBufferA = []
+		self._accumBufferB = []
+		self._accumSiPMRef = []
+		self._accumSiPMBias = []
+		self._accum34V = []
+		self.button_held_duration = 0
+		self._state_lock = threading.Lock()
 		
 		# Boolean internal variables
 		self._powerOn = True
 		self._measuring = False
-		self._darkIsStored = False
 		self._measurementIsDone = False
+		self.screen_settled = True
+		self._accumulate = True
 
-		# ADC Cyclic Redundancy Check - error counter
-		self._crcErrs = 0
+		# Diagnostic menu info
+		self.diag_vals = {
+			"batt": "OK",
+			"34V": "OK",
+			"pbias": "OK",
+			"num_CRC_errs": 0,
+			"hbridge_err": "OK",
+		}
 
-		# Set up channels for button pushes
-		GPIO.setup(self._btn1, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-		GPIO.setup(self._btn2, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-		GPIO.setup(self._btn3, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+		self._setupGPIO()
 
-		# Set up low battery input
-		GPIO.setup(self._PMIC_LBO, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+		# Read RLU conversions and temperature calibrations
+		self._readCalibrationFiles()
 
-		# Set up sensor board power enable, and fan enable
-		GPIO.setup(self._ADC_PWR_EN, GPIO.OUT, initial=1)
-		GPIO.setup(self._FAN, GPIO.OUT, initial=1)
+		# TODO, Get battery status dynamically
+		self.batt_status = "OK"
+		self.calA = " - NONE"
+		logger.info("Checking to see if custom calibration file exists.")
+		if os.path.isfile(CUSTOM_CAL_A_PATH):
+			logger.info("Custom calibration file exists.")
+			self.calA = ""
 
-		# Add callback for button pushes
-		GPIO.add_event_detect(self._btn1, GPIO.FALLING, callback=self._btn1_callback, bouncetime=200)
-		GPIO.add_event_detect(self._btn2, GPIO.FALLING, callback=self._btn2_callback, bouncetime=200)
-		GPIO.add_event_detect(self._btn3, GPIO.FALLING, callback=self._btn3_callback, bouncetime=200)
+		logger.info("Instantiating display, shutter, and buzzer.")
+		self.screen_type = screen_type
+		self.display = Menu(screen_type, self.selected_calibration, self.batt_status)
+		
+		try:
+			self.shutter = LumiShutter(SHT_1, SHT_PWM, SHT_FAULT, NSLEEP)
+		except Exception as e:
+			logger.exception("Error instantiating LumiShutter!")
+		try:
+			self.buzzer = LumiBuzzer(BUZZ)
+		except Exception as e:
+			logger.exception("Error instantiating LumiBuzzer!")
 
-		self.display = LumiScreen()
-		self.shutter = LumiShutter(SHT_1, SHT_PWM, SHT_FAULT, NSLEEP)
-		self.shutter.rest()
-		self.buzzer = LumiBuzzer(BUZZ)
+		# Start up the ADC
+		self._initADC()
 
+		# Get initial values from ADC
+		self.adc_vals = self.averageNMeasurements()
+		
+		# Create thread-safe queues for hardware jobs
+		logger.info("Creating display, shutter, and measure queues.")
+		self._display_q = queue.Queue(maxsize=1)
+		self._shutter_q = queue.Queue(maxsize=1)
+		self._measure_q = queue.Queue(maxsize=1)
+		self._measureLock = threading.Lock()
+
+		self.set_state(MenuStates.MAIN_MENU)
+
+		logger.info("Successfully instantiated Luminometer.")
+
+	def _initADC(self):
 		# Start up sensor chip
 		try:
+			logger.info("Starting up sensor chip.")
 			self._adc = ADS131M08Reader()
 			self._adc.setup_adc(SPI_CE, channels=[0,1,2,3,4])
 			self._simulate = False
 		except Exception as e:
 			logger.exception("Error creating ADC reader!")
 			self._simulate = True
-
 		try: 
+			logger.info("Printing ADC status.")
 			self._adc.status_print()
 		except Exception as e:
 			logger.exception('Could not print ADC status!')
@@ -263,128 +301,412 @@ class Luminometer():
 		else:
 			GPIO.add_event_detect(self._adc._DRDY, GPIO.FALLING, callback=self._cb_adc_data_ready)
 
-		# Create thread-safe queues for hardware jobs
-		self._display_q = queue.Queue(maxsize=1)
-		self._shutter_q = queue.Queue(maxsize=1)
-		self._measure_q = queue.Queue(maxsize=1)
-		self._measureLock = threading.Lock()
+	def _setupGPIO(self):
+		# Pin assignments
+		self._btn1 = BTN_1
+		self._btn2 = BTN_2
+		self._btn3 = BTN_3
+		self._FAN = FAN
+		self._ADC_PWR_EN = ADC_PWR_EN
+		self._PMIC_LBO = PMIC_LBO
 
-		self._resetBuffers()
+		# Set up channels for button pushes
+		GPIO.setmode(GPIO.BCM)
+		GPIO.setup(self._btn1, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+		GPIO.setup(self._btn2, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+		GPIO.setup(self._btn3, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 
-		logger.info("Successfully instantiated Luminometer.")
+		# Set up low battery input
+		GPIO.setup(self._PMIC_LBO, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 
-	def _btn1_callback(self, channel):
-		# Handle presses to button 1
+		# Set up sensor board power enable, and fan enable
+		GPIO.setup(self._ADC_PWR_EN, GPIO.OUT, initial=1)
+		GPIO.setup(self._FAN, GPIO.OUT, initial=1)
+
+		# Add callback for button pushes	
+		logger.info("Setting up button callbacks.")
+		GPIO.add_event_detect(self._btn1, GPIO.FALLING, callback=self.unified_callback, bouncetime=200)
+		GPIO.add_event_detect(self._btn2, GPIO.FALLING, callback=self.unified_callback, bouncetime=200)
+		GPIO.add_event_detect(self._btn3, GPIO.FALLING, callback=self.unified_callback, bouncetime=200)
+
+	def _readCalibrationFiles(self):
+
+		# Get last selected calibration
+		try:
+			with open(LAST_CAL) as json_file:
+				data = json.load(json_file)
+				self.selected_calibration = data
+				logger.info(f"Previously used calibration file found. Using {self.selected_calibration}.")
+		except:
+			logger.warning("Could not open last_chosen_cal.json, defaulting to standard calibration.")
+			self.selected_calibration = "Default"
+
+		self._tempCoeffs = {}
+
+		try:
+			if self.selected_calibration == CUSTOM_CAL_NAME:
+				PATH = CUSTOM_CAL_A_PATH
+			else:
+				PATH = STANDARD_CAL_PATH
+
+			with open(PATH,'r') as json_file:
+				data = json.load(json_file)
+				self._tempCoeffs = data
+				logger.info(f"Successfully loaded {self.selected_calibration} file.")
+		except Exception as exc:
+			logger.exception(f"Unable to load calibration {self.selected_calibration} temp_coeffs file!")
+			self._tempCoeffs["A"] = [SENSOR_A_DARK_V, SENSOR_A_CP_RATIO]
+			self._tempCoeffs["B"] = [SENSOR_B_DARK_V, SENSOR_B_CP_RATIO]
+
+		try:
+			# Get RLU_PER_V
+			with open(RLU_CAL_PATH) as json_file:
+				data = json.load(json_file)
+				self.rlu_per_v_a, self.rlu_per_v_b = data["RLU_PER_V_A"], data["RLU_PER_V_B"]
+				logger.info("Sucessfully loaded RLU_PER_V from rlu.json.")
+		except:
+			# In case of an error, fallback on this default for rlu_per_v
+			self.rlu_per_v_a = 50000
+			self.rlu_per_v_b = 50000
+			logger.exception(f"Errored while reading rlu_per_v from rlu.json.\nResorting to: ({self.rlu_per_v_a:}, {self.rlu_per_v_b:})")
+
+	def set_state(self, next_state: MenuStates):
+		if not self._state_lock.locked():
+			with self._state_lock:
+				# Check for a low battery
+				if not GPIO.input(self._PMIC_LBO):
+					self.batt_status = "LO"
+				else:
+					self.batt_status = "OK"
+
+				display_kwargs = {
+					"state": next_state,
+					"battery_status": self.batt_status,
+					"selected_calibration": self.selected_calibration,
+					"calA": self.calA,
+					"measurementMode": self.measurementMode,
+					"time_elapsed": self._duration_s,
+					"target_time": self.target_time,
+					"_measurementIsDone": self._measurementIsDone,
+					"resultA": self.resultA,
+					"semA": self.semA,
+					"resultB": self.resultB,
+					"semB": self.semB,
+					"diag_vals": self.diag_vals,
+					"adc_vals": self.adc_vals,
+					"rlu_per_v": [self.rlu_per_v_a, self.rlu_per_v_b],
+					"rlu_time": SENSITIVITY_NORM_TIME
+				}
+				try:
+					if self.screen_settled:
+						# If transitioning to main menu or status, update the diag and adc values
+						try:
+							if next_state == MenuStates.MAIN_MENU or next_state == MenuStates.STATUS_MENU:
+								logger.info("Updating adc_vals and diag_vals")
+								self.adc_vals = self.averageNMeasurements()
+								self.diag_vals["batt"] = self.batt_status
+								self.diag_vals["34V"] = self.adc_vals[4]
+								self.diag_vals["pbias"] = self.adc_vals[3]
+								self.diag_vals["num_CRC_errs"] = self._crcErrs
+								self.diag_vals["hbridge_err"] = self.shutter.hbridge_err
+						except:
+							logger.exception("Error setting adc/diag vals")
+
+						if not (self.state == MenuStates.MEASUREMENT_IN_PROGRESS and next_state == MenuStates.MEASUREMENT_IN_PROGRESS):
+							# Only buzz on taps, not holds (to avoid confusion on how long it was being held for)
+							if self.button_held_duration == 0:
+								self.buzzer.buzz()
+								self.button_held_duration = 0
+						logger.info(f"Current state: {self.state}")
+						logger.info(f"Moving to: {next_state}")
+					
+						self._display_q.put(display_kwargs)
+						self.screen_settled = False
+						self.state = next_state
+				except queue.Full:
+					logger.info("Display queue full.")
+					pass
+	
+	def secretMenu(self, channel):
+		if self.state == MenuStates.STATUS_MENU:
+			nextState = None
+			self.button_combo.append(channel)
+			if self.button_combo == RLU_CALIBRATION_COMBO:
+				nextState = MenuStates.RLU_CALIBRATION
+
+			if nextState != None:
+				self.set_state(nextState)
+
+	def unified_callback(self, channel):
+
+		# If the device is currently measuring
+		# we only want the user to be able to trigger this callback if they are
+		# pressing button 1 to trigger an abort
+		if self._measuring and (channel == BTN_1 or channel == BTN_2):
+			return
+		
+		button_pos = BTN_PIN_TO_POS[channel]
+		self.secretMenu(channel)
+
+		# Get duration of button hold
+		buzz1s = buzz2s = buzz3s = buzz4s = buzz5s = True
+		self.button_held_duration = 0
 		startTime = time.perf_counter()
-		nBeeps = 0
-		powerOff = False
-		logger.info("Button 1 pressed.")
-		duration = 0
-
-		# Monitor duration of button press
 		while not GPIO.input(channel):
-			time.sleep(0.1)
-			duration = int(time.perf_counter() - startTime)
-			if duration > nBeeps:
-				logger.info(f"Button 1 held for {duration} seconds.")
-				nBeeps += 1
+			self.button_held_duration = int(time.perf_counter() - startTime)
+			if (self.button_held_duration == 1) and buzz1s:
 				self.buzzer.buzz()
+				buzz1s = False
+				logger.info(f"{button_pos} button held for 1 second.")
+			elif (self.button_held_duration == 2) and buzz2s:
+				self.buzzer.buzz()
+				buzz2s = False
+				logger.info(f"{button_pos} button held for 2 seconds.")
+			elif (self.button_held_duration == 3) and buzz3s:
+				self.buzzer.buzz()
+				buzz3s = False
+				logger.info(f"{button_pos} button held for 3 seconds.")			
+			elif (self.button_held_duration == 4) and buzz4s:
+				self.buzzer.buzz()
+				buzz4s = False
+				logger.info(f"{button_pos} button held for 4 seconds.")
+			elif (self.button_held_duration == 5) and buzz5s:
+				self.buzzer.buzz()
+				buzz5s = False
+				logger.info(f"{button_pos} button held for 5 seconds.")
 
-		if duration == BTN_1_HOLD_TO_POWERDOWN_S:
-			logger.info('POWER OFF')
-			try:
-				self._display_q.put((LumiMode.TITLE, 'POWER OFF'))
-				time.sleep(5)
-			except queue.Full:
+		if channel == BTN_1:
+			self.btn1_transition_logic(self.button_held_duration)
+		elif channel == BTN_2:
+			self.btn2_transition_logic(self.button_held_duration)
+		elif channel == BTN_3:
+			self.btn3_transition_logic(self.button_held_duration)
+
+	def btn1_transition_logic(self, duration):
+		'''This is the bottom button
+		'''
+	
+		logger.info(f"Button 1 (bottom) pressed.")
+		nextState = None
+
+		# Power off if bottom button held for 3s
+		if duration == POWER_OFF_DURATION:
+			nextState = MenuStates.CONFIRM_POWER_OFF
+			logger.info('Moving to power off confirmation screen.')
+			while not self.screen_settled:
 				pass
-			finally:
-				self._powerOn = False
+			self._haltMeasurement = True
 
-		elif duration == BTN_1_HOLD_TO_CALIBRATE_S:
+		elif self.state == MenuStates.MAIN_MENU and duration == TRANSITION_DURATION:
+			nextState = MenuStates.CALIBRATION_MENU
+
+		elif self.state == MenuStates.MEASUREMENT_MENU and duration == TRANSITION_DURATION:
+			nextState = MenuStates.MAIN_MENU
+
+		elif self.state == MenuStates.SHOW_FINAL_MEASUREMENT and duration == TRANSITION_DURATION:
+			nextState = MenuStates.MEASUREMENT_MENU
+
+		elif self.state == MenuStates.STATUS_MENU and duration == TRANSITION_DURATION:
+			nextState = MenuStates.MAIN_MENU
+
+		elif self.state == MenuStates.CALIBRATION_MENU and duration == TRANSITION_DURATION:
+			nextState = MenuStates.MAIN_MENU
+
+		elif self.state == MenuStates.CONFIRM_CALIBRATION and duration == TRANSITION_DURATION:
+			nextState = MenuStates.MAIN_MENU
+
+		elif self.state == MenuStates.RLU_CALIBRATION and duration == TRANSITION_DURATION:
+			nextState = MenuStates.MAIN_MENU
+		
+		elif self.state == MenuStates.CONFIRM_POWER_OFF and duration == TRANSITION_DURATION:
+			nextState = MenuStates.MAIN_MENU
+
+		if nextState != None:
+			self.set_state(nextState)
+
+	def btn2_transition_logic(self, duration):
+		'''This is the middle button
+		'''
+
+		logger.info(f"Button 2 (middle) pressed.")
+		nextState = None
+
+		if self.state == MenuStates.MAIN_MENU and duration == TRANSITION_DURATION:
+			nextState = MenuStates.STATUS_MENU
+			# Set up special button combo memory
+			self.button_combo = []
+
+		elif self.state == MenuStates.MEASUREMENT_MENU:
+			# Perform timed measurement
+			if self.screen_settled:
+				if not self._measuring:
+					exposure = DURATION_TO_EXPOSURE[duration]
+					self.target_time = exposure
+			
+					try:
+						if not self._measureLock.locked():
+							self._measure_q.put_nowait((exposure, MeasurementType.MEASUREMENT))
+					except queue.Full:
+						logger.info('Already busy measuring')
+
+					self._duration_s = 0
+					self.measurementMode = "TIMED"
+					nextState = MenuStates.MEASUREMENT_IN_PROGRESS
+
+		elif self.state == MenuStates.CALIBRATION_MENU:
+			# Switch to custom calibration and return to main
+			# or begin new calibration if held for 5 seconds
+			
+			calibrate = False
+
+			if duration == HOLD_TO_CALIBRATE_TIME:
+				calibrate = True
+			
+			# If held for 5s, prompt user to confirm they want to calibrate, otherwise load default
+			if calibrate:
+				logger.info("Button 2 held for 5 seconds, move to confirm calibration with user.")
+				nextState = MenuStates.CONFIRM_CALIBRATION
+			else:
+				# Get constants
+				logger.info("Attempt to load existing custom calibration.")
+				try:
+					if os.path.isfile(CUSTOM_CAL_A_PATH):
+						logger.info("Found custom calibration file.")
+						with open(CUSTOM_CAL_A_PATH,'r') as json_file:
+							data = json.load(json_file)
+							self._tempCoeffs = data
+						
+						# Set custom as last chosen calibration
+						self.selected_calibration = CUSTOM_CAL_NAME
+						with open(LAST_CAL, "w") as json_file:
+							json.dump(self.selected_calibration, json_file)
+						self.display.set_selected_calibration(self.selected_calibration)
+						nextState = MenuStates.MAIN_MENU
+					else:
+						logger.info("No custom calibration found. No changes made.")
+						nextState = MenuStates.MAIN_MENU
+				except Exception as e:
+					print("Error encountered while opening custom calibration")
+					nextState = MenuStates.MAIN_MENU
+
+		if nextState != None:
+			self.set_state(nextState)
+	
+	def btn3_transition_logic(self, duration):
+		'''This is the top button
+		'''
+
+		logger.info(f"Button 3 (top) pressed.")
+		nextState = None
+
+		if self.state == MenuStates.MAIN_MENU and duration == TRANSITION_DURATION:
+			nextState = MenuStates.MEASUREMENT_MENU
+
+		elif self.state == MenuStates.MEASUREMENT_MENU and duration == TRANSITION_DURATION:
+			if self.screen_settled:
+				if not self._measuring:
+					nextState = MenuStates.MEASUREMENT_IN_PROGRESS
+					self.measurementMode = "AUTO"
+					self._duration_s = 0
+					self.target_time = None
+
+					exposure = 0
+					try:
+						if not self._measureLock.locked():
+							self._measure_q.put_nowait((exposure, MeasurementType.MEASUREMENT))
+					except queue.Full:
+						logger.info('Already busy measuring')
+
+		elif self.state == MenuStates.MEASUREMENT_IN_PROGRESS and duration == ABORT_MEASUREMENT_DURATION:
+			# Measurement in progress
+			# Abort and return to measurement menu if top button held for 3s
+			logger.info(f"Button 3 held for {ABORT_MEASUREMENT_DURATION} seconds - halting measurement.")
+			self.buzzer.buzz()
+			self._haltMeasurement = True
+			nextState = MenuStates.MEASUREMENT_MENU
+			while not self.screen_settled:
+				pass
+		
+		elif self.state == MenuStates.CALIBRATION_MENU and duration == TRANSITION_DURATION:
+			# Switch to standard calibration and return to main
+			self.selected_calibration = "Default"
+			self.display.set_selected_calibration(self.selected_calibration)
+
+			# Get constants
+			with open(STANDARD_CAL_PATH,'r') as json_file:
+				data = json.load(json_file)
+				self._tempCoeffs = data
+			
+			# Set default as last chosen calibration
+			with open(LAST_CAL, "w") as json_file:
+				json.dump(self.selected_calibration, json_file)
+				
+			nextState = MenuStates.MAIN_MENU
+
+		elif self.state == MenuStates.CONFIRM_CALIBRATION and duration == TRANSITION_DURATION:
 			# Perform calibration
 			if not self._measureLock.locked():
 				try:
 					logger.info("Performing calibration.")
-					self._measure_q.put_nowait((DEF_DARK_TIME,True))
+					self._measure_q.put_nowait((DEF_DARK_TIME, MeasurementType.TEMPERATURE_COMP))
 				except queue.Full:
 					pass
-		
-		return
+		elif self.state == MenuStates.RLU_CALIBRATION and duration == TRANSITION_DURATION:
+			# Start RLU calibration
+			if not self._measureLock.locked():
+				try:
+					logger.info("Performing RLU calibration.")
+					self.target_time = 30
+					self._measure_q.put_nowait((SENSITIVITY_NORM_TIME, MeasurementType.SENSITIVITY_NORM))
+				except queue.Full:
+					pass
 
-	def _btn2_callback(self, channel):
-		# Handle presses to button 2
-		logger.info("Button 2 pressed.")
-		if not self._measuring:
-			buzz1s = buzz2s = buzz3s = buzz4s = True
-			exposure = 10
+		elif self.state == MenuStates.CONFIRM_POWER_OFF and duration == TRANSITION_DURATION:
+			nextState = MenuStates.POWER_OFF
+			logger.info("POWER OFF.")
+			self._powerOn = False
+					
+		if nextState != None:
+			self.set_state(nextState)
 
-			startTime = time.perf_counter()
-			while not GPIO.input(channel):
-				duration = time.perf_counter() - startTime
-				if (int(duration) == 1) and buzz1s:
-					self.buzzer.buzz()
-					buzz1s = False
-					logger.info("Button 2 held for 1 second - exposure=30 seconds.")
-					exposure = 30
-				elif (int(duration)==2) and buzz2s:
-					self.buzzer.buzz()
-					buzz2s = False
-					exposure = 60
-					logger.info("Button 2 held for 2 seconds - exposure=60 seconds")
-				elif (int(duration)==3) and buzz3s:
-					self.buzzer.buzz()
-					buzz3s = False
-					exposure = 300
-					logger.info("Button 2 held for 3 seconds - exposure=300 seconds")			
-				elif (int(duration)==4) and buzz4s:
-					self.buzzer.buzz()
-					buzz4s = False
-					exposure = 600
-					logger.info("Button 2 held for 4 seconds - exposure=600 seconds")
+	def convertToRLU(self, data, sensor: str):
+		'''Converts the raw data and standard error of mean with the RLU scaling and offset'''
 
-			try:
-				if not self._measureLock.locked():
-					self._measure_q.put_nowait((exposure, False))
-			except queue.Full:
-				log.info('\nAlready busy measuring')
-	
-	def _btn3_callback(self, channel):
-		"""
-		Handle presses to button 3
-		Desired behavior:
-		If the device is idle, pressing the button for any duration 
-		will result in a measurement using auto-exposure.
-		If the device is currently measuring, then we monitor for the 
-		stop signal (a 3 second hold on the button)
-		"""
+		if sensor == "A":
+			rlu_per_v = self.rlu_per_v_a
+		elif sensor == "B":
+			rlu_per_v = self.rlu_per_v_b
 
-		logger.info("Button 3 pressed.")
+		data_RLU = ( rlu_per_v * mean(data) ) + ADD_OFFSET_RLU
 
-		# A measurement is ongoing. Monitor for the stop condition
-		if self._measuring:
-			startTime = time.perf_counter()
-			buzz3s = True
-			while not GPIO.input(channel):
-				time.sleep(0.2)
-				duration = time.perf_counter() - startTime
-				if duration > 3:
-					logger.info(f"Button 3 held for 3 seconds - halting measurement.")
-					if buzz3s:
-						buzz3s = False
-						self.buzzer.buzz()
-						self._haltMeasurement = True
-		
-		# Add a measurement to the queue
+		# Can't compute stdev unless there are >3 shutter-open periods _|-|_|-|_|-|_
+		if self._sc > 5:
+			sem_RLU = rlu_per_v * ( stdev(data)/math.sqrt(float(len(data))) ) 
 		else:
-			try:
-				if not self._measureLock.locked():
-					self._measure_q.put_nowait((0,False))
-			except queue.Full:
-				pass
+			sem_RLU = float('inf')
 
+		return data_RLU, sem_RLU
+
+	def updateAndSaveRLU(self):
+		'''Updates the RLU_PER_V for both sensors and saves it to rlu.json'''
+		logger.info("Updating RLU_PER_V_A and RLU_PER_V_B values.")
+		try:
+			self.rlu_per_v_a = (TARGET_RLU - ADD_OFFSET_RLU) / mean(self.dataA)
+			self.rlu_per_v_b = (TARGET_RLU - ADD_OFFSET_RLU) / mean(self.dataB)
+			updated_rlu = {
+				"RLU_PER_V_A": self.rlu_per_v_a,
+				"RLU_PER_V_B": self.rlu_per_v_b
+			}
+
+			# Save to rlu.json
+			with open(RLU_CAL_PATH,'w') as outfile:
+					json.dump(updated_rlu, outfile)
+		except:
+			logger.exception("Errored while updating/saving RLU A/B values.")
+	
 	def measure(self, \
 		measure_time: int = 30, \
-		isCalibration: bool = False):
+		measurement_type: MeasurementType = MeasurementType.MEASUREMENT):
 		"""
 		Arguments:
 		measure_time is the duration of the entire measurement, in seconds
@@ -409,13 +731,6 @@ class Luminometer():
 		if not self._measuring:
 			with self._measureLock:
 				logger.info("Starting measurement")
-				
-				# Confirm to user that a calibration is being performed
-				if isCalibration:
-					try:
-						self._display_q.put((LumiMode.TITLE, 'CALIBRATION'))
-					except queue.Full:
-						pass
 
 				# Close shutters
 				try:
@@ -432,31 +747,25 @@ class Luminometer():
 
 					# Keeps track of the overall measurement duration
 					sampleCount = 0
-
 					# Start data acquisition loop
 					while self._loopCondition(measure_time):
 
 						# Do this once each time a full cycle (closed-open-closed) has completed:
 						if (self._sc > sampleCount) and ((self._sc % 2)==0) and (self._sc > 2):
-							logger.info(f"\nMeasure: sample count = {self._sc}")
+							logger.info(f"Measure: sample count = {self._sc}")
 
 							# Gate traces 
-							self.dataA, _ = self.gateTrace(self.rawdataA[:self._rsc], self.shutter_samples, "A", False)
-							self.dataB, _ = self.gateTrace(self.rawdataB[:self._rsc], self.shutter_samples, "B", False)
+							self.dataA, _ = self.gateTrace(self.rawdataA[:self._rsc], self.shutter_samples, "A", MeasurementType.MEASUREMENT)
+							self.dataB, _ = self.gateTrace(self.rawdataB[:self._rsc], self.shutter_samples, "B", MeasurementType.MEASUREMENT)
 							
 							# Recalculate mean
-							self.resultA = mean(self.dataA)
-							self.resultB = mean(self.dataB)							
+							self.resultA, self.semA = self.convertToRLU(self.dataA, "A")
+							self.resultB, self.semB = self.convertToRLU(self.dataB, "B")
 
-							logger.info(f"Sensor A after {int(self._sc/2)} cycles: {RLU_PER_V*self.resultA:.2f}")
-							logger.info(f"Sensor A raw: {self.rawdataA[self._rsc-1]:.8f}")
-							logger.info(f"Sensor B after {int(self._sc/2)} cycles: {RLU_PER_V*self.resultB:.2f}")
-							logger.info(f"Sensor B raw: {self.rawdataB[self._rsc-1]:.8f}")
-
-							# Can't compute stdev unless there are >3 shutter-open periods _|-|_|-|_|-|_
-							if self._sc > 5:
-								self.semA = stdev(self.dataA)/math.sqrt(float(len(self.dataA)))
-								self.semB = stdev(self.dataB)/math.sqrt(float(len(self.dataB)))
+							logger.debug(f"Sensor A after {int(self._sc/2)} cycles: {self.resultA:.2f}")
+							logger.debug(f"Sensor A raw: {self.rawdataA[self._rsc-1]:.8f}")
+							logger.debug(f"Sensor B after {int(self._sc/2)} cycles: {self.resultB:.2f}")
+							logger.debug(f"Sensor B raw: {self.rawdataB[self._rsc-1]:.8f}")
 
 							self._duration_s = time.perf_counter() - t0
 
@@ -465,19 +774,17 @@ class Luminometer():
 							sampleCount += 1
 
 					# Final: gate traces. If calibration, do the fit and write the file
-					self.dataA, rawDownsampledA = self.gateTrace(self.rawdataA[:self._rsc], self.shutter_samples, "A", isCalibration)
-					self.dataB, rawDownsampledB = self.gateTrace(self.rawdataB[:self._rsc], self.shutter_samples, "B", isCalibration)	
+					self.dataA, self._darkDownsampledA = self.gateTrace(self.rawdataA[:self._rsc], self.shutter_samples, "A", measurement_type)
+					self.dataB, self._darkDownsampledB = self.gateTrace(self.rawdataB[:self._rsc], self.shutter_samples, "B", measurement_type)	
 
 					# Final result is the mean of all the gated shutter-open periods
-					self.resultA = mean(self.dataA)
-					self.resultB = mean(self.dataB)
-					self.semA = stdev(self.dataA)/math.sqrt(float(len(self.dataA)))
-					self.semB = stdev(self.dataB)/math.sqrt(float(len(self.dataB)))
+					self.resultA, self.semA = self.convertToRLU(self.dataA, "A")
+					self.resultB, self.semB = self.convertToRLU(self.dataB, "B")
 
 					# If doing a calibration, then store the result
-					if isCalibration:
-						fitParamsA = np.polyfit(rawDownsampledA, self.dataA, 1, full=False)
-						fitParamsB = np.polyfit(rawDownsampledB, self.dataB, 1, full=False)
+					if measurement_type == MeasurementType.TEMPERATURE_COMP:
+						fitParamsA = np.polyfit(darkDownsampledA, self.dataA, 1, full=False)
+						fitParamsB = np.polyfit(darkDownsampledB, self.dataB, 1, full=False)
 						
 						# Convert fit parameters to V_dark at zero temperature
 						offsetA = -fitParamsA[1]/fitParamsA[0]
@@ -488,16 +795,29 @@ class Luminometer():
 						self._tempCoeffs["B"] = [offsetB, crB]
 
 						logger.debug(f"Offset A: {offsetA}")
-						logger.debug(f"Coupling coeff A: {crA}")						
+						logger.debug(f"Coupling coeff A: {crA}")
 						logger.debug(f"Offset B: {offsetB}")
 						logger.debug(f"Coupling coeff B: {crB}")
 
-						with open(CAL_PATH,'w') as outfile:
+						# Save calibration temperature coefficients
+						with open(CUSTOM_CAL_A_PATH,'w') as outfile:
+							logger.info("Saving custom temperature calibration coefficients.")
 							json.dump(self._tempCoeffs, outfile)
 
-					logger.info(f"\nSensor A final result: {RLU_PER_V*self.resultA:.2f} +/- {RLU_PER_V*self.semA:.2f} (s.e.m.) ")
-					logger.info(f"\nSensor B final result: {RLU_PER_V*self.resultB:.2f} +/- {RLU_PER_V*self.semB:.2f} (s.e.m.) ")
-					logger.info(f"\n{self._rsc} samples in {time.perf_counter() - t0} seconds. Sample rate of {self._rsc / (time.perf_counter() - t0)} Hz")
+						# Set the custom calibration to be the one used on next boot
+						self.selected_calibration = CUSTOM_CAL_NAME
+						with open(LAST_CAL, "w") as json_file:
+							logger.info("Setting last calibration as custom.")
+							json.dump(self.selected_calibration, json_file)
+						self.display.set_selected_calibration(self.selected_calibration)
+
+					# If doing a sensitivity normalization, calculate normalization and save to rlu.json
+					elif measurement_type == MeasurementType.SENSITIVITY_NORM:
+						self.updateAndSaveRLU()
+
+					logger.info(f"Sensor A final result: {self.resultA:.2f} +/- {self.semA:.2f} (s.e.m.) ")
+					logger.info(f"Sensor B final result: {self.resultB:.2f} +/- {self.semB:.2f} (s.e.m.) ")
+					logger.info(f"{self._rsc} samples in {time.perf_counter() - t0} seconds. Sample rate of {self._rsc / (time.perf_counter() - t0)} Hz")
 					logger.info(f"{self._crcErrs} CRC Errors encountered.")
 
 					self.writeToFile()
@@ -507,14 +827,17 @@ class Luminometer():
 					#self.writeToFile('Interrupted_')
 					logger.error("Keyboard interrupted measurement")
 				finally:
+					if measurement_type == MeasurementType.SENSITIVITY_NORM:
+						while not self.screen_settled:
+							pass
+						self.set_state(MenuStates.RLU_CALIBRATION)
+					elif not self._haltMeasurement:
+						self._updateDisplayResult(show_final=True)
+					self._duration_s = time.perf_counter() - t0
+					self.shutter.rest()
 					self._measuring = False
 					self._measurementIsDone = True
-					self.shutter.rest()
-					time.sleep(5)
-					self._updateDisplayResult(True)
-
 		return
-
 
 	def _loopCondition(self, exposure:int) -> bool:
 		if exposure > 0:
@@ -523,65 +846,51 @@ class Luminometer():
 
 		# Auto-exposure
 		else:
-
 			result = \
 					((self._duration_s < MAX_EXPOSURE) and \
 					(self._haltMeasurement == False) and \
 					((abs(self.resultB) / self.semB)) < MIN_SNR) or \
-					((self._sc) < MIN_PERIODS)
+					((self._sc) < MIN_PERIODS and self._haltMeasurement == False)
 			return result
 
-	def averageNMeasurements(self, N: int=100) -> List[float]:
+	def averageNMeasurements(self) -> List[float]:
 		'''
 		Average N sequential measurements from the sensors without using the shutters.
 		This method uses the _cb_adc_data_ready() callback that always runs while the
 		ADC is on. We simply initialize new lists (one for each channel), set the 
 		_accumulate flag to True, and wait for them to fill up.
 		'''
-
-		self._accumBufferA = []
-		self._accumBufferB = []
-		self._accumSiPMRef = []
-		self._accumSiPMBias = []
-		self._accum34V = []
+		output = [0]*5
 
 		try:
-			self._accumulate = True
-
-			while len(self._accumBufferA) < N:
-				pass
+			output = [mean(self._accumBufferA), mean(self._accumBufferB), \
+			mean(self._accumSiPMRef), mean(self._accumSiPMBias), \
+			mean(self._accum34V)]
 		except Exception as e:
 			print(e)
-		finally:
-			self._accumulate = False
-
-		output = [mean(self._accumBufferA), mean(self._accumBufferB), \
-		mean(self._accumSiPMRef), mean(self._accumSiPMBias), \
-		mean(self._accum34V)]
 
 		return output
-
 
 	def _cb_adc_data_ready(self, channel):
 		# Callback function executed when data ready is asserted from ADC
 		# The callback also queues the shutter actions, in order to stay synchronized 
 		# with the data readout.
-
 		if self._simulate:
 			# Simulation mode
-			d = [0.0, 0.0]
+			d = [0.0, 0.0, 0.0, 0.0, 0.0]
 			threading.Timer(SAMPLE_TIME_S, self._cb_adc_data_ready, args=(DRDY,)).start()
 		else:
 			try:
 				# Read sensor
 				d = self._adc.read()
+				self.adc_vals = d
 
 			# ADC communication error
 			except CRCError:
 				self._crcErrs += 1
 				return
 	
-		if self._measuring and (self._rsc < self.nRawSamples):
+		if self._measuring and (self._rsc < self.nRawSamples) and not self._haltMeasurement:
 			self.rawdataA[self._rsc] = d[0]
 			self.rawdataB[self._rsc] = d[1]
 
@@ -603,6 +912,13 @@ class Luminometer():
 			self._sc = int(self._rsc/self.shutter_samples)
 
 		if self._accumulate:
+			if len(self._accumBufferA) > self.cb_buffer_size:
+				self._accumBufferA.pop(0)
+				self._accumBufferB.pop(0)
+				self._accumSiPMRef.pop(0)
+				self._accumSiPMBias.pop(0)
+				self._accum34V.pop(0)
+
 			self._accumBufferA.append(d[0])
 			self._accumBufferB.append(d[1])
 			self._accumSiPMRef.append(d[2])
@@ -611,32 +927,34 @@ class Luminometer():
 		
 		return		
 
-	def _updateDisplayResult(self, wait: bool = False):
+	def _updateDisplayResult(self, show_final: bool = False):
 		# Update display with intermediate results
-		args = (\
-				LumiMode.RESULT, \
-				self._darkIsStored,\
-				self._measurementIsDone,\
-				RLU_PER_V*mean(self.dataA)+ADD_OFFSET_RLU,\
-				RLU_PER_V*self.semA,\
-				RLU_PER_V*mean(self.dataB)+ADD_OFFSET_RLU,\
-				RLU_PER_V*self.semB,\
-				self._duration_s)
+		logger.debug("Updating intermediate results.")
+		self.resultA, self.semA = self.convertToRLU(self.dataA, "A")
+		self.resultB, self.semB = self.convertToRLU(self.dataB, "B")
+	
 		try:
-			if wait:
+			if show_final:
 				# Ensure the final result is displayed
-				while self._display_q.full():
+				logger.debug("Waiting to display final...")
+				while not self.screen_settled:
 					pass
-				self._display_q.put(args)
+				logger.debug("Setting final measurement state")
+				self.set_state(MenuStates.SHOW_FINAL_MEASUREMENT)
+				self._duration_s = 0
 			else:
-				self._display_q.put_nowait(args)
+				if self.screen_settled:
+					logger.debug("Setting measurement in progress state")
+					self.set_state(MenuStates.MEASUREMENT_IN_PROGRESS)
 		except queue.Full:
-			logger.error('\nDisplay queue full. Could not display result')
+			logger.error('Display queue full. Could not display result')
 
 	def _resetBuffers(self, measure_time: int = 10):
 
 			self.dataA = [0.0]
 			self.dataB = [0.0]
+			self._darkDownsampledA = [0.0]
+			self._darkDownsampledB = [0.0]
 			self.semA = float('inf')
 			self.semB = float('inf')
 			self.resultA = 0.0
@@ -676,18 +994,74 @@ class Luminometer():
 	def writeToFile(self):
 		now = datetime.now()
 		dt_string = now.strftime("%Y-%m-%d-%H-%M-%S")
+
+		### Write the final result to the all-measurements.csv file
+		file = os.path.join(MEASUREMENT_OUTPUT_DIR, ALL_MEASUREMENTS_CSV_FILENAME)
+		try:
+			# Create the all measurements file if it doesn't already exist
+			if not os.path.exists(file):
+				# Create file
+				headers = [
+					"date", 
+					"measurementMode", 
+					"exposure", 
+					"resultA", 
+					"standard_err_of_mean_A",
+					"resultB",
+					"standard_err_of_mean_B",
+				]
+				# Add header row
+				with open(file, 'w+', newline='') as final_measurements_csv:
+					csvWriter = csv.writer(final_measurements_csv)
+					csvWriter.writerow(headers)
+					final_measurements_csv.close()
+		except:
+			logger.exception("Errored while creating all-measurements.csv.")
+		try:
+			# Append final measurement to all-measurements.csv
+			measurements = [
+				dt_string,
+				self.measurementMode,
+				self.target_time,
+				self.resultA,
+				self.semA,
+				self.resultB,
+				self.semB
+			]
+			with open(file, 'a', newline='') as final_measurements_csv:
+				csvWriter = csv.writer(final_measurements_csv)
+				csvWriter.writerow(measurements)
+				final_measurements_csv.close()
+		except:
+			logger.exception("Errored while appending to all-measurements.csv.")
+		
+		### Write all intermediate raw and gated data results to a DATE.csv and DATE_gated.csv
 		title = os.path.join(MEASUREMENT_OUTPUT_DIR, dt_string)
-		with open(title + '.csv', 'w', newline='') as csvFile:
-			csvWriter = csv.writer(csvFile)
-			for i in range(self.nRawSamples):
-				csvWriter.writerow((self.rawdataA[i], self.rawdataB[i]))
+		try:
+			logger.info(f"Saving to {title}")
+			with open(title + '.csv', 'w', newline='') as csvFile:
+				csvWriter = csv.writer(csvFile)
+				for i in range(self.nRawSamples):
+					csvWriter.writerow((self.rawdataA[i], self.rawdataB[i]))
 
-		with open(title + '_gated' + '.csv', 'w', newline='') as csvFile:
-			csvWriter = csv.writer(csvFile)
-			for i in range(len(self.dataA)):
-				csvWriter.writerow((self.dataA[i], self.dataB[i]))
+			with open(title + '_gated' + '.csv', 'w', newline='') as csvFile:
+				csvWriter = csv.writer(csvFile)
+				for i in range(len(self.dataA)):
+					csvWriter.writerow((self.dataA[i], self.dataB[i]))
 
-	def gateTrace(self, rawData: List[float], gateSize: int, channel: str, isCalibration: bool = False) -> List[float]:
+			with open(title + '_darkDownsampled' + '.csv', 'w', newline='') as csvFile:
+				csvWriter = csv.writer(csvFile)
+				for i in range(len(self.dataA)):
+					csvWriter.writerow((self._darkDownsampledA[i], self._darkDownsampledB[i]))
+			logger.info("File successfully saved.")
+		except:
+			logger.exception("Could not save measurement to file.")
+
+	def gateTrace(self, \
+		rawData: List[float], \
+		gateSize: int, \
+		channel: str, \
+		measurement_type: MeasurementType = MeasurementType.MEASUREMENT) -> List[float]:
 		"""
 		Helper method that computes the mean of each even chunk of data, subtracted by the mean of the flanking odd
 		chunks of data. The chunk size is specified by gateSize, and the total size of the rawData should be an odd
@@ -717,7 +1091,7 @@ class Luminometer():
 			nPeriods = nPeriods -1
 
 		samples = []
-		rawDownsampled = []
+		darkDownsampled = []
 
 		for i in range(gateSize, gateSize*nPeriods, 2*gateSize):
 			sample = mean(rawData[(i+SKIP_SAMPLES):i+(gateSize-1)])
@@ -725,16 +1099,15 @@ class Luminometer():
 			darkAfter = mean(rawData[(i+gateSize+SKIP_SAMPLES):(i+2*gateSize - 1)])
 			darkMean = 0.5*(darkBefore + darkAfter)
 
-			rawDownsampled.append(darkMean)
+			darkDownsampled.append(darkMean)
 			gatedSample = sample - darkMean
 
-			if isCalibration:
+			if measurement_type == MeasurementType.TEMPERATURE_COMP:
 				samples.append(gatedSample)
 			else:
 				samples.append(self.correctTemperature(gatedSample, darkMean, self._tempCoeffs[channel]))
 
-		return samples, rawDownsampled
-
+		return samples, darkDownsampled
 
 	def correctTemperature(self, gatedIn: float, darkMeanIn: float, tempCoeffs: List[float]) -> float:
 		return gatedIn - tempCoeffs[1]*(darkMeanIn - tempCoeffs[0])
@@ -748,14 +1121,10 @@ class Luminometer():
 
 				# Start a future for thread to submit work through the queue
 				future_result = { \
-					executor.submit(Luminometer.shutter.actuate, 'close'): 'SHUTTER CLOSED', \
+					executor.submit(Luminometer.shutter.rest): 'SHUTTER RESTING', \
 					}
 
-				# Display to the user that the system is started and ready
-				self._display_q.put_nowait((LumiMode.READY, self._darkIsStored))
-
-
-				logger.info('\nReady and waiting for button pushes...')
+				logger.info('Ready and waiting for button pushes...')
 
 				# Main realtime loop:
 				while self._powerOn:
@@ -788,33 +1157,49 @@ class Luminometer():
 					# Display queue has size 1 and will not add additional items to the queue
 					# If there is an incoming message, start a new future
 					while not self._display_q.empty():
-
 						# Fetch a job from the queue
 						try:
-							message = self._display_q.get_nowait()
+							kwargs = self._display_q.get_nowait()
 						except queue.Empty:
 							pass
 
 						# Start the load operation and mark the future with its URL
-						future_result[executor.submit(self.display.parser, *message)] = "Message displayed: " + repr(message[0])
-
+						logger.debug(f"Display queue with: {kwargs['state']}")
+						future_result[executor.submit(self.display.screenSwitcher, **kwargs)] = "Screen displayed: " + repr(kwargs["state"])
+					
 					# Process any completed futures
 					for future in done:
 						result = future_result[future]
 						try:
 							data = future.result()
+							if "Screen displayed" in result:
+								self.screen_settled = True
+							logger.debug(result)
 						except Exception as exc:
 							logger.exception('%r generated an exception: %s' % (result, exc))
 
 						# Remove the now completed future
 						del future_result[future]
+					
+				self.display.powerOff()
 		except KeyboardInterrupt:
 			pass
 
 if __name__ == "__main__":
-	Luminometer = Luminometer()
+	screen_type = 2
+	try:
+		with open(SCREEN_TYPE_PATH) as json_file:
+			data = json.load(json_file)
+			screen_type = data["SCREEN_TYPE"]
+			logger.info("Sucessfully loaded screen_type from screen_type.json.")
+	except:
+		logger.exception("Error reading screen_type from screen_type.json. Defaulting to screen_type=2.")
+
+	Luminometer = Luminometer(screen_type)
+
 	try:
 		Luminometer.run()
+
 	except Exception as exc:
 		logger.exception(f'Luminometer encountered exception: {exc}')
 	finally:
