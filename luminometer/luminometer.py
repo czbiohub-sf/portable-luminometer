@@ -216,6 +216,8 @@ class Luminometer():
 		self._accumSiPMRef = []
 		self._accumSiPMBias = []
 		self._accum34V = []
+		self.button_held_duration = 0
+		self._state_lock = threading.Lock()
 		
 		# Boolean internal variables
 		self._powerOn = True
@@ -368,57 +370,62 @@ class Luminometer():
 			self.rlu_per_v_b = 50000
 			logger.exception(f"Errored while reading rlu_per_v from rlu.json.\nResorting to: ({self.rlu_per_v_a:}, {self.rlu_per_v_b:})")
 
-	def set_state(self, state: MenuStates):
-		# Check for a low battery
-		if not GPIO.input(self._PMIC_LBO):
-			self.batt_status = "LO"
-		else:
-			self.batt_status = "OK"
+	def set_state(self, next_state: MenuStates):
+		if not self._state_lock.locked():
+			with self._state_lock:
+				# Check for a low battery
+				if not GPIO.input(self._PMIC_LBO):
+					self.batt_status = "LO"
+				else:
+					self.batt_status = "OK"
 
-		display_kwargs = {
-			"state": state,
-			"battery_status": self.batt_status,
-			"selected_calibration": self.selected_calibration,
-			"calA": self.calA,
-			"measurementMode": self.measurementMode,
-			"time_elapsed": self._duration_s,
-			"target_time": self.target_time,
-			"_measurementIsDone": self._measurementIsDone,
-			"resultA": self.resultA,
-			"semA": self.semA,
-			"resultB": self.resultB,
-			"semB": self.semB,
-			"diag_vals": self.diag_vals,
-			"adc_vals": self.adc_vals,
-			"rlu_per_v": [self.rlu_per_v_a, self.rlu_per_v_b],
-			"rlu_time": SENSITIVITY_NORM_TIME
-		}
-		try:
-			if self.screen_settled:
-				# If transitioning to main menu or status, update the diag and adc values
+				display_kwargs = {
+					"state": next_state,
+					"battery_status": self.batt_status,
+					"selected_calibration": self.selected_calibration,
+					"calA": self.calA,
+					"measurementMode": self.measurementMode,
+					"time_elapsed": self._duration_s,
+					"target_time": self.target_time,
+					"_measurementIsDone": self._measurementIsDone,
+					"resultA": self.resultA,
+					"semA": self.semA,
+					"resultB": self.resultB,
+					"semB": self.semB,
+					"diag_vals": self.diag_vals,
+					"adc_vals": self.adc_vals,
+					"rlu_per_v": [self.rlu_per_v_a, self.rlu_per_v_b],
+					"rlu_time": SENSITIVITY_NORM_TIME
+				}
 				try:
-					if state == MenuStates.MAIN_MENU or state == MenuStates.STATUS_MENU:
-						logger.info("Updating adc_vals and diag_vals")
-						self.adc_vals = self.averageNMeasurements()
-						self.diag_vals["batt"] = self.batt_status
-						self.diag_vals["34V"] = self.adc_vals[4]
-						self.diag_vals["pbias"] = self.adc_vals[3]
-						self.diag_vals["num_CRC_errs"] = self._crcErrs
-						self.diag_vals["hbridge_err"] = self.shutter.hbridge_err
-				except:
-					logger.exception("Error setting adc/diag vals")
+					if self.screen_settled:
+						# If transitioning to main menu or status, update the diag and adc values
+						try:
+							if next_state == MenuStates.MAIN_MENU or next_state == MenuStates.STATUS_MENU:
+								logger.info("Updating adc_vals and diag_vals")
+								self.adc_vals = self.averageNMeasurements()
+								self.diag_vals["batt"] = self.batt_status
+								self.diag_vals["34V"] = self.adc_vals[4]
+								self.diag_vals["pbias"] = self.adc_vals[3]
+								self.diag_vals["num_CRC_errs"] = self._crcErrs
+								self.diag_vals["hbridge_err"] = self.shutter.hbridge_err
+						except:
+							logger.exception("Error setting adc/diag vals")
 
-				if not (self.state == MenuStates.MEASUREMENT_IN_PROGRESS and state == MenuStates.MEASUREMENT_IN_PROGRESS):
-					self.buzzer.buzz()
-				logger.info(f"Current state: {self.state}")
-				logger.info(f"Moving to: {state}")
-			
-				self._display_q.put(display_kwargs)
-				self.state = state
-				self.screen_settled = False
-		except queue.Full:
-			logger.info("Display queue full.")
-			pass
+						if not (self.state == MenuStates.MEASUREMENT_IN_PROGRESS and next_state == MenuStates.MEASUREMENT_IN_PROGRESS):
+							# Only buzz on taps, not holds (to avoid confusion on how long it was being held for)
+							if self.button_held_duration == 0:
+								self.buzzer.buzz()
+								self.button_held_duration = 0
+						logger.info(f"Current state: {self.state}")
+						logger.info(f"Moving to: {next_state}")
+					
+						self._display_q.put(display_kwargs)
+						self.screen_settled = False
+						self.state = next_state
+				except queue.Full:
+					logger.info("Display queue full.")
+					pass
 	
 	def secretMenu(self, channel):
 		if self.state == MenuStates.STATUS_MENU:
@@ -443,71 +450,75 @@ class Luminometer():
 
 		# Get duration of button hold
 		buzz1s = buzz2s = buzz3s = buzz4s = buzz5s = True
-		duration = 0
+		self.button_held_duration = 0
 		startTime = time.perf_counter()
 		while not GPIO.input(channel):
-			duration = time.perf_counter() - startTime
-			if (int(duration) == 1) and buzz1s:
+			self.button_held_duration = int(time.perf_counter() - startTime)
+			if (self.button_held_duration == 1) and buzz1s:
 				self.buzzer.buzz()
 				buzz1s = False
 				logger.info(f"{button_pos} button held for 1 second.")
-			elif (int(duration)==2) and buzz2s:
+			elif (self.button_held_duration == 2) and buzz2s:
 				self.buzzer.buzz()
 				buzz2s = False
 				logger.info(f"{button_pos} button held for 2 seconds.")
-			elif (int(duration)==3) and buzz3s:
+			elif (self.button_held_duration == 3) and buzz3s:
 				self.buzzer.buzz()
 				buzz3s = False
 				logger.info(f"{button_pos} button held for 3 seconds.")			
-			elif (int(duration)==4) and buzz4s:
+			elif (self.button_held_duration == 4) and buzz4s:
 				self.buzzer.buzz()
 				buzz4s = False
 				logger.info(f"{button_pos} button held for 4 seconds.")
-			elif (int(duration)==5) and buzz5s:
+			elif (self.button_held_duration == 5) and buzz5s:
 				self.buzzer.buzz()
 				buzz5s = False
 				logger.info(f"{button_pos} button held for 5 seconds.")
 
 		if channel == BTN_1:
-			self.btn1_transition_logic(duration)
+			self.btn1_transition_logic(self.button_held_duration)
 		elif channel == BTN_2:
-			self.btn2_transition_logic(duration)
+			self.btn2_transition_logic(self.button_held_duration)
 		elif channel == BTN_3:
-			self.btn3_transition_logic(duration)
+			self.btn3_transition_logic(self.button_held_duration)
 
 	def btn1_transition_logic(self, duration):
 		'''This is the bottom button
 		'''
-
-		logger.info("Button 1 (bottom) pressed.")
+	
+		logger.info(f"Button 1 (bottom) pressed.")
 		nextState = None
 
 		# Power off if bottom button held for 3s
-		if int(duration) == 3:
-			nextState = MenuStates.POWER_OFF
-			logger.info('POWER OFF')
+		if duration == POWER_OFF_DURATION:
+			nextState = MenuStates.CONFIRM_POWER_OFF
+			logger.info('Moving to power off confirmation screen.')
+			while not self.screen_settled:
+				pass
 			self._haltMeasurement = True
-			self._powerOn = False
 
-		elif self.state == MenuStates.MAIN_MENU:
+		elif self.state == MenuStates.MAIN_MENU and duration == TRANSITION_DURATION:
 			nextState = MenuStates.CALIBRATION_MENU
 
-		elif self.state == MenuStates.MEASUREMENT_MENU:
+		elif self.state == MenuStates.MEASUREMENT_MENU and duration == TRANSITION_DURATION:
 			nextState = MenuStates.MAIN_MENU
 
-		elif self.state == MenuStates.SHOW_FINAL_MEASUREMENT:
+		elif self.state == MenuStates.SHOW_FINAL_MEASUREMENT and duration == TRANSITION_DURATION:
 			nextState = MenuStates.MEASUREMENT_MENU
 
-		elif self.state == MenuStates.STATUS_MENU:
+		elif self.state == MenuStates.STATUS_MENU and duration == TRANSITION_DURATION:
 			nextState = MenuStates.MAIN_MENU
 
-		elif self.state == MenuStates.CALIBRATION_MENU:
+		elif self.state == MenuStates.CALIBRATION_MENU and duration == TRANSITION_DURATION:
 			nextState = MenuStates.MAIN_MENU
 
-		elif self.state == MenuStates.CONFIRM_CALIBRATION:
+		elif self.state == MenuStates.CONFIRM_CALIBRATION and duration == TRANSITION_DURATION:
 			nextState = MenuStates.MAIN_MENU
 
-		elif self.state == MenuStates.RLU_CALIBRATION:
+		elif self.state == MenuStates.RLU_CALIBRATION and duration == TRANSITION_DURATION:
+			nextState = MenuStates.MAIN_MENU
+		
+		elif self.state == MenuStates.CONFIRM_POWER_OFF and duration == TRANSITION_DURATION:
 			nextState = MenuStates.MAIN_MENU
 
 		if nextState != None:
@@ -517,39 +528,38 @@ class Luminometer():
 		'''This is the middle button
 		'''
 
-		logger.info(f"Button 2 (middle) pressed. {self.state}")
+		logger.info(f"Button 2 (middle) pressed.")
 		nextState = None
 
-		if self.state == MenuStates.MAIN_MENU:
+		if self.state == MenuStates.MAIN_MENU and duration == TRANSITION_DURATION:
 			nextState = MenuStates.STATUS_MENU
 			# Set up special button combo memory
 			self.button_combo = []
 
 		elif self.state == MenuStates.MEASUREMENT_MENU:
-			
 			# Perform timed measurement
-			if not self._measuring:
-				duration = int(duration)
-				exposure = DURATION_TO_EXPOSURE[duration]
-				self.target_time = exposure
-		
-				try:
-					if not self._measureLock.locked():
-						self._measure_q.put_nowait((exposure, MeasurementType.MEASUREMENT))
-				except queue.Full:
-					logger.info('Already busy measuring')
+			if self.screen_settled:
+				if not self._measuring:
+					exposure = DURATION_TO_EXPOSURE[duration]
+					self.target_time = exposure
+			
+					try:
+						if not self._measureLock.locked():
+							self._measure_q.put_nowait((exposure, MeasurementType.MEASUREMENT))
+					except queue.Full:
+						logger.info('Already busy measuring')
 
-				self._duration_s = 0
-				self.measurementMode = "TIMED"
-				nextState = MenuStates.MEASUREMENT_IN_PROGRESS
+					self._duration_s = 0
+					self.measurementMode = "TIMED"
+					nextState = MenuStates.MEASUREMENT_IN_PROGRESS
 
 		elif self.state == MenuStates.CALIBRATION_MENU:
-			# Switch to custom calibration A and return to main
+			# Switch to custom calibration and return to main
 			# or begin new calibration if held for 5 seconds
 			
 			calibrate = False
 
-			if int(duration) == 5:
+			if duration == HOLD_TO_CALIBRATE_TIME:
 				calibrate = True
 			
 			# If held for 5s, prompt user to confirm they want to calibrate, otherwise load default
@@ -586,37 +596,37 @@ class Luminometer():
 		'''This is the top button
 		'''
 
-		logger.info("Button 3 (top) pressed.")
+		logger.info(f"Button 3 (top) pressed.")
 		nextState = None
 
-		if self.state == MenuStates.MAIN_MENU:
+		if self.state == MenuStates.MAIN_MENU and duration == TRANSITION_DURATION:
 			nextState = MenuStates.MEASUREMENT_MENU
 
-		elif self.state == MenuStates.MEASUREMENT_MENU:
-			nextState = MenuStates.MEASUREMENT_IN_PROGRESS
-			self.measurementMode = "AUTO"
-			self._duration_s = 0
-			self.target_time = None
+		elif self.state == MenuStates.MEASUREMENT_MENU and duration == TRANSITION_DURATION:
+			if self.screen_settled:
+				nextState = MenuStates.MEASUREMENT_IN_PROGRESS
+				self.measurementMode = "AUTO"
+				self._duration_s = 0
+				self.target_time = None
 
-			exposure = 0
-			try:
-				if not self._measureLock.locked():
-					self._measure_q.put_nowait((exposure, MeasurementType.MEASUREMENT))
-			except queue.Full:
-				logger.info('Already busy measuring')
+				exposure = 0
+				try:
+					if not self._measureLock.locked():
+						self._measure_q.put_nowait((exposure, MeasurementType.MEASUREMENT))
+				except queue.Full:
+					logger.info('Already busy measuring')
 
-		elif self.state == MenuStates.MEASUREMENT_IN_PROGRESS:
+		elif self.state == MenuStates.MEASUREMENT_IN_PROGRESS and duration == ABORT_MEASUREMENT_DURATION:
 			# Measurement in progress
 			# Abort and return to measurement menu if top button held for 3s
-			if duration >= 3:
-				logger.info(f"Button 3 held for 3 seconds - halting measurement.")
-				self.buzzer.buzz()
-				self._haltMeasurement = True
-				nextState = MenuStates.MEASUREMENT_MENU
-				while self._measuring:
-					pass
+			logger.info(f"Button 3 held for {ABORT_MEASUREMENT_DURATION} seconds - halting measurement.")
+			self.buzzer.buzz()
+			self._haltMeasurement = True
+			nextState = MenuStates.MEASUREMENT_MENU
+			while not self.screen_settled:
+				pass
 		
-		elif self.state == MenuStates.CALIBRATION_MENU:
+		elif self.state == MenuStates.CALIBRATION_MENU and duration == TRANSITION_DURATION:
 			# Switch to standard calibration and return to main
 			self.selected_calibration = "Default"
 			self.display.set_selected_calibration(self.selected_calibration)
@@ -632,7 +642,7 @@ class Luminometer():
 				
 			nextState = MenuStates.MAIN_MENU
 
-		elif self.state == MenuStates.CONFIRM_CALIBRATION:
+		elif self.state == MenuStates.CONFIRM_CALIBRATION and duration == TRANSITION_DURATION:
 			# Perform calibration
 			if not self._measureLock.locked():
 				try:
@@ -640,7 +650,7 @@ class Luminometer():
 					self._measure_q.put_nowait((DEF_DARK_TIME, MeasurementType.TEMPERATURE_COMP))
 				except queue.Full:
 					pass
-		elif self.state == MenuStates.RLU_CALIBRATION:
+		elif self.state == MenuStates.RLU_CALIBRATION and duration == TRANSITION_DURATION:
 			# Start RLU calibration
 			if not self._measureLock.locked():
 				try:
@@ -649,6 +659,12 @@ class Luminometer():
 					self._measure_q.put_nowait((SENSITIVITY_NORM_TIME, MeasurementType.SENSITIVITY_NORM))
 				except queue.Full:
 					pass
+
+		elif self.state == MenuStates.CONFIRM_POWER_OFF and duration == TRANSITION_DURATION:
+			nextState = MenuStates.POWER_OFF
+			logger.info("POWER OFF.")
+			self._powerOn = False
+					
 		if nextState != None:
 			self.set_state(nextState)
 
@@ -810,8 +826,6 @@ class Luminometer():
 					#self.writeToFile('Interrupted_')
 					logger.error("Keyboard interrupted measurement")
 				finally:
-					self._measuring = False
-					self._measurementIsDone = True
 					if measurement_type == MeasurementType.SENSITIVITY_NORM:
 						while not self.screen_settled:
 							pass
@@ -820,6 +834,8 @@ class Luminometer():
 						self._updateDisplayResult(show_final=True)
 					self._duration_s = time.perf_counter() - t0
 					self.shutter.rest()
+					self._measuring = False
+					self._measurementIsDone = True
 		return
 
 	def _loopCondition(self, exposure:int) -> bool:
@@ -873,7 +889,7 @@ class Luminometer():
 				self._crcErrs += 1
 				return
 	
-		if self._measuring and (self._rsc < self.nRawSamples):
+		if self._measuring and (self._rsc < self.nRawSamples) and not self._haltMeasurement:
 			self.rawdataA[self._rsc] = d[0]
 			self.rawdataB[self._rsc] = d[1]
 
@@ -1190,6 +1206,6 @@ if __name__ == "__main__":
 		del(Luminometer)
 		
 		# Power down system
-		os.system('sudo poweroff')
+		# os.system('sudo poweroff')
 
 
