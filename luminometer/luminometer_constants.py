@@ -14,7 +14,8 @@ DEF_AUTO_MAX_DURATION = 10000
 
 # Thermal calibration file location
 STANDARD_CAL_PATH = "/home/pi/Documents/ulc-tube-reader/luminometer/temp_coeffs.json"
-CUSTOM_CAL_A_PATH = "/home/pi/Documents/ulc-tube-reader/luminometer/temp_coeffs_A.json"
+CUSTOM_CAL_PATH = "/home/pi/Documents/ulc-tube-reader/luminometer/temp_coeffs_A.json"
+DEFAULT_CAL_NAME = "Default"
 CUSTOM_CAL_NAME = "Custom"
 
 # Last chosen calibration

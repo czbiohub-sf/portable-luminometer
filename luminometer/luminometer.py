@@ -61,6 +61,17 @@ class MeasurementType(enum.Enum):
 class HBridgeFault(Exception):
 	pass
 
+def better_sleep(sleep_time: float):
+	"""
+	A utility function for a more accurate sleep than using time.sleep().
+	time.time() typically has microsecond accuracy, as compared to time.sleep() which
+	has millisecond accuracy. However both functions are highly dependent on the operating
+	system, CPU clock rate, and other platform-dependent factors.
+	"""
+	start = time.time()
+	while time.time() - start < sleep_time:
+		pass
+
 class LumiBuzzer():
 	def __init__(self, buzzPin: int):
 		try:
@@ -74,7 +85,7 @@ class LumiBuzzer():
 
 	def buzz(self):
 		GPIO.output(self._buzzPin, 1)
-		time.sleep(BUZZ_S)
+		better_sleep(BUZZ_S)
 		GPIO.output(self._buzzPin, 0)
 
 class LumiShutter():
@@ -84,6 +95,7 @@ class LumiShutter():
 
 	def __init__(self, dirPin: int, pwmPin: int, faultPin: int, sleepPin: int):
 		try:
+			self._pi = pigpio.pi()
 			self._dirPin = int(dirPin)
 			self._pwmPin = int(pwmPin)
 			self._faultPin = int(faultPin)
@@ -94,18 +106,13 @@ class LumiShutter():
 
 		GPIO.setmode(GPIO.BCM)
 		GPIO.setup(self._dirPin, GPIO.OUT, initial = 0)
-		# GPIO.setup(self._pwmPin, GPIO.OUT, initial = 0)
-
-		# self._pwm = GPIO.PWM(self._pwmPin, SHT_PWM_FREQ)
-		# self._pwm.start(0)
-		self._pi = pigpio.pi()
 		self._pi.hardware_PWM(self._pwmPin, 0, 0)
 		self.hbridge_err = "OK"
 
 		GPIO.setup(self._sleepPin, GPIO.OUT, initial = 1)
 		GPIO.setup(self._faultPin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 		GPIO.output(self._sleepPin, 1)
-		time.sleep(.2)
+		better_sleep(.2)
 
 		# Set up edge detection for this channel. Passing on exception because two shutters
 		# share the same driver chip, and will have the same pin. RuntimeError is raised
@@ -133,12 +140,12 @@ class LumiShutter():
 				try:
 					if action == 'open':
 						self.driveOpen()
-						time.sleep(driveTime)
+						better_sleep(driveTime)
 						self.holdOpen()
 
 					elif action == 'close':
 						self.driveClosed()
-						time.sleep(driveTime)
+						better_sleep(driveTime)
 						self.holdClosed()
 
 					else:
@@ -244,7 +251,7 @@ class Luminometer():
 		self.batt_status = "OK"
 		self.calA = " - NONE"
 		logger.info("Checking to see if custom calibration file exists.")
-		if os.path.isfile(CUSTOM_CAL_A_PATH):
+		if os.path.isfile(CUSTOM_CAL_PATH):
 			logger.info("Custom calibration file exists.")
 			self.calA = ""
 
@@ -265,7 +272,7 @@ class Luminometer():
 		self._initADC()
 
 		# Get initial values from ADC
-		self.adc_vals = self.averageNMeasurements()
+		self.adc_vals = [0]*5
 		
 		# Create thread-safe queues for hardware jobs
 		logger.info("Creating display, shutter, and measure queues.")
@@ -339,13 +346,13 @@ class Luminometer():
 				logger.info(f"Previously used calibration file found. Using {self.selected_calibration}.")
 		except:
 			logger.warning("Could not open last_chosen_cal.json, defaulting to standard calibration.")
-			self.selected_calibration = "Default"
+			self.selected_calibration = DEFAULT_CAL_NAME
 
 		self._tempCoeffs = {}
 
 		try:
 			if self.selected_calibration == CUSTOM_CAL_NAME:
-				PATH = CUSTOM_CAL_A_PATH
+				PATH = CUSTOM_CAL_PATH
 			else:
 				PATH = STANDARD_CAL_PATH
 
@@ -370,16 +377,20 @@ class Luminometer():
 			self.rlu_per_v_b = 50000
 			logger.exception(f"Errored while reading rlu_per_v from rlu.json.\nResorting to: ({self.rlu_per_v_a:}, {self.rlu_per_v_b:})")
 
-	def set_state(self, next_state: MenuStates):
-		if not self._state_lock.locked():
-			with self._state_lock:
-				# Check for a low battery
-				if not GPIO.input(self._PMIC_LBO):
-					self.batt_status = "LO"
-				else:
-					self.batt_status = "OK"
+	def _updateDiagVals(self):
+		logger.info("Updating diagnostic values.")
+		try:
+			self.adc_vals = self.averageNMeasurements()
+			self.diag_vals["batt"] = self.batt_status
+			self.diag_vals["34V"] = self.adc_vals[4]
+			self.diag_vals["pbias"] = self.adc_vals[3]
+			self.diag_vals["num_CRC_errs"] = self._crcErrs
+			self.diag_vals["hbridge_err"] = self.shutter.hbridge_err
+		except:
+			logger.exception("Error updating diagnostic values.")
 
-				display_kwargs = {
+	def _updateDisplayKwargs(self, next_state):
+		display_kwargs = {
 					"state": next_state,
 					"battery_status": self.batt_status,
 					"selected_calibration": self.selected_calibration,
@@ -397,28 +408,30 @@ class Luminometer():
 					"rlu_per_v": [self.rlu_per_v_a, self.rlu_per_v_b],
 					"rlu_time": SENSITIVITY_NORM_TIME
 				}
+		return display_kwargs
+
+	def set_state(self, next_state: MenuStates):
+		if not self._state_lock.locked():
+			with self._state_lock:
+				# Check for a low battery
+				if not GPIO.input(self._PMIC_LBO):
+					self.batt_status = "LO"
+				else:
+					self.batt_status = "OK"
+
+				display_kwargs = self._updateDisplayKwargs(next_state)
+
 				try:
 					if self.screen_settled:
-						# If transitioning to main menu or status, update the diag and adc values
-						try:
-							if next_state == MenuStates.MAIN_MENU or next_state == MenuStates.STATUS_MENU:
-								logger.info("Updating adc_vals and diag_vals")
-								self.adc_vals = self.averageNMeasurements()
-								self.diag_vals["batt"] = self.batt_status
-								self.diag_vals["34V"] = self.adc_vals[4]
-								self.diag_vals["pbias"] = self.adc_vals[3]
-								self.diag_vals["num_CRC_errs"] = self._crcErrs
-								self.diag_vals["hbridge_err"] = self.shutter.hbridge_err
-						except:
-							logger.exception("Error setting adc/diag vals")
+						if next_state == MenuStates.MAIN_MENU or next_state == MenuStates.STATUS_MENU:
+							self._updateDiagVals()
 
-						if not (self.state == MenuStates.MEASUREMENT_IN_PROGRESS and next_state == MenuStates.MEASUREMENT_IN_PROGRESS):
+						if not (next_state == MenuStates.MEASUREMENT_IN_PROGRESS):
 							# Only buzz on taps, not holds (to avoid confusion on how long it was being held for)
 							if self.button_held_duration == 0:
 								self.buzzer.buzz()
 								self.button_held_duration = 0
-						logger.info(f"Current state: {self.state}")
-						logger.info(f"Moving to: {next_state}")
+						logger.info(f"Transitioning: {self.state} --> {next_state}")
 					
 						self._display_q.put(display_kwargs)
 						self.screen_settled = False
@@ -551,7 +564,8 @@ class Luminometer():
 
 					self._duration_s = 0
 					self.measurementMode = "TIMED"
-					self.buzzer.buzz()
+					if duration == 0:
+						self.buzzer.buzz()
 
 		elif self.state == MenuStates.CALIBRATION_MENU:
 			# Switch to custom calibration and return to main
@@ -570,9 +584,9 @@ class Luminometer():
 				# Get constants
 				logger.info("Attempt to load existing custom calibration.")
 				try:
-					if os.path.isfile(CUSTOM_CAL_A_PATH):
+					if os.path.isfile(CUSTOM_CAL_PATH):
 						logger.info("Found custom calibration file.")
-						with open(CUSTOM_CAL_A_PATH,'r') as json_file:
+						with open(CUSTOM_CAL_PATH,'r') as json_file:
 							data = json.load(json_file)
 							self._tempCoeffs = data
 						
@@ -628,7 +642,7 @@ class Luminometer():
 		
 		elif self.state == MenuStates.CALIBRATION_MENU and duration == TRANSITION_DURATION:
 			# Switch to standard calibration and return to main
-			self.selected_calibration = "Default"
+			self.selected_calibration = DEFAULT_CAL_NAME
 			self.display.set_selected_calibration(self.selected_calibration)
 
 			# Get constants
@@ -655,18 +669,27 @@ class Luminometer():
 			if not self._measureLock.locked():
 				try:
 					logger.info("Performing RLU calibration.")
-					self.target_time = 30
+					self.target_time = SENSITIVITY_NORM_TIME
 					self._measure_q.put_nowait((SENSITIVITY_NORM_TIME, MeasurementType.SENSITIVITY_NORM))
 				except queue.Full:
 					pass
 
 		elif self.state == MenuStates.CONFIRM_POWER_OFF and duration == TRANSITION_DURATION:
-			nextState = MenuStates.POWER_OFF
-			logger.info("POWER OFF.")
-			self._powerOn = False
+			if self.screen_settled:
+				self.powerOffSequence()
 					
 		if nextState != None:
 			self.set_state(nextState)
+
+	def powerOffSequence(self):
+		logger.info("POWER OFF.")
+		while self._display_q.full() or not self.screen_settled:
+			pass
+		self._display_q.put_nowait({"state": MenuStates.POWER_OFF})
+		better_sleep(0.5)
+		while not self.screen_settled:
+			pass
+		self._powerOn = False
 
 	def convertToRLU(self, data, sensor: str):
 		'''Converts the raw data and standard error of mean with the RLU scaling and offset'''
@@ -782,33 +805,37 @@ class Luminometer():
 
 					# If doing a calibration, then store the result
 					if measurement_type == MeasurementType.TEMPERATURE_COMP:
-						fitParamsA = np.polyfit(darkDownsampledA, self.dataA, 1, full=False)
-						fitParamsB = np.polyfit(darkDownsampledB, self.dataB, 1, full=False)
-						
-						# Convert fit parameters to V_dark at zero temperature
-						offsetA = -fitParamsA[1]/fitParamsA[0]
-						crA = fitParamsA[0]
-						self._tempCoeffs["A"] = [offsetA, crA]
-						offsetB = -fitParamsB[1]/fitParamsB[0]
-						crB = fitParamsB[0]
-						self._tempCoeffs["B"] = [offsetB, crB]
+						try:
+							logger.info("Creating calibration fit parameters.")
+							fitParamsA = np.polyfit(self._darkDownsampledA, self.dataA, 1, full=False)
+							fitParamsB = np.polyfit(self._darkDownsampledB, self.dataB, 1, full=False)
+							
+							# Convert fit parameters to V_dark at zero temperature
+							offsetA = -fitParamsA[1]/fitParamsA[0]
+							crA = fitParamsA[0]
+							self._tempCoeffs["A"] = [offsetA, crA]
+							offsetB = -fitParamsB[1]/fitParamsB[0]
+							crB = fitParamsB[0]
+							self._tempCoeffs["B"] = [offsetB, crB]
 
-						logger.debug(f"Offset A: {offsetA}")
-						logger.debug(f"Coupling coeff A: {crA}")
-						logger.debug(f"Offset B: {offsetB}")
-						logger.debug(f"Coupling coeff B: {crB}")
+							logger.debug(f"Offset A: {offsetA}")
+							logger.debug(f"Coupling coeff A: {crA}")
+							logger.debug(f"Offset B: {offsetB}")
+							logger.debug(f"Coupling coeff B: {crB}")
 
-						# Save calibration temperature coefficients
-						with open(CUSTOM_CAL_A_PATH,'w') as outfile:
-							logger.info("Saving custom temperature calibration coefficients.")
-							json.dump(self._tempCoeffs, outfile)
+							# Save calibration temperature coefficients
+							with open(CUSTOM_CAL_PATH,'w') as outfile:
+								logger.info("Saving custom temperature calibration coefficients.")
+								json.dump(self._tempCoeffs, outfile)
 
-						# Set the custom calibration to be the one used on next boot
-						self.selected_calibration = CUSTOM_CAL_NAME
-						with open(LAST_CAL, "w") as json_file:
-							logger.info("Setting last calibration as custom.")
-							json.dump(self.selected_calibration, json_file)
-						self.display.set_selected_calibration(self.selected_calibration)
+							# Set the custom calibration to be the one used on next boot
+							self.selected_calibration = CUSTOM_CAL_NAME
+							with open(LAST_CAL, "w") as json_file:
+								logger.info("Setting last calibration as custom.")
+								json.dump(self.selected_calibration, json_file)
+							self.display.set_selected_calibration(self.selected_calibration)
+						except:
+							logger.exception("Error generating/saving calibration fit parameters.")
 
 					# If doing a sensitivity normalization, calculate normalization and save to rlu.json
 					elif measurement_type == MeasurementType.SENSITIVITY_NORM:
@@ -1178,8 +1205,7 @@ class Luminometer():
 
 						# Remove the now completed future
 						del future_result[future]
-					
-				self.display.powerOff()
+
 		except KeyboardInterrupt:
 			pass
 
@@ -1205,6 +1231,6 @@ if __name__ == "__main__":
 		del(Luminometer)
 		
 		# Power down system
-		os.system('sudo poweroff')
+		#os.system('sudo poweroff')
 
 

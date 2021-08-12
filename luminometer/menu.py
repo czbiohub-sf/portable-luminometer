@@ -444,14 +444,14 @@ class Menu():
         self.inky_display.set_image(img.rotate(self.rotation_deg))
         self.inky_display.show()
 
-    def calibrationMenu(self, calibrationA_name):
+    def calibrationMenu(self, calibration_name):
 
         img = Image.new("P", self.inky_display.resolution)
         draw = ImageDraw.Draw(img)
         self.statusBar(draw)
 
         option1 = "> Restore default calibration"
-        option2 = f"> Custom calibration{calibrationA_name}"
+        option2 = f"> Custom calibration{calibration_name}"
         option3 = "> Return to main menu"
         subtext = "- HOLD the middle button for 5s to"
         subtext2 = "  overwrite custom calibration"
