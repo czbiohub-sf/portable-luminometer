@@ -66,7 +66,12 @@ def better_sleep(sleep_time: float):
 	A utility function for a more accurate sleep than using time.sleep().
 	time.time() typically has microsecond accuracy, as compared to time.sleep() which
 	has millisecond accuracy. However both functions are highly dependent on the operating
-	system, CPU clock rate, and other platform-dependent factors.
+	system, CPU clock rate, and other platform-dependent factors. Note that like
+	time.sleep(), this is a blocking delay.
+
+	Arguments:
+		- sleep_time: float
+			How long to delay
 	"""
 	start = time.time()
 	while time.time() - start < sleep_time:
