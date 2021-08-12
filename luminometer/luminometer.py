@@ -294,6 +294,7 @@ class Luminometer():
 		# Start up sensor chip
 		try:
 			logger.info("Starting up sensor chip.")
+			self._adc_pi = pigpio.pi()
 			self._adc = ADS131M08Reader()
 			self._adc.setup_adc(SPI_CE, channels=[0,1,2,3,4])
 			self._simulate = False
@@ -311,7 +312,7 @@ class Luminometer():
 			logger.info("SIMULATION MODE: Starting timer callback")
 			threading.Timer(SAMPLE_TIME_S, self._cb_adc_data_ready, args=(DRDY,)).start()
 		else:
-			GPIO.add_event_detect(self._adc._DRDY, GPIO.FALLING, callback=self._cb_adc_data_ready)
+			self._adc_pi.callback(self._adc._DRDY, pigpio.FALLING_EDGE, func=self._cb_adc_data_ready)
 
 	def _setupGPIO(self):
 		# Pin assignments
@@ -901,7 +902,7 @@ class Luminometer():
 
 		return output
 
-	def _cb_adc_data_ready(self, channel):
+	def _cb_adc_data_ready(self, channel, level, tick):
 		# Callback function executed when data ready is asserted from ADC
 		# The callback also queues the shutter actions, in order to stay synchronized 
 		# with the data readout.
