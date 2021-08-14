@@ -59,8 +59,10 @@ cb_log_location = os.path.join(LOG_OUTPUT_DIR, file_name)
 
 # Investigate shutter timing
 file_name = now.strftime("%Y-%b-%d-%H:%M:%S") + "-shutter_timing.csv"
-shutter_location = os.path.join(LOG_OUTPUT_DIR, now.strftime("%Y-%b-%d-%H:%M:%S") + "-shutter.csv")
+shutter_open_location = os.path.join(LOG_OUTPUT_DIR, now.strftime("%Y-%b-%d-%H:%M:%S") + "-shutter_open.csv")
+shutter_close_location = os.path.join(LOG_OUTPUT_DIR, now.strftime("%Y-%b-%d-%H:%M:%S") + "-shutter_close.csv")
 
+logger.disabled = True
 class MeasurementType(enum.Enum):
 	MEASUREMENT = enum.auto()
 	TEMPERATURE_COMP = enum.auto()
@@ -114,7 +116,8 @@ class LumiShutter():
 			self._faultPin = int(faultPin)
 			self._sleepPin = int(sleepPin)
 			self.start_time = 0
-			self.shutter_times = []
+			self.open_times = []
+			self.close_times = []
 		except TypeError:
 			logger.error("Pin value not convertible to integer!")
 			raise
@@ -155,7 +158,7 @@ class LumiShutter():
 				try:
 					if action == 'open':
 						if self.start_time != 0:
-							self.shutter_times.append(['close', time.time() - self.start_time])
+							self.close_times.append(time.time() - self.start_time)
 						self.driveOpen()
 						better_sleep(driveTime)
 						self.holdOpen()
@@ -163,7 +166,7 @@ class LumiShutter():
 
 					elif action == 'close':
 						if self.start_time != 0:
-							self.shutter_times.append(['open', time.time() - self.start_time])
+							self.open_times.append(time.time() - self.start_time)
 						self.driveClosed()
 						better_sleep(driveTime)
 						self.holdClosed()
@@ -178,7 +181,8 @@ class LumiShutter():
 		return
 
 	def saveShutterTimes(self):
-		np.savetxt(shutter_location, self.shutter_times, delimiter=',')
+		np.savetxt(shutter_open_location, self.open_times, delimiter=',')
+		np.savetxt(shutter_close_location, self.close_times, delimiter=',')
 
 	def rest(self):
 		try:
