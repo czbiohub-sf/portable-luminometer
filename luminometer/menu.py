@@ -115,6 +115,13 @@ class Menu():
         """
         all_good = True
 
+        sensorA = adc_vals[0]
+        sensorB = adc_vals[1]
+        siPMRef = adc_vals[2]
+        siPMBias = adc_vals[3]
+        v_34 = adc_vals[4]
+
+
         if all_good:
             return "OK"
         else:
@@ -197,13 +204,16 @@ class Menu():
         option1 = "> Measurement"
         option2 = "> Status - " + status #TODO Change to update '- OK' dynamically
         option3 = "> Choose calibration"
-
-        option1y = self.hanken_medium_font.getsize(option1)[1]
-        option2y = self.hanken_medium_font.getsize(option2)[1]
-        
+        subtext = "   > Hold bottom button for 5s on any screen"
+        subtext2 = "       to go to power off confirmation screen."
+        option1y = 1.5*self.hanken_medium_font.getsize(option1)[1] + self._status_bar_offset
+        option2y = 1.5*self.hanken_medium_font.getsize(option2)[1] + option1y
+        option3y = self.hanken_medium_font.getsize(subtext)[1] + option2y
         draw.text((0, self._status_bar_offset), option1, self.inky_display.BLACK, font=self.hanken_medium_font)
-        draw.text((0, 2*option1y+self._status_bar_offset), option2, self.inky_display.BLACK, font=self.hanken_medium_font)
-        draw.text((0, 2*(option1y+option2y)+self._status_bar_offset), option3, self.inky_display.BLACK, font=self.hanken_medium_font)
+        draw.text((0, option1y), option2, self.inky_display.BLACK, font=self.hanken_medium_font)
+        draw.text((0, option2y), option3, self.inky_display.BLACK, font=self.hanken_medium_font)
+        draw.text((0, option3y), subtext, self.inky_display.BLACK, font=self.hanken_small_font)
+        draw.text((0, option3y+13), subtext2, self.inky_display.BLACK, font=self.hanken_small_font)
 
         self.inky_display.set_image(img.rotate(self.rotation_deg))
         self.inky_display.show()

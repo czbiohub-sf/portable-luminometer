@@ -310,6 +310,7 @@ class Luminometer():
 		self._measure_q = queue.Queue(maxsize=1)
 		self._measureLock = threading.Lock()
 
+		self._resetBuffers()
 		self.set_state(MenuStates.MAIN_MENU)
 
 		logger.info("Successfully instantiated Luminometer.")
@@ -1271,6 +1272,6 @@ if __name__ == "__main__":
 		del(Luminometer)
 		
 		# Power down system
-		#os.system('sudo poweroff')
+		os.system('sudo poweroff')
 
 
