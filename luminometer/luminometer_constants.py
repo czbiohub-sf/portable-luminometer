@@ -1,8 +1,6 @@
 # Sampling rate of the ADC (488 kHz CLKIN, OSR = 4096, global chop mode. See ADS131m08 datasheet 8.4.2.2)
 SAMPLE_TIME_S = 0.050
 SKIP_SAMPLES = 3
-BTN_1_HOLD_TO_POWERDOWN_S = 3
-BTN_1_HOLD_TO_CALIBRATE_S = 10
 BUZZ_S = 0.02
 DEF_DARK_TIME = 1800
 SENSITIVITY_NORM_TIME = 30
@@ -109,3 +107,14 @@ TRANSITION_DURATION = 0
 
 # Time to hold button to initiate a calibration when in the appropriate menu
 HOLD_TO_CALIBRATE_TIME = 5
+
+BATT_OK = "OK"
+BATT_LOW = "LO"
+
+# ADC min/max diagnostic values 
+SIPMREF_MIN = 0
+SIPMREF_MAX = 1
+SIPMBIAS_MIN = 0
+SIPMBIAS_MAX = 1
+V_34_MIN = 30
+V_34_MAX = 38

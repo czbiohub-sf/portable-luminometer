@@ -11,7 +11,7 @@ from font_intuitive import Intuitive
 from inky.auto import auto
 from inky import InkyPHAT, InkyPHAT_SSD1608
 import numpy as np
-from luminometer_constants import SCREEN2_DELAY
+from luminometer_constants import *
 
 # Set up logging directory and logger
 LOG_OUTPUT_DIR = "/home/pi/luminometer-logs/"
@@ -101,7 +101,7 @@ class Menu():
         logger.info(f"Changing battery status: {battery_status}")
         self.battery_status = battery_status
 
-    def statusCheckAll(self, adc_vals):
+    def statusCheckAll(self, adc_vals, battery_status):
         """TODO
         Takes in a set of five adc values which correspond to: 
         - Sensor A
@@ -115,17 +115,25 @@ class Menu():
         """
         all_good = True
 
-        sensorA = adc_vals[0]
-        sensorB = adc_vals[1]
         siPMRef = adc_vals[2]
         siPMBias = adc_vals[3]
         v_34 = adc_vals[4]
 
+        if not (V_34_MIN <= v_34 <= V_34_MAX):
+            all_good = False
+        if not (SIPMREF_MIN <= siPMRef <= SIPMREF_MAX):
+            all_good = False
+        if not (SIPMBIAS_MIN <= siPMBias <= SIPMBIAS_MAX):
+            all_good = False
+        if battery_status == "LO":
+            return "BATT LOW"
 
         if all_good:
             return "OK"
         else:
-            return "ERR"
+            #TODO Change to "ERR" once we have the actual parameters
+            return "OK"
+            # return "ERR"
 
     def screenSwitcher(self, **kwargs):
 
@@ -138,7 +146,8 @@ class Menu():
                     if state == MenuStates.MAIN_MENU:
                         self.set_battery_status(kwargs["battery_status"])
                         self.set_selected_calibration(kwargs["selected_calibration"])
-                        self.mainMenu(kwargs["adc_vals"])
+                        self.mainMenu(kwargs["adc_vals"], kwargs["battery_status"])
+                        logger.info("Switched to MainMenu screen.")
 
                     elif state == MenuStates.MEASUREMENT_MENU:
                         self.measurementMenu()
@@ -194,11 +203,11 @@ class Menu():
         x_pos = self.inky_display.resolution[0] - statusx
         draw.text((x_pos, 0), status, self.inky_display.BLACK, font=self.hanken_small_font)
 
-    def mainMenu(self, adc_vals):
+    def mainMenu(self, adc_vals, battery_status):
 
         img = Image.new("P", self.inky_display.resolution)
         draw = ImageDraw.Draw(img)
-        status = self.statusCheckAll(adc_vals)
+        status = self.statusCheckAll(adc_vals, battery_status)
         self.statusBar(draw)
 
         option1 = "> Measurement"

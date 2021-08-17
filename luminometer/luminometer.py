@@ -235,6 +235,7 @@ class Luminometer():
 
 	def __init__(self, screen_type):
 
+		self._setupGPIO()
 		self.state = MenuStates.MAIN_MENU
 		self.measurementMode = ""
 		self.target_time = 0
@@ -270,8 +271,6 @@ class Luminometer():
 			"num_CRC_errs": 0,
 			"hbridge_err": "OK",
 		}
-
-		self._setupGPIO()
 
 		# Read RLU conversions and temperature calibrations
 		self._readCalibrationFiles()
@@ -408,6 +407,13 @@ class Luminometer():
 			self.rlu_per_v_b = 50000
 			logger.exception(f"Errored while reading rlu_per_v from rlu.json.\nResorting to: ({self.rlu_per_v_a:}, {self.rlu_per_v_b:})")
 
+	def checkAndSetBatteryStatus(self):
+		# Check for a low battery
+		if not GPIO.input(self._PMIC_LBO):
+			self.batt_status = BATT_LOW
+		else:
+			self.batt_status = BATT_OK
+
 	def _updateDiagVals(self):
 		logger.info("Updating diagnostic values.")
 		try:
@@ -444,12 +450,7 @@ class Luminometer():
 	def set_state(self, next_state: MenuStates):
 		if not self._state_lock.locked():
 			with self._state_lock:
-				# Check for a low battery
-				if not GPIO.input(self._PMIC_LBO):
-					self.batt_status = "LO"
-				else:
-					self.batt_status = "OK"
-
+				self.checkAndSetBatteryStatus()
 				display_kwargs = self._updateDisplayKwargs(next_state)
 
 				try:
@@ -482,7 +483,6 @@ class Luminometer():
 				self.set_state(nextState)
 
 	def unified_callback(self, channel):
-
 		# If the device is currently measuring
 		# we only want the user to be able to trigger this callback if they are
 		# pressing button 1 to trigger an abort
@@ -662,8 +662,7 @@ class Luminometer():
 						logger.info('Already busy measuring')
 					self.buzzer.buzz()
 		elif self.state == MenuStates.MEASUREMENT_IN_PROGRESS and duration == ABORT_MEASUREMENT_DURATION:
-			# Measurement in progress
-			# Abort and return to measurement menu if top button held for 3s
+			# Abort and return to measurement menu if top button held for the abort duration
 			logger.info(f"Button 3 held for {ABORT_MEASUREMENT_DURATION} seconds - halting measurement.")
 			self.buzzer.buzz()
 			self._haltMeasurement = True
@@ -715,7 +714,6 @@ class Luminometer():
 			self.set_state(nextState)
 
 	def powerOffSequence(self):
-		logger.info("POWER OFF.")
 		while self._display_q.full() or not self.screen_settled:
 			pass
 		self._display_q.put_nowait({"state": MenuStates.POWER_OFF})
@@ -725,6 +723,7 @@ class Luminometer():
 		self.shutter.saveShutterTimes()
 		self.saveADCTimes()
 		self._powerOn = False
+		logger.info("POWER OFF.")
 
 	def convertToRLU(self, data, sensor: str):
 		'''Converts the raw data and standard error of mean with the RLU scaling and offset'''
@@ -948,7 +947,11 @@ class Luminometer():
 
 			# ADC communication error
 			except CRCError:
-				self._crcErrs += 1
+				# Only worry about CRC errors that occur during a measurement (**Check with Paul)
+				# Note to self: this is a temporary band-aid fix as I try to figure out why the CRC errors
+				# are randomly occurring on first boot
+				if self._measuring:
+					self._crcErrs += 1
 				return
 	
 		if self._measuring and (self._rsc < self.nRawSamples) and not self._haltMeasurement:
@@ -1047,7 +1050,7 @@ class Luminometer():
 			# Number of shutter closed periods
 			self.nDark = self.nSamples + 1
 
-			# Raw samples are continous and include open and closed periods
+			# Raw samples are continuous and include open and closed periods
 			self.nRawSamples = self.shutter_samples*(self.nSamples + self.nDark)
 
 			self.rawdataA = self.nRawSamples*[None]
