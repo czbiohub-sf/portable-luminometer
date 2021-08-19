@@ -107,3 +107,14 @@ TRANSITION_DURATION = 0
 
 # Time to hold button to initiate a calibration when in the appropriate menu
 HOLD_TO_CALIBRATE_TIME = 5
+
+BATT_OK = "OK"
+BATT_LOW = "LO"
+
+# ADC min/max diagnostic values 
+SIPMREF_MIN = 0
+SIPMREF_MAX = 1
+SIPMBIAS_MIN = 0
+SIPMBIAS_MAX = 1
+V_34_MIN = 30
+V_34_MAX = 38
