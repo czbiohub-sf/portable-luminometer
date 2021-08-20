@@ -969,11 +969,6 @@ class Luminometer():
 			self.rawdataA[self._rsc] = d[0]
 			self.rawdataB[self._rsc] = d[1]
 
-			if not os.path.exists(STRESS_TEST):
-				append_write = "w"
-			else:
-				append_write = "a"
-
 			# Write every fourth sample to save data 
 			if self._rsc % 4 == 0:
 				raw.writerow((self.rawdataA[self._rsc], self.rawdataB[self._rsc]))
