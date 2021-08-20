@@ -965,9 +965,11 @@ class Luminometer():
 			else:
 				append_write = "a"
 
-			with open(STRESS_TEST, append_write, newline='') as csvFile:
-				csvWriter = csv.writer(csvFile)
-				csvWriter.writerow((self.rawdataA[self._rsc], self.rawdataB[self._rsc]))
+			# Write every fourth sample to save data 
+			if self._rsc % 4 == 0:
+				with open(STRESS_TEST, append_write, newline='') as csvFile:
+					csvWriter = csv.writer(csvFile)
+					csvWriter.writerow((self.rawdataA[self._rsc], self.rawdataB[self._rsc]))
 
 			# Close shutters
 			if self._rsc % (2*self.shutter_samples) == 0:
