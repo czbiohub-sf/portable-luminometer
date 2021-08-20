@@ -64,6 +64,15 @@ shutter_close_location = os.path.join(LOG_OUTPUT_DIR, now.strftime("%Y-%b-%d-%H:
 
 STRESS_TEST = os.path.join(LOG_OUTPUT_DIR, "STRESS-TEST-" + now.strftime("%Y-%b-%d-%H:%M:%S") + ".csv")
 
+if not os.path.exists(STRESS_TEST):
+	append_write = "w"
+else:
+	append_write = "a"
+
+# Write every fourth sample to save data 
+f = open(STRESS_TEST, append_write, newline='')
+raw = csv.writer(f)
+
 #logger.disabled = True
 class MeasurementType(enum.Enum):
 	MEASUREMENT = enum.auto()
@@ -967,9 +976,7 @@ class Luminometer():
 
 			# Write every fourth sample to save data 
 			if self._rsc % 4 == 0:
-				with open(STRESS_TEST, append_write, newline='') as csvFile:
-					csvWriter = csv.writer(csvFile)
-					csvWriter.writerow((self.rawdataA[self._rsc], self.rawdataB[self._rsc]))
+				raw.writerow((self.rawdataA[self._rsc], self.rawdataB[self._rsc]))
 
 			# Close shutters
 			if self._rsc % (2*self.shutter_samples) == 0:
@@ -1286,6 +1293,7 @@ if __name__ == "__main__":
 	finally:
 		GPIO.cleanup()
 		del(Luminometer)
+		f.close()
 		
 		# Power down system
 		os.system('sudo poweroff')
