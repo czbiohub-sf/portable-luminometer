@@ -319,11 +319,12 @@ class Menu():
         line3 = "> NO - bottom button"
 
         line1x, line1y = self.hanken_medium_font.getsize(line)
-        line1y = height/2 - line1y/2
+        line2y = line1y + self.hanken_small_font.getsize(line2)[1] + 10
+        line3y = line2y + self.hanken_small_font.getsize(line3)[1] + 35
 
         draw.text((width/2 - line1x/2, line1y), line, self.inky_display.BLACK, font=self.hanken_medium_font)
-        draw.text((0, height-45), line2, self.inky_display.BLACK, font=self.hanken_small_font)
-        draw.text((0, height-15), line3, self.inky_display.BLACK, font=self.hanken_small_font)
+        draw.text((0, line2y), line2, self.inky_display.BLACK, font=self.hanken_small_font)
+        draw.text((0, line3y), line3, self.inky_display.BLACK, font=self.hanken_small_font)
 
         self.inky_display.set_image(img.rotate(self.rotation_deg))
         self.inky_display.show()
