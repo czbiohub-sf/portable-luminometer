@@ -52,17 +52,8 @@ stream_handler.setLevel(logging.DEBUG)
 stream_handler.setFormatter(formatter)
 logger.addHandler(stream_handler)
 
-# Investigate _cb_adc time
-now = datetime.now()
-file_name = now.strftime("%Y-%b-%d-%H:%M:%S") + "-cb_timing.csv"
-cb_log_location = os.path.join(LOG_OUTPUT_DIR, file_name)
+#logger.disabled = True
 
-# Investigate shutter timing
-file_name = now.strftime("%Y-%b-%d-%H:%M:%S") + "-shutter_timing.csv"
-shutter_open_location = os.path.join(LOG_OUTPUT_DIR, now.strftime("%Y-%b-%d-%H:%M:%S") + "-shutter_open.csv")
-shutter_close_location = os.path.join(LOG_OUTPUT_DIR, now.strftime("%Y-%b-%d-%H:%M:%S") + "-shutter_close.csv")
-
-logger.disabled = True
 class MeasurementType(enum.Enum):
 	MEASUREMENT = enum.auto()
 	TEMPERATURE_COMP = enum.auto()
@@ -115,9 +106,6 @@ class LumiShutter():
 			self._pwmPin = int(pwmPin)
 			self._faultPin = int(faultPin)
 			self._sleepPin = int(sleepPin)
-			self.start_time = 0
-			self.open_times = []
-			self.close_times = []
 		except TypeError:
 			logger.error("Pin value not convertible to integer!")
 			raise
@@ -157,20 +145,14 @@ class LumiShutter():
 			with self._lock:
 				try:
 					if action == 'open':
-						if self.start_time != 0:
-							self.close_times.append(time.time() - self.start_time)
 						self.driveOpen()
 						better_sleep(driveTime)
 						self.holdOpen()
-						self.start_time = time.time()
 
 					elif action == 'close':
-						if self.start_time != 0:
-							self.open_times.append(time.time() - self.start_time)
 						self.driveClosed()
 						better_sleep(driveTime)
 						self.holdClosed()
-						self.start_time = time.time()
 
 					else:
 						print(f"Shutter command not recognized!")
@@ -179,10 +161,6 @@ class LumiShutter():
 					self.rest()
 
 		return
-
-	def saveShutterTimes(self):
-		np.savetxt(shutter_open_location, self.open_times, delimiter=',')
-		np.savetxt(shutter_close_location, self.close_times, delimiter=',')
 
 	def rest(self):
 		try:
@@ -252,7 +230,6 @@ class Luminometer():
 		self._accumSiPMRef = []
 		self._accumSiPMBias = []
 		self._accum34V = []
-		self.cb_times = []
 		self.button_held_duration = 0
 		self._state_lock = threading.Lock()
 		
@@ -720,8 +697,6 @@ class Luminometer():
 		better_sleep(0.5)
 		while not self.screen_settled:
 			pass
-		self.shutter.saveShutterTimes()
-		self.saveADCTimes()
 		self._powerOn = False
 		logger.info("POWER OFF.")
 
@@ -934,7 +909,6 @@ class Luminometer():
 		# Callback function executed when data ready is asserted from ADC
 		# The callback also queues the shutter actions, in order to stay synchronized 
 		# with the data readout.
-		start_time = time.time()
 		if self._simulate:
 			# Simulation mode
 			d = [0.0, 0.0, 0.0, 0.0, 0.0]
@@ -989,12 +963,7 @@ class Luminometer():
 			self._accumSiPMBias.append(d[3])
 			self._accum34V.append(d[4])
 		
-		self.cb_times.append(time.time() - start_time)
-		
 		return		
-
-	def saveADCTimes(self):
-		np.savetxt(cb_log_location, self.cb_times, delimiter=',')
 
 	def _updateDisplayResult(self, show_final: bool = False):
 		# Update display with intermediate results
