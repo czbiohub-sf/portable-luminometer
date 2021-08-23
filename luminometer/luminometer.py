@@ -62,7 +62,10 @@ file_name = now.strftime("%Y-%b-%d-%H:%M:%S") + "-shutter_timing.csv"
 shutter_open_location = os.path.join(LOG_OUTPUT_DIR, now.strftime("%Y-%b-%d-%H:%M:%S") + "-shutter_open.csv")
 shutter_close_location = os.path.join(LOG_OUTPUT_DIR, now.strftime("%Y-%b-%d-%H:%M:%S") + "-shutter_close.csv")
 
-logger.disabled = True
+# Actuation callback timing 
+actuation_callback_location = os.path.join(LOG_OUTPUT_DIR, now.strftime("%Y-%b-%d-%H:%M:%S") + "-actuation_callback.csv")
+
+#logger.disabled = True
 class MeasurementType(enum.Enum):
 	MEASUREMENT = enum.auto()
 	TEMPERATURE_COMP = enum.auto()
@@ -118,6 +121,7 @@ class LumiShutter():
 			self.start_time = 0
 			self.open_times = []
 			self.close_times = []
+			self.actuation_called = []
 		except TypeError:
 			logger.error("Pin value not convertible to integer!")
 			raise
@@ -146,7 +150,7 @@ class LumiShutter():
 		logger.info("Successfully instantiated LumiShutter.")
 
 	def actuate(self, action: str, driveTime: float = SHUTTER_ACTUATION_TIME):
-		
+		self.actuation_called.append(time.perf_counter())
 		try:
 			action = str(action)
 		except TypeError:
@@ -183,6 +187,7 @@ class LumiShutter():
 	def saveShutterTimes(self):
 		np.savetxt(shutter_open_location, self.open_times, delimiter=',')
 		np.savetxt(shutter_close_location, self.close_times, delimiter=',')
+		np.savetxt(actuation_callback_location, self.actuation_called, delimiter=',')
 
 	def rest(self):
 		try:
@@ -252,7 +257,6 @@ class Luminometer():
 		self._accumSiPMRef = []
 		self._accumSiPMBias = []
 		self._accum34V = []
-		self.cb_times = []
 		self.button_held_duration = 0
 		self._state_lock = threading.Lock()
 		
@@ -262,6 +266,13 @@ class Luminometer():
 		self._measurementIsDone = False
 		self.screen_settled = True
 		self._accumulate = True
+
+		# Timing arrays
+		self.diag_val_times = []
+		self.display_kwargs_times = []
+		self.cb_times = []
+		self.cb_call_times = []
+		self.run_times = []
 
 		# Diagnostic menu info
 		self.diag_vals = {
@@ -415,6 +426,7 @@ class Luminometer():
 			self.batt_status = BATT_OK
 
 	def _updateDiagVals(self):
+		self.diag_val_times.append(time.perf_counter())
 		logger.info("Updating diagnostic values.")
 		try:
 			self.adc_vals = self.averageNMeasurements()
@@ -427,6 +439,7 @@ class Luminometer():
 			logger.exception("Error updating diagnostic values.")
 
 	def _updateDisplayKwargs(self, next_state):
+		self.display_kwargs_times.append(time.perf_counter())
 		display_kwargs = {
 					"state": next_state,
 					"battery_status": self.batt_status,
@@ -931,6 +944,7 @@ class Luminometer():
 		return output
 
 	def _cb_adc_data_ready(self, channel, level, tick):
+		self.cb_call_times.append(time.perf_counter())
 		# Callback function executed when data ready is asserted from ADC
 		# The callback also queues the shutter actions, in order to stay synchronized 
 		# with the data readout.
@@ -994,7 +1008,16 @@ class Luminometer():
 		return		
 
 	def saveADCTimes(self):
+		diag = os.path.join(LOG_OUTPUT_DIR, now.strftime("%Y-%b-%d-%H:%M:%S") + "-diag_vals.csv")
+		kwarg = os.path.join(LOG_OUTPUT_DIR, now.strftime("%Y-%b-%d-%H:%M:%S") + "-kwarg_vals.csv")
+		cb_call = os.path.join(LOG_OUTPUT_DIR, now.strftime("%Y-%b-%d-%H:%M:%S") + "-cb_call_vals.csv")
+		run_times = os.path.join(LOG_OUTPUT_DIR, now.strftime("%Y-%b-%d-%H:%M:%S") + "-run_vals.csv")
+
 		np.savetxt(cb_log_location, self.cb_times, delimiter=',')
+		np.savetxt(diag, self.diag_val_times, delimiter=',')
+		np.savetxt(kwarg, self.display_kwargs_times, delimiter=',')
+		np.savetxt(cb_call, self.cb_call_times, delimiter=',')
+		np.savetxt(run_times, self.run_times, delimiter=',')
 
 	def _updateDisplayResult(self, show_final: bool = False):
 		# Update display with intermediate results
@@ -1197,7 +1220,7 @@ class Luminometer():
 
 				# Main realtime loop:
 				while self._powerOn:
-
+					self.run_times.append(time.perf_counter())
 					# Check for status of the futures which are currently working
 					done, not_done = concurrent.futures.wait(future_result, timeout=0.05, \
 						return_when=concurrent.futures.FIRST_COMPLETED)
