@@ -925,6 +925,8 @@ class Luminometer():
 		# Callback function executed when data ready is asserted from ADC
 		# The callback also queues the shutter actions, in order to stay synchronized 
 		# with the data readout.
+		t0 = time.perf_counter()
+
 		if not self.shutter.isMoving:
 			if self._simulate:
 				# Simulation mode
@@ -986,6 +988,9 @@ class Luminometer():
 				self._accumSiPMBias.append(d[3])
 				self._accum34V.append(d[4])
 		
+		tf = time.perf_counter()
+		print(f'ADC callback elapsed: {tf-t0} s')
+
 		return		
 
 	def _updateDisplayResult(self, show_final: bool = False):
@@ -1187,8 +1192,13 @@ class Luminometer():
 
 				logger.info('Ready and waiting for button pushes...')
 
+				t0 = time.perf_counter()
+				
 				# Main realtime loop:
 				while self._powerOn:
+
+					tf = time.perf_counter()-t0
+					print(f'Run loop time: {tf} s')
 
 					# Check for status of the futures which are currently working
 					done, not_done = concurrent.futures.wait(future_result, timeout=0.05, \
