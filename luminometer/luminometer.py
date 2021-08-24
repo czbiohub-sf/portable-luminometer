@@ -52,6 +52,18 @@ stream_handler.setLevel(logging.DEBUG)
 stream_handler.setFormatter(formatter)
 logger.addHandler(stream_handler)
 
+# Continuously write the raw data
+STRESS_TEST = os.path.join(LOG_OUTPUT_DIR, "COUPLING-TEST-" + now.strftime("%Y-%b-%d-%H:%M:%S") + ".csv")
+
+if not os.path.exists(STRESS_TEST):
+	append_write = "w"
+else:
+	append_write = "a"
+
+# Write every fourth sample to save data 
+f = open(STRESS_TEST, append_write, newline='')
+raw = csv.writer(f)
+
 #logger.disabled = True
 
 class MeasurementType(enum.Enum):
@@ -935,6 +947,10 @@ class Luminometer():
 			if self._measuring and (self._rsc < self.nRawSamples) and not self._haltMeasurement:
 				self.rawdataA[self._rsc] = d[0]
 				self.rawdataB[self._rsc] = d[1]
+
+				# Write every fourth sample to save data 
+				if self._rsc % 4 == 0:
+					raw.writerow((self.rawdataA[self._rsc], self.rawdataB[self._rsc]))
 
 				# Close shutters
 				if self._rsc % (2*self.shutter_samples) == 0:
