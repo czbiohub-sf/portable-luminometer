@@ -284,13 +284,13 @@ class Menu():
         if target_s == None:
             target_s = "N/A" # For auto-exposure
         else:
-            target_s = str(int(target_s)) + " s"
+            target_s = str(int(target_s))
 
         line0 = "> Hold TOP button for 3s to abort"
         line1 = "Measurement in progress..."
         line2 = f"A: {sensorA:.2f}+/-{sensorA_sem:.2f}"
         line3 = f"B: {sensorB:.2f}+/-{sensorB_sem:.2f}"
-        line4 = f"Elapsed: {int(time_elapsed):n} s  |  Trgt: {target_s}"
+        line4 = f"Count: {int(time_elapsed):n} |  Trgt: {target_s}"
         
         lines = [line1, line2, line3, line4]
         
@@ -300,7 +300,11 @@ class Menu():
         for i, line in enumerate(lines):
             if i != 0:
                 y_offset = y_offset + self.hanken_small_font.getsize(line)[1] + 5
-            draw.text((0, y_offset), line, self.inky_display.BLACK, font=self.hanken_medium_font)
+            if i == 3:
+                font = self.hanken_small_font
+            else:
+                font = self.hanken_medium_font
+            draw.text((0, y_offset), line, self.inky_display.BLACK, font=font)
 
         self.inky_display.set_image(img.rotate(self.rotation_deg))
         self.inky_display.show()
@@ -354,7 +358,7 @@ class Menu():
         if target_s == None:
             target_s = "N/A" # For auto-exposure
         else:
-            target_s = str(int(target_s)) + " s"
+            target_s = str(int(target_s))
 
         img = Image.new("P", self.inky_display.resolution)
         draw = ImageDraw.Draw(img)
@@ -363,7 +367,7 @@ class Menu():
         line1 = "Final:" + ('Yes' if final == True else 'No') 
         line2 = f"A: {sensorA:.2f}+/-{sensorA_sem:.2f}"
         line3 = f"B: {sensorB:.2f}+/-{sensorB_sem:.2f}"
-        line4 = f"Elapsed: {int(time_elapsed):n} s  |  Trgt: {target_s}"
+        line4 = f"Count: {int(time_elapsed):n} |  Trgt: {target_s}"
         line5 = "> Clear and go to measurement menu"
         lines = [line1, line2, line3, line4]
 
@@ -372,7 +376,12 @@ class Menu():
             if i != 0:
                 y_offset = y_offset + self.hanken_small_font.getsize(line)[1] + 5
             draw.text((0, y_offset), line, self.inky_display.BLACK, font=self.hanken_medium_font)
-        draw.text((0, y_offset + self.hanken_small_font.getsize(line4)[1] + 20), line5, self.inky_display.BLACK, font=self.hanken_small_font)
+
+        if i == 3:
+            font = self.hanken_small_font
+        else:
+            font = self.hanken_medium_font
+        draw.text((0, y_offset + self.hanken_small_font.getsize(line4)[1] + 20), line5, self.inky_display.BLACK, font=font)
 
         self.inky_display.set_image(img.rotate(self.rotation_deg))
         self.inky_display.show()
