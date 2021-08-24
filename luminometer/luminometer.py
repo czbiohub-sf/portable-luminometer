@@ -53,6 +53,7 @@ stream_handler.setFormatter(formatter)
 logger.addHandler(stream_handler)
 
 # Continuously write the raw data
+now = datetime.now()
 STRESS_TEST = os.path.join(LOG_OUTPUT_DIR, "COUPLING-TEST-" + now.strftime("%Y-%b-%d-%H:%M:%S") + ".csv")
 
 if not os.path.exists(STRESS_TEST):
