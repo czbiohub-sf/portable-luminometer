@@ -779,6 +779,9 @@ class Luminometer():
 			with self._measureLock:
 				logger.info("Starting measurement")
 
+				# Stop accumulating data for the diagnostic menu
+				self._accumulate = False
+
 				# Close shutters
 				try:
 					self._shutter_q.put('close')
@@ -887,6 +890,8 @@ class Luminometer():
 						self._updateDisplayResult(show_final=True)
 					self._duration_s = time.perf_counter() - t0
 					self.shutter.rest()
+					# Start accumulating data for the diagnostic menu
+					self._accumulate = True
 		return
 
 	def _loopCondition(self, exposure:int) -> bool:
@@ -910,6 +915,7 @@ class Luminometer():
 		ADC is on. We simply initialize new lists (one for each channel), set the 
 		_accumulate flag to True, and wait for them to fill up.
 		'''
+		self._accumulate = True
 		output = [0]*5
 
 		try:
@@ -921,7 +927,7 @@ class Luminometer():
 
 		return output
 
-	def _cb_adc_data_ready(self, channel, level, tick):
+	def _cb_adc_data_ready(self, channel):
 		# Callback function executed when data ready is asserted from ADC
 		# The callback also queues the shutter actions, in order to stay synchronized 
 		# with the data readout.
@@ -982,11 +988,11 @@ class Luminometer():
 					self._accumSiPMBias.pop(0)
 					self._accum34V.pop(0)
 
-				self._accumBufferA.append(d[0])
-				self._accumBufferB.append(d[1])
-				self._accumSiPMRef.append(d[2])
-				self._accumSiPMBias.append(d[3])
-				self._accum34V.append(d[4])
+					self._accumBufferA.append(d[0])
+					self._accumBufferB.append(d[1])
+					self._accumSiPMRef.append(d[2])
+					self._accumSiPMBias.append(d[3])
+					self._accum34V.append(d[4])
 		
 		tf = time.perf_counter()
 		print(f'ADC callback elapsed: {tf-t0} s')
@@ -1199,7 +1205,7 @@ class Luminometer():
 					t0 = time.perf_counter()
 
 					# Check for status of the futures which are currently working
-					done, not_done = concurrent.futures.wait(future_result, timeout=0.01, \
+					done, not_done = concurrent.futures.wait(future_result, timeout=0.005, \
 						return_when=concurrent.futures.FIRST_COMPLETED)
 					
 					# Measure queue has size 1 and will not add additional items to the queue
