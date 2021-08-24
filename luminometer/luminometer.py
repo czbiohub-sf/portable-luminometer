@@ -1192,12 +1192,9 @@ class Luminometer():
 
 				logger.info('Ready and waiting for button pushes...')
 
-				t0 = time.perf_counter()
 
 				# Main realtime loop:
 				while self._powerOn:
-
-					print(f'Run loop time: {time.perf_counter() - t0} s')
 
 					t0 = time.perf_counter()
 
@@ -1214,6 +1211,8 @@ class Luminometer():
 
 						future_result[executor.submit(self.measure, *measureType)] = f"Exposure = {measureType[0]}, Dark = {measureType[1]}"
 
+					tmeas = time.perf_counter()
+
 					# Shutter queue has size 1 and will not add additional items to the queue
 					while not self._shutter_q.empty():
 
@@ -1225,6 +1224,8 @@ class Luminometer():
 
 						# Submit shutter actions
 						future_result[executor.submit(self.shutter.actuate, action)] = "Shutter: " + action
+
+					tshut = time.perf_counter()
 
 					# Display queue has size 1 and will not add additional items to the queue
 					# If there is an incoming message, start a new future
@@ -1239,6 +1240,8 @@ class Luminometer():
 						logger.debug(f"Display queue with: {kwargs['state']}")
 						future_result[executor.submit(self.display.screenSwitcher, **kwargs)] = "Screen displayed: " + repr(kwargs["state"])
 					
+					tdisp = time.perf_counter()
+
 					# Process any completed futures
 					for future in done:
 						result = future_result[future]
@@ -1252,6 +1255,14 @@ class Luminometer():
 
 						# Remove the now completed future
 						del future_result[future]
+
+					tend = time.perf_counter()
+
+					print(f'run(): measure: {tmeas - t0} s')
+					print(f'run(): shutter: {tshut - t0} s')
+					print(f'run(): display: {tdisp - t0} s')
+					print(f'run(): all: {tend - t0} s')
+
 
 		except KeyboardInterrupt:
 			pass
