@@ -1199,7 +1199,7 @@ class Luminometer():
 					t0 = time.perf_counter()
 
 					# Check for status of the futures which are currently working
-					done, not_done = concurrent.futures.wait(future_result, timeout=0.05, \
+					done, not_done = concurrent.futures.wait(future_result, timeout=0.01, \
 						return_when=concurrent.futures.FIRST_COMPLETED)
 					
 					# Measure queue has size 1 and will not add additional items to the queue
