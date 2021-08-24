@@ -933,7 +933,7 @@ class Luminometer():
 
 		return output
 
-	def _cb_adc_data_ready(self, channel):
+	def _cb_adc_data_ready(self, channel, level, tick):
 		# Callback function executed when data ready is asserted from ADC
 		# The callback also queues the shutter actions, in order to stay synchronized 
 		# with the data readout.
