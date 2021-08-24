@@ -1270,10 +1270,10 @@ class Luminometer():
 
 					tend = time.perf_counter()
 
-					print(f'run(): measure: {tmeas - t0} s')
-					print(f'run(): shutter: {tshut - t0} s')
-					print(f'run(): display: {tdisp - t0} s')
-					print(f'run(): all: {tend - t0} s')
+					# print(f'run(): measure: {tmeas - t0} s')
+					# print(f'run(): shutter: {tshut - t0} s')
+					# print(f'run(): display: {tdisp - t0} s')
+					# print(f'run(): all: {tend - t0} s')
 
 
 		except KeyboardInterrupt:
