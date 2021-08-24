@@ -52,18 +52,18 @@ stream_handler.setLevel(logging.DEBUG)
 stream_handler.setFormatter(formatter)
 logger.addHandler(stream_handler)
 
-# Continuously write the raw data
-now = datetime.now()
-STRESS_TEST = os.path.join(LOG_OUTPUT_DIR, "COUPLING-TEST-" + now.strftime("%Y-%b-%d-%H:%M:%S") + ".csv")
+# # Continuously write the raw data
+# now = datetime.now()
+# STRESS_TEST = os.path.join(LOG_OUTPUT_DIR, "COUPLING-TEST-" + now.strftime("%Y-%b-%d-%H:%M:%S") + ".csv")
 
-if not os.path.exists(STRESS_TEST):
-	append_write = "w"
-else:
-	append_write = "a"
+# if not os.path.exists(STRESS_TEST):
+# 	append_write = "w"
+# else:
+# 	append_write = "a"
 
-# Write every fourth sample to save data 
-f = open(STRESS_TEST, append_write, newline='')
-raw = csv.writer(f)
+# # Write every fourth sample to save data 
+# f = open(STRESS_TEST, append_write, newline='')
+# raw = csv.writer(f)
 
 #logger.disabled = True
 
@@ -890,8 +890,6 @@ class Luminometer():
 						self._updateDisplayResult(show_final=True)
 					self._duration_s = time.perf_counter() - t0
 					self.shutter.rest()
-					# Start accumulating data for the diagnostic menu
-					self._accumulate = True
 		return
 
 	def _loopCondition(self, exposure:int) -> bool:
@@ -915,15 +913,23 @@ class Luminometer():
 		ADC is on. We simply initialize new lists (one for each channel), set the 
 		_accumulate flag to True, and wait for them to fill up.
 		'''
+
+		self._resetBuffers(10)
 		self._accumulate = True
 		output = [0]*5
 
 		try:
+			while len(self._accumBufferA < 20):
+				pass
+			
 			output = [mean(self._accumBufferA), mean(self._accumBufferB), \
 			mean(self._accumSiPMRef), mean(self._accumSiPMBias), \
 			mean(self._accum34V)]
 		except Exception as e:
 			print(e)
+
+		self._accumulate = False
+
 
 		return output
 
@@ -957,9 +963,9 @@ class Luminometer():
 				self.rawdataA[self._rsc] = d[0]
 				self.rawdataB[self._rsc] = d[1]
 
-				# Write every fourth sample to save data 
-				if self._rsc % 4 == 0:
-					raw.writerow((self.rawdataA[self._rsc], self.rawdataB[self._rsc]))
+				# # Write every fourth sample to save data 
+				# if self._rsc % 4 == 0:
+				# 	raw.writerow((self.rawdataA[self._rsc], self.rawdataB[self._rsc]))
 
 				# Close shutters
 				if self._rsc % (2*self.shutter_samples) == 0:
@@ -981,18 +987,18 @@ class Luminometer():
 				self._sc = int(self._rsc/self.shutter_samples)
 
 			if self._accumulate:
-				if len(self._accumBufferA) > self.cb_buffer_size:
-					self._accumBufferA.pop(0)
-					self._accumBufferB.pop(0)
-					self._accumSiPMRef.pop(0)
-					self._accumSiPMBias.pop(0)
-					self._accum34V.pop(0)
+				#if len(self._accumBufferA) > self.cb_buffer_size:
+				self._accumBufferA.append(d[0])
+				self._accumBufferB.append(d[1])
+				self._accumSiPMRef.append(d[2])
+				self._accumSiPMBias.append(d[3])
+				self._accum34V.append(d[4])
 
-					self._accumBufferA.append(d[0])
-					self._accumBufferB.append(d[1])
-					self._accumSiPMRef.append(d[2])
-					self._accumSiPMBias.append(d[3])
-					self._accum34V.append(d[4])
+				# self._accumBufferA.pop(0)
+				# self._accumBufferB.pop(0)
+				# self._accumSiPMRef.pop(0)
+				# self._accumSiPMBias.pop(0)
+				# self._accum34V.pop(0)
 		
 		tf = time.perf_counter()
 		print(f'ADC callback elapsed: {tf-t0} s')
