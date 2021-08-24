@@ -106,6 +106,7 @@ class LumiShutter():
 			self._pwmPin = int(pwmPin)
 			self._faultPin = int(faultPin)
 			self._sleepPin = int(sleepPin)
+			self.isMoving = False
 		except TypeError:
 			logger.error("Pin value not convertible to integer!")
 			raise
@@ -148,11 +149,13 @@ class LumiShutter():
 						self.driveOpen()
 						better_sleep(driveTime)
 						self.holdOpen()
+						self.isMoving = False
 
 					elif action == 'close':
 						self.driveClosed()
 						better_sleep(driveTime)
 						self.holdClosed()
+						self.isMoving = False
 
 					else:
 						print(f"Shutter command not recognized!")
@@ -909,59 +912,62 @@ class Luminometer():
 		# Callback function executed when data ready is asserted from ADC
 		# The callback also queues the shutter actions, in order to stay synchronized 
 		# with the data readout.
-		if self._simulate:
-			# Simulation mode
-			d = [0.0, 0.0, 0.0, 0.0, 0.0]
-			threading.Timer(SAMPLE_TIME_S, self._cb_adc_data_ready, args=(DRDY,)).start()
-		else:
-			try:
-				# Read sensor
-				d = self._adc.read()
-				self.adc_vals = d
+		if not self.shutter.isMoving:
+			if self._simulate:
+				# Simulation mode
+				d = [0.0, 0.0, 0.0, 0.0, 0.0]
+				threading.Timer(SAMPLE_TIME_S, self._cb_adc_data_ready, args=(DRDY,)).start()
+			else:
+				try:
+					# Read sensor
+					d = self._adc.read()
+					self.adc_vals = d
 
-			# ADC communication error
-			except CRCError:
-				# Only worry about CRC errors that occur during a measurement (**Check with Paul)
-				# Note to self: this is a temporary band-aid fix as I try to figure out why the CRC errors
-				# are randomly occurring on first boot
-				if self._measuring:
-					self._crcErrs += 1
-				return
+				# ADC communication error
+				except CRCError:
+					# Only worry about CRC errors that occur during a measurement (**Check with Paul)
+					# Note to self: this is a temporary band-aid fix as I try to figure out why the CRC errors
+					# are randomly occurring on first boot
+					if self._measuring:
+						self._crcErrs += 1
+					return
 	
-		if self._measuring and (self._rsc < self.nRawSamples) and not self._haltMeasurement:
-			self.rawdataA[self._rsc] = d[0]
-			self.rawdataB[self._rsc] = d[1]
+			if self._measuring and (self._rsc < self.nRawSamples) and not self._haltMeasurement:
+				self.rawdataA[self._rsc] = d[0]
+				self.rawdataB[self._rsc] = d[1]
 
-			# Close shutters
-			if self._rsc % (2*self.shutter_samples) == 0:
-				try:
-					self._shutter_q.put_nowait('close')
-				except queue.Full:
-					pass
+				# Close shutters
+				if self._rsc % (2*self.shutter_samples) == 0:
+					try:
+						self._shutter_q.put_nowait('close')
+						self.shutter.isMoving = True
+					except queue.Full:
+						pass
 
-			# Open shutters
-			elif self._rsc % self.shutter_samples == 0:
-				try:
-					self._shutter_q.put_nowait('open')
-				except queue.Full:
-					pass
+				# Open shutters
+				elif self._rsc % self.shutter_samples == 0:
+					try:
+						self._shutter_q.put_nowait('open')
+						self.shutter.isMoving = True
+					except queue.Full:
+						pass
 
-			self._rsc += 1
-			self._sc = int(self._rsc/self.shutter_samples)
+				self._rsc += 1
+				self._sc = int(self._rsc/self.shutter_samples)
 
-		if self._accumulate:
-			if len(self._accumBufferA) > self.cb_buffer_size:
-				self._accumBufferA.pop(0)
-				self._accumBufferB.pop(0)
-				self._accumSiPMRef.pop(0)
-				self._accumSiPMBias.pop(0)
-				self._accum34V.pop(0)
+			if self._accumulate:
+				if len(self._accumBufferA) > self.cb_buffer_size:
+					self._accumBufferA.pop(0)
+					self._accumBufferB.pop(0)
+					self._accumSiPMRef.pop(0)
+					self._accumSiPMBias.pop(0)
+					self._accum34V.pop(0)
 
-			self._accumBufferA.append(d[0])
-			self._accumBufferB.append(d[1])
-			self._accumSiPMRef.append(d[2])
-			self._accumSiPMBias.append(d[3])
-			self._accum34V.append(d[4])
+				self._accumBufferA.append(d[0])
+				self._accumBufferB.append(d[1])
+				self._accumSiPMRef.append(d[2])
+				self._accumSiPMBias.append(d[3])
+				self._accum34V.append(d[4])
 		
 		return		
 
