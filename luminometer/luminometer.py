@@ -1193,12 +1193,13 @@ class Luminometer():
 				logger.info('Ready and waiting for button pushes...')
 
 				t0 = time.perf_counter()
-				
+
 				# Main realtime loop:
 				while self._powerOn:
 
-					tf = time.perf_counter()-t0
-					print(f'Run loop time: {tf} s')
+					print(f'Run loop time: {time.perf_counter() - t0} s')
+
+					t0 = time.perf_counter()
 
 					# Check for status of the futures which are currently working
 					done, not_done = concurrent.futures.wait(future_result, timeout=0.05, \
