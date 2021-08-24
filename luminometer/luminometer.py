@@ -963,10 +963,6 @@ class Luminometer():
 				self.rawdataA[self._rsc] = d[0]
 				self.rawdataB[self._rsc] = d[1]
 
-				# # Write every fourth sample to save data 
-				# if self._rsc % 4 == 0:
-				# 	raw.writerow((self.rawdataA[self._rsc], self.rawdataB[self._rsc]))
-
 				# Close shutters
 				if self._rsc % (2*self.shutter_samples) == 0:
 					try:
@@ -993,15 +989,9 @@ class Luminometer():
 				self._accumSiPMRef.append(d[2])
 				self._accumSiPMBias.append(d[3])
 				self._accum34V.append(d[4])
-
-				# self._accumBufferA.pop(0)
-				# self._accumBufferB.pop(0)
-				# self._accumSiPMRef.pop(0)
-				# self._accumSiPMBias.pop(0)
-				# self._accum34V.pop(0)
 		
 		tf = time.perf_counter()
-		print(f'ADC callback elapsed: {tf-t0} s')
+		# print(f'ADC callback elapsed: {tf-t0} s')
 
 		return		
 
