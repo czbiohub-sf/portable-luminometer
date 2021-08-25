@@ -236,8 +236,8 @@ class Menu():
         option1 = "> Autoexposure"
         option1_sub = ""
         option2 = "> Timed exposure"
-        option2_sub1 = "Tap: 10 cycles"
-        option2_sub2 = "Hold (beeps:cycles) 1:30,2:60,3:300,4:600 "
+        option2_sub1 = "Tap: 5 samples"
+        option2_sub2 = "Hold: 15->30->50->300"
         option3 = "> Back to main"
 
         option1y = self.hanken_medium_font.getsize(option1)[1] + self._status_bar_offset
@@ -290,7 +290,7 @@ class Menu():
         line1 = "Measurement in progress..."
         line2 = f"A: {sensorA:.2f}+/-{sensorA_sem:.2f}"
         line3 = f"B: {sensorB:.2f}+/-{sensorB_sem:.2f}"
-        line4 = f"Cycles: {int(time_elapsed):n}/{target_s}"
+        line4 = f"Samples: {int(time_elapsed):n}/{target_s}"
         
         lines = [line1, line2, line3, line4]
         
@@ -367,7 +367,7 @@ class Menu():
         line1 = "Final:" + ('Yes' if final == True else 'No') 
         line2 = f"A: {sensorA:.2f}+/-{sensorA_sem:.2f}"
         line3 = f"B: {sensorB:.2f}+/-{sensorB_sem:.2f}"
-        line4 = f"Cycles: {int(time_elapsed):n}/{target_s}"
+        line4 = f"Samples: {int(time_elapsed):n}/{target_s}"
         line5 = "> Clear and go to measurement menu"
         lines = [line1, line2, line3, line4]
 
