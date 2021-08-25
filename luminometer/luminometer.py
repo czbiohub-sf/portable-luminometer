@@ -448,7 +448,7 @@ class Luminometer():
 
 				try:
 					if self.screen_settled:
-						if next_state == MenuStates.MAIN_MENU or next_state == MenuStates.STATUS_MENU:
+						if next_state == MenuStates.STATUS_MENU:
 							self._updateDiagVals()
 
 						if not (next_state == MenuStates.MEASUREMENT_IN_PROGRESS):
@@ -570,6 +570,7 @@ class Luminometer():
 
 		if self.state == MenuStates.MAIN_MENU and duration == TRANSITION_DURATION:
 			nextState = MenuStates.STATUS_MENU
+			self.buzzer.buzz()
 			# Set up special button combo memory
 			self.button_combo = []
 
