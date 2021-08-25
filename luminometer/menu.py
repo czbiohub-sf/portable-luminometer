@@ -236,8 +236,8 @@ class Menu():
         option1 = "> Autoexposure"
         option1_sub = ""
         option2 = "> Timed exposure"
-        option2_sub1 = "- Tap: 10 cycles"
-        option2_sub2 = "- Hold (beeps-cycles) 1-30,2-60,3-300,4-600 "
+        option2_sub1 = "Tap: 10 cycles"
+        option2_sub2 = "Hold (beeps:cycles) 1:30,2:60,3:300,4:600 "
         option3 = "> Back to main"
 
         option1y = self.hanken_medium_font.getsize(option1)[1] + self._status_bar_offset
@@ -375,12 +375,13 @@ class Menu():
         for i, line in enumerate(lines):
             if i != 0:
                 y_offset = y_offset + self.hanken_small_font.getsize(line)[1] + 5
-            draw.text((0, y_offset), line, self.inky_display.BLACK, font=self.hanken_medium_font)
-
             if i == 3:
                 font = self.hanken_small_font
-        else:
-            font = self.hanken_medium_font
+            else:
+                font = self.hanken_medium_font
+
+            draw.text((0, y_offset), line, self.inky_display.BLACK, font=self.hanken_medium_font)
+
         draw.text((0, y_offset + self.hanken_small_font.getsize(line4)[1] + 20), line5, self.inky_display.BLACK, font=font)
 
         self.inky_display.set_image(img.rotate(self.rotation_deg))

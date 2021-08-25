@@ -427,7 +427,7 @@ class Luminometer():
 					"calA": self.calA,
 					"measurementMode": self.measurementMode,
 					"time_elapsed": self._duration_s,
-					"target_time": (self.nRawSamples*SAMPLE_TIME_S),
+					"target_time": (self.nRawSamples*SAMPLE_TIME_S*1.2),
 					"_measurementIsDone": self._measurementIsDone,
 					"resultA": self.resultA,
 					"semA": self.semA,
