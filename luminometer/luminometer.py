@@ -659,9 +659,9 @@ class Luminometer():
 			logger.info(f"Button 3 held for {ABORT_MEASUREMENT_DURATION} seconds - halting measurement.")
 			self.buzzer.buzz()
 			self._haltMeasurement = True
-			nextState = MenuStates.MEASUREMENT_MENU
-			while not self.screen_settled:
-				pass
+			# nextState = MenuStates.MEASUREMENT_MENU
+			# while not self.screen_settled:
+			# 	pass
 		
 		elif self.state == MenuStates.CALIBRATION_MENU and duration == TRANSITION_DURATION:
 			# Switch to standard calibration and return to main
@@ -887,7 +887,7 @@ class Luminometer():
 						while not self.screen_settled:
 							pass
 						self.set_state(MenuStates.RLU_CALIBRATION)
-					elif not self._haltMeasurement:
+					else:
 						self._updateDisplayResult(show_final=True)
 					self._duration_s = time.perf_counter() - t0
 					self.shutter.rest()
