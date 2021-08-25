@@ -237,7 +237,7 @@ class Menu():
         option1_sub = ""
         option2 = "> Timed exposure"
         option2_sub1 = "Tap: 5 samples"
-        option2_sub2 = "Hold: 15->30->50->300"
+        option2_sub2 = "Hold to increase: 15->30->50->300"
         option3 = "> Back to main"
 
         option1y = self.hanken_medium_font.getsize(option1)[1] + self._status_bar_offset
@@ -380,7 +380,7 @@ class Menu():
             else:
                 font = self.hanken_medium_font
 
-            draw.text((0, y_offset), line, self.inky_display.BLACK, font=self.hanken_medium_font)
+            draw.text((0, y_offset), line, self.inky_display.BLACK, font=font)
 
         draw.text((0, y_offset + self.hanken_small_font.getsize(line4)[1] + 20), line5, self.inky_display.BLACK, font=font)
 
