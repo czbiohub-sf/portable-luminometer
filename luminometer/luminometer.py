@@ -52,6 +52,19 @@ stream_handler.setLevel(logging.DEBUG)
 stream_handler.setFormatter(formatter)
 logger.addHandler(stream_handler)
 
+# # Continuously write the raw data
+# now = datetime.now()
+# STRESS_TEST = os.path.join(LOG_OUTPUT_DIR, "COUPLING-TEST-" + now.strftime("%Y-%b-%d-%H:%M:%S") + ".csv")
+
+# if not os.path.exists(STRESS_TEST):
+# 	append_write = "w"
+# else:
+# 	append_write = "a"
+
+# # Write every fourth sample to save data 
+# f = open(STRESS_TEST, append_write, newline='')
+# raw = csv.writer(f)
+
 #logger.disabled = True
 
 class MeasurementType(enum.Enum):
@@ -106,6 +119,7 @@ class LumiShutter():
 			self._pwmPin = int(pwmPin)
 			self._faultPin = int(faultPin)
 			self._sleepPin = int(sleepPin)
+			self.isMoving = False
 		except TypeError:
 			logger.error("Pin value not convertible to integer!")
 			raise
@@ -148,11 +162,13 @@ class LumiShutter():
 						self.driveOpen()
 						better_sleep(driveTime)
 						self.holdOpen()
+						self.isMoving = False
 
 					elif action == 'close':
 						self.driveClosed()
 						better_sleep(driveTime)
 						self.holdClosed()
+						self.isMoving = False
 
 					else:
 						print(f"Shutter command not recognized!")
@@ -238,7 +254,7 @@ class Luminometer():
 		self._measuring = False
 		self._measurementIsDone = False
 		self.screen_settled = True
-		self._accumulate = True
+		self._accumulate = False
 
 		# Diagnostic menu info
 		self.diag_vals = {
@@ -410,8 +426,8 @@ class Luminometer():
 					"selected_calibration": self.selected_calibration,
 					"calA": self.calA,
 					"measurementMode": self.measurementMode,
-					"time_elapsed": self._duration_s,
-					"target_time": self.target_time,
+					"time_elapsed": self._rsc,
+					"target_time": self.nRawSamples,
 					"_measurementIsDone": self._measurementIsDone,
 					"resultA": self.resultA,
 					"semA": self.semA,
@@ -763,6 +779,9 @@ class Luminometer():
 			with self._measureLock:
 				logger.info("Starting measurement")
 
+				# Stop accumulating data for the diagnostic menu
+				self._accumulate = False
+
 				# Close shutters
 				try:
 					self._shutter_q.put('close')
@@ -887,21 +906,30 @@ class Luminometer():
 					((self._sc) < MIN_PERIODS and self._haltMeasurement == False)
 			return result
 
-	def averageNMeasurements(self) -> List[float]:
+	def averageNMeasurements(self, N: int = 20) -> List[float]:
 		'''
 		Average N sequential measurements from the sensors without using the shutters.
 		This method uses the _cb_adc_data_ready() callback that always runs while the
 		ADC is on. We simply initialize new lists (one for each channel), set the 
 		_accumulate flag to True, and wait for them to fill up.
 		'''
+
+		self._resetBuffers(10)
+		self._accumulate = True
 		output = [0]*5
 
 		try:
+			while len(self._accumBufferA) < N:
+				pass
+			
 			output = [mean(self._accumBufferA), mean(self._accumBufferB), \
 			mean(self._accumSiPMRef), mean(self._accumSiPMBias), \
 			mean(self._accum34V)]
 		except Exception as e:
 			print(e)
+
+		self._accumulate = False
+
 
 		return output
 
@@ -909,60 +937,58 @@ class Luminometer():
 		# Callback function executed when data ready is asserted from ADC
 		# The callback also queues the shutter actions, in order to stay synchronized 
 		# with the data readout.
-		if self._simulate:
-			# Simulation mode
-			d = [0.0, 0.0, 0.0, 0.0, 0.0]
-			threading.Timer(SAMPLE_TIME_S, self._cb_adc_data_ready, args=(DRDY,)).start()
-		else:
-			try:
-				# Read sensor
-				d = self._adc.read()
-				self.adc_vals = d
+		t0 = time.perf_counter()
 
-			# ADC communication error
-			except CRCError:
-				# Only worry about CRC errors that occur during a measurement (**Check with Paul)
-				# Note to self: this is a temporary band-aid fix as I try to figure out why the CRC errors
-				# are randomly occurring on first boot
-				if self._measuring:
+		if not self.shutter.isMoving:
+			if self._simulate:
+				# Simulation mode
+				d = [0.0, 0.0, 0.0, 0.0, 0.0]
+				threading.Timer(SAMPLE_TIME_S, self._cb_adc_data_ready, args=(DRDY,)).start()
+			else:
+				try:
+					# Read sensor
+					d = self._adc.read()
+					self.adc_vals = d
+
+				# ADC communication error
+				except CRCError:
+					logger.error("CRC Error occurred")
 					self._crcErrs += 1
-				return
+					return
 	
-		if self._measuring and (self._rsc < self.nRawSamples) and not self._haltMeasurement:
-			self.rawdataA[self._rsc] = d[0]
-			self.rawdataB[self._rsc] = d[1]
+			if self._measuring and (self._rsc < self.nRawSamples) and not self._haltMeasurement:
+				self.rawdataA[self._rsc] = d[0]
+				self.rawdataB[self._rsc] = d[1]
 
-			# Close shutters
-			if self._rsc % (2*self.shutter_samples) == 0:
-				try:
-					self._shutter_q.put_nowait('close')
-				except queue.Full:
-					pass
+				# Close shutters
+				if self._rsc % (2*self.shutter_samples) == 0:
+					try:
+						self._shutter_q.put_nowait('close')
+						self.shutter.isMoving = True
+					except queue.Full:
+						pass
 
-			# Open shutters
-			elif self._rsc % self.shutter_samples == 0:
-				try:
-					self._shutter_q.put_nowait('open')
-				except queue.Full:
-					pass
+				# Open shutters
+				elif self._rsc % self.shutter_samples == 0:
+					try:
+						self._shutter_q.put_nowait('open')
+						self.shutter.isMoving = True
+					except queue.Full:
+						pass
 
-			self._rsc += 1
-			self._sc = int(self._rsc/self.shutter_samples)
+				self._rsc += 1
+				self._sc = int(self._rsc/self.shutter_samples)
 
-		if self._accumulate:
-			if len(self._accumBufferA) > self.cb_buffer_size:
-				self._accumBufferA.pop(0)
-				self._accumBufferB.pop(0)
-				self._accumSiPMRef.pop(0)
-				self._accumSiPMBias.pop(0)
-				self._accum34V.pop(0)
-
-			self._accumBufferA.append(d[0])
-			self._accumBufferB.append(d[1])
-			self._accumSiPMRef.append(d[2])
-			self._accumSiPMBias.append(d[3])
-			self._accum34V.append(d[4])
+			if self._accumulate:
+				self._accumBufferA.append(d[0])
+				self._accumBufferB.append(d[1])
+				self._accumSiPMRef.append(d[2])
+				self._accumSiPMBias.append(d[3])
+				self._accum34V.append(d[4])
 		
+		tf = time.perf_counter()
+		# print(f'ADC callback elapsed: {tf-t0} s')
+
 		return		
 
 	def _updateDisplayResult(self, show_final: bool = False):
@@ -1164,11 +1190,14 @@ class Luminometer():
 
 				logger.info('Ready and waiting for button pushes...')
 
+
 				# Main realtime loop:
 				while self._powerOn:
 
+					t0 = time.perf_counter()
+
 					# Check for status of the futures which are currently working
-					done, not_done = concurrent.futures.wait(future_result, timeout=0.05, \
+					done, not_done = concurrent.futures.wait(future_result, timeout=0.005, \
 						return_when=concurrent.futures.FIRST_COMPLETED)
 					
 					# Measure queue has size 1 and will not add additional items to the queue
@@ -1179,6 +1208,8 @@ class Luminometer():
 							pass
 
 						future_result[executor.submit(self.measure, *measureType)] = f"Exposure = {measureType[0]}, Dark = {measureType[1]}"
+
+					tmeas = time.perf_counter()
 
 					# Shutter queue has size 1 and will not add additional items to the queue
 					while not self._shutter_q.empty():
@@ -1191,6 +1222,8 @@ class Luminometer():
 
 						# Submit shutter actions
 						future_result[executor.submit(self.shutter.actuate, action)] = "Shutter: " + action
+
+					tshut = time.perf_counter()
 
 					# Display queue has size 1 and will not add additional items to the queue
 					# If there is an incoming message, start a new future
@@ -1205,6 +1238,8 @@ class Luminometer():
 						logger.debug(f"Display queue with: {kwargs['state']}")
 						future_result[executor.submit(self.display.screenSwitcher, **kwargs)] = "Screen displayed: " + repr(kwargs["state"])
 					
+					tdisp = time.perf_counter()
+
 					# Process any completed futures
 					for future in done:
 						result = future_result[future]
@@ -1218,6 +1253,14 @@ class Luminometer():
 
 						# Remove the now completed future
 						del future_result[future]
+
+					tend = time.perf_counter()
+
+					# print(f'run(): measure: {tmeas - t0} s')
+					# print(f'run(): shutter: {tshut - t0} s')
+					# print(f'run(): display: {tdisp - t0} s')
+					# print(f'run(): all: {tend - t0} s')
+
 
 		except KeyboardInterrupt:
 			pass
