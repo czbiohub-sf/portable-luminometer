@@ -1055,7 +1055,7 @@ class Luminometer():
 			self._duration_s = 0.0
 
 			# Counters
-			self._rsc = self._sc = self._crcErrs = 0
+			self._rsc = self._sc = 0
 
 	def writeToFile(self):
 		now = datetime.now()
