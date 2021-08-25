@@ -426,8 +426,8 @@ class Luminometer():
 					"selected_calibration": self.selected_calibration,
 					"calA": self.calA,
 					"measurementMode": self.measurementMode,
-					"time_elapsed": self._duration_s,
-					"target_time": (self.nRawSamples*SAMPLE_TIME_S*1.2),
+					"time_elapsed": len(self.dataA),
+					"target_time": int(self.nSamples/2),
 					"_measurementIsDone": self._measurementIsDone,
 					"resultA": self.resultA,
 					"semA": self.semA,
@@ -797,6 +797,7 @@ class Luminometer():
 
 					# Keeps track of the overall measurement duration
 					sampleCount = 0
+
 					# Start data acquisition loop
 					while self._loopCondition(measure_time):
 
