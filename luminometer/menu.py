@@ -234,10 +234,10 @@ class Menu():
         self.statusBar(draw)
 
         option1 = "> Autoexposure"
-        option1_sub = "- HOLD 3s during any measurement to abort"
+        option1_sub = ""
         option2 = "> Timed exposure"
-        option2_sub1 = "- TAP button=10s"
-        option2_sub2 = "- HOLD 1s=30s, 2s=60s, 3s=300s, 4s=600s"
+        option2_sub1 = "- Tap: 10 cycles"
+        option2_sub2 = "- Hold (beeps-cycles) 1-30,2-60,3-300,4-600 "
         option3 = "> Back to main"
 
         option1y = self.hanken_medium_font.getsize(option1)[1] + self._status_bar_offset
@@ -290,7 +290,7 @@ class Menu():
         line1 = "Measurement in progress..."
         line2 = f"A: {sensorA:.2f}+/-{sensorA_sem:.2f}"
         line3 = f"B: {sensorB:.2f}+/-{sensorB_sem:.2f}"
-        line4 = f"Count: {int(time_elapsed):n} |  Trgt: {target_s}"
+        line4 = f"Cycles: {int(time_elapsed):n}/{target_s}"
         
         lines = [line1, line2, line3, line4]
         
@@ -367,7 +367,7 @@ class Menu():
         line1 = "Final:" + ('Yes' if final == True else 'No') 
         line2 = f"A: {sensorA:.2f}+/-{sensorA_sem:.2f}"
         line3 = f"B: {sensorB:.2f}+/-{sensorB_sem:.2f}"
-        line4 = f"Count: {int(time_elapsed):n} |  Trgt: {target_s}"
+        line4 = f"Cycles: {int(time_elapsed):n}/{target_s}"
         line5 = "> Clear and go to measurement menu"
         lines = [line1, line2, line3, line4]
 
@@ -377,8 +377,8 @@ class Menu():
                 y_offset = y_offset + self.hanken_small_font.getsize(line)[1] + 5
             draw.text((0, y_offset), line, self.inky_display.BLACK, font=self.hanken_medium_font)
 
-        if i == 3:
-            font = self.hanken_small_font
+            if i == 3:
+                font = self.hanken_small_font
         else:
             font = self.hanken_medium_font
         draw.text((0, y_offset + self.hanken_small_font.getsize(line4)[1] + 20), line5, self.inky_display.BLACK, font=font)
