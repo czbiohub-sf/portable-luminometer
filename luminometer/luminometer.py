@@ -254,7 +254,7 @@ class Luminometer():
 		self._measuring = False
 		self._measurementIsDone = False
 		self.screen_settled = True
-		self._accumulate = True
+		self._accumulate = False
 
 		# Diagnostic menu info
 		self.diag_vals = {
@@ -906,7 +906,7 @@ class Luminometer():
 					((self._sc) < MIN_PERIODS and self._haltMeasurement == False)
 			return result
 
-	def averageNMeasurements(self) -> List[float]:
+	def averageNMeasurements(self, N: int = 20) -> List[float]:
 		'''
 		Average N sequential measurements from the sensors without using the shutters.
 		This method uses the _cb_adc_data_ready() callback that always runs while the
@@ -919,7 +919,7 @@ class Luminometer():
 		output = [0]*5
 
 		try:
-			while len(self._accumBufferA < 20):
+			while len(self._accumBufferA) < N:
 				pass
 			
 			output = [mean(self._accumBufferA), mean(self._accumBufferB), \
@@ -952,11 +952,8 @@ class Luminometer():
 
 				# ADC communication error
 				except CRCError:
-					# Only worry about CRC errors that occur during a measurement (**Check with Paul)
-					# Note to self: this is a temporary band-aid fix as I try to figure out why the CRC errors
-					# are randomly occurring on first boot
-					if self._measuring:
-						self._crcErrs += 1
+					logger.error("CRC Error occurred")
+					self._crcErrs += 1
 					return
 	
 			if self._measuring and (self._rsc < self.nRawSamples) and not self._haltMeasurement:
@@ -983,7 +980,6 @@ class Luminometer():
 				self._sc = int(self._rsc/self.shutter_samples)
 
 			if self._accumulate:
-				#if len(self._accumBufferA) > self.cb_buffer_size:
 				self._accumBufferA.append(d[0])
 				self._accumBufferB.append(d[1])
 				self._accumSiPMRef.append(d[2])
