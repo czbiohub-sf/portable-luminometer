@@ -357,9 +357,12 @@ class Menu():
 
         if target_s == None:
             target_s = "N/A" # For auto-exposure
+            measurement_type = "Auto"
         else:
             target_s = str(int(target_s))
+            measurement_type = f"Timed ({target_s})"
 
+        
         img = Image.new("P", self.inky_display.resolution)
         draw = ImageDraw.Draw(img)
         self.statusBar(draw)
@@ -368,7 +371,9 @@ class Menu():
         line2 = f"A: {sensorA:.2f}+/-{sensorA_sem:.2f}"
         line3 = f"B: {sensorB:.2f}+/-{sensorB_sem:.2f}"
         line4 = f"Samples: {int(time_elapsed):n}/{target_s}"
-        line5 = "> Clear and go to measurement menu"
+
+        line5 = f"> Redo measurement (middle) - {measurement_type}"
+        line6 = "> Clear and go to measurement menu (bottom)"
         lines = [line1, line2, line3, line4]
 
         y_offset = 10
@@ -382,7 +387,10 @@ class Menu():
 
             draw.text((0, y_offset), line, self.inky_display.BLACK, font=font)
 
-        draw.text((0, y_offset + self.hanken_small_font.getsize(line4)[1] + 20), line5, self.inky_display.BLACK, font=font)
+        line4y = y_offset + self.hanken_small_font.getsize(line4)[1] + 10
+        line5y = line4y + self.hanken_small_font.getsize(line5)[1] + 10
+        draw.text((0, line4y), line5, self.inky_display.BLACK, font=font)
+        draw.text((0, line5y), line6, self.inky_display.BLACK, font=font)
 
         self.inky_display.set_image(img.rotate(self.rotation_deg))
         self.inky_display.show()

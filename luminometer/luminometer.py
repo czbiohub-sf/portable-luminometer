@@ -591,6 +591,29 @@ class Luminometer():
 					self.measurementMode = "TIMED"
 					if duration == 0:
 						self.buzzer.buzz()
+		
+		elif self.state == MenuStates.SHOW_FINAL_MEASUREMENT and duration == TRANSITION_DURATION:
+			# Perform timed measurement
+			if self.screen_settled:
+				if not self._measuring:
+					if self.target_time == None:
+						# Repeat autoexposure
+						self.measurementMode = "AUTO"
+						exposure = 0
+					else:
+						# Repeat timed measurement
+						self.measurementMode = "TIMED"
+						exposure = self.target_time
+			
+					try:
+						if not self._measureLock.locked():
+							self._measure_q.put_nowait((exposure, MeasurementType.MEASUREMENT))
+					except queue.Full:
+						logger.info('Already busy measuring')
+
+					self._duration_s = 0
+					if duration == 0:
+						self.buzzer.buzz()
 
 		elif self.state == MenuStates.CALIBRATION_MENU:
 			# Switch to custom calibration and return to main
