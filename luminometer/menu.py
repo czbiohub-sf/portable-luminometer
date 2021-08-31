@@ -101,7 +101,7 @@ class Menu():
         logger.info(f"Changing battery status: {battery_status}")
         self.battery_status = battery_status
 
-    def statusCheckAll(self, adc_vals, battery_status):
+    def statusCheckAll(self, adc_vals, battery_status, crc_errs):
         """TODO
         Takes in a set of five adc values which correspond to: 
         - Sensor A
@@ -127,6 +127,8 @@ class Menu():
             all_good = False
         if battery_status == "LO":
             return "BATT LOW"
+        if crc_errs > 0:
+            return "CRC ERR"
 
         if all_good:
             return "OK"
@@ -146,7 +148,7 @@ class Menu():
                     if state == MenuStates.MAIN_MENU:
                         self.set_battery_status(kwargs["battery_status"])
                         self.set_selected_calibration(kwargs["selected_calibration"])
-                        self.mainMenu(kwargs["adc_vals"], kwargs["battery_status"])
+                        self.mainMenu(kwargs["adc_vals"], kwargs["battery_status"], kwargs["crcErrs"])
                         logger.info("Switched to MainMenu screen.")
 
                     elif state == MenuStates.MEASUREMENT_MENU:
@@ -203,11 +205,11 @@ class Menu():
         x_pos = self.inky_display.resolution[0] - statusx
         draw.text((x_pos, 0), status, self.inky_display.BLACK, font=self.hanken_small_font)
 
-    def mainMenu(self, adc_vals, battery_status):
+    def mainMenu(self, adc_vals, battery_status, crc_errs):
 
         img = Image.new("P", self.inky_display.resolution)
         draw = ImageDraw.Draw(img)
-        status = self.statusCheckAll(adc_vals, battery_status)
+        status = self.statusCheckAll(adc_vals, battery_status, crc_errs)
         self.statusBar(draw)
 
         option1 = "> Measurement"
