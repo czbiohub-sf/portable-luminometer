@@ -9,7 +9,7 @@ The device accepts 1-2 PCR tubes and reads the level of luminescence from them u
 
 ## Installation and Use
 ### Option 1: Clone the SD Card
-1. Flash our pre-existing SD card onto a new card. (To be completed)
+1. Flash our pre-existing 16gb SD card onto a new card. The latest image can be downloaded from Google Drive [here](https://drive.google.com/drive/folders/1eKodaykWZre6_c7QN1SxxQCyukg3vkI2?usp=sharing). After downloading the image, use the recommended [Raspberry Pi Imager](https://www.raspberrypi.org/software/), select the "Use Custom" option, and select the downloaded image to flash it onto the 16gb SD card.
 
 ### Option 2: Manual install
 1. Install the latest Raspbian OS on a micro-SD card by following the instructions at: https://www.raspberrypi.org/software/
