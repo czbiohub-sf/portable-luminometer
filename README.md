@@ -13,10 +13,15 @@ The device accepts 1-2 PCR tubes and reads the level of luminescence from them u
 
 ### Option 2: Manual install
 1. Install the latest Raspbian OS on a micro-SD card by following the instructions at: https://www.raspberrypi.org/software/
+    - **The `config.txt` has been validated with RPi OS (full w/ recommended software) version 5.10.17+**
+        - We may want to switch to RPi Lite (smaller size, stripped away of superfluous services which may help w/ more "real-time" timing), but we have not validated it yet.
 2. After the OS is loaded on the micro-SD card and while still loaded in your mac/PC/linux machine, replace ```/boot/config.txt``` with the version found in this repo. This configures the SPI bus on the device, turns off audio processing and the HDMI driver (to save power), and turns off the on-board activity light (to reduce stray light inside the device).
 3. Follow the [instructions](https://www.raspberrypi.org/documentation/configuration/wireless/headless.md) to set up the RPi 'headless' (no keyboard or monitor), using WiFi.
 4. [ssh into the device](https://www.raspberrypi.org/documentation/remote-access/ssh/README.md)
+    - **Remember** to change the hostname after ssh'ing in: 
+        - `sudo raspi-config` (see [here](https://www.raspberrypi.org/documentation/computers/configuration.html) for more, note that the raspi-config menu may look slightly different than what the documentation shows, but the option to configure the hostname will still be there somewhere in the menu)
 5. Create and activate a virtual environment with Python3: 
+- TODO: convert the following three commands into a single command once the repo has been made public
 ```shell
 cd /home/pi/Documents/
 python3 -m venv lumi
@@ -49,6 +54,7 @@ pip install .
 sudo nano /lib/systemd/system/lumiboot.service
 ```
 In the newly-opened text file, paste the following text:
+- TODO: add in a command to activate the virtualenv on boot as well
 ```
 [Unit]
 Description=Luminometer boot command
@@ -57,6 +63,7 @@ After=multi-user.target
 [Service]
 Type=idle
 ExecStart=/usr/bin/python3 /home/pi/Documents/ulc-tube-reader/luminometer/luminometer.py
+Restart=on-failure
 
 [Install]
 WantedBy=multi-user.target
