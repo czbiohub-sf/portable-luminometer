@@ -1,3 +1,4 @@
 (fp_lib_table
   (lib (name Luminometer_OPT101_Footprints)(type KiCad)(uri /Users/paul.lebel/Documents/GitHub/ulc-tube-reader/Luminometer_ADC/Luminometer_OPT101_Footprints.pretty)(options "")(descr ""))
+  (lib (name digikey-footprints)(type KiCad)(uri /Users/paul.lebel/Documents/GitHub/digikey-kicad-library/digikey-footprints.pretty)(options "")(descr ""))
 )

@@ -1,5 +1,11 @@
 EESchema-DOCLIB  Version 2.0
 #
+$CMP 296-46565-1-ND
+D 3A, 4.5 to 28V Input, EMI Friendly integrated switch synchronous step-down regulator, pulse-skipping, SOT-23-6
+K switching buck converter power-supply voltage regulator emi spread spectrum
+F http://www.ti.com/lit/ds/symlink/tps54302.pdf
+$ENDCMP
+#
 $CMP DRV8833PWP
 D IC MOTOR DRIVER PAR 16HTSSOP
 K 296-29434-1-ND
@@ -12,9 +18,39 @@ K switch normally-open pushbutton push-button
 F ~
 $ENDCMP
 #
+$CMP H2179-ND
+D Generic connector, single row, 01x02, script generated (kicad-library-utils/schlib/autogen/connector/)
+K connector
+F ~
+$ENDCMP
+#
+$CMP H2191-ND
+D Generic connector, single row, 01x02, script generated (kicad-library-utils/schlib/autogen/connector/)
+K connector
+F ~
+$ENDCMP
+#
+$CMP PMIC_header_right_angle
+D Generic connector, single row, 01x08, script generated (kicad-library-utils/schlib/autogen/connector/)
+K connector
+F ~
+$ENDCMP
+#
 $CMP SDR0503-153JL
 D FIXED IND 15MH 20MA 168 OHM SMD
 F https://www.murata-ps.com/data/magnetics/kmp_1300r.pdf
+$ENDCMP
+#
+$CMP TPS54202DDC
+D 2A, 4.5 to 28V Input, EMI Friendly integrated switch synchronous step-down regulator, pulse-skipping, SOT-23-6
+K switching buck converter power-supply voltage regulator emi spread spectrum
+F http://www.ti.com/lit/ds/symlink/tps54202.pdf
+$ENDCMP
+#
+$CMP TPS54308
+D 3A, 4.5 to 28V Input, EMI Friendly integrated switch synchronous step-down regulator, continuous-conduction, SOT-23-6
+K switching buck converter power-supply voltage regulator emi spread spectrum FCCM
+F http://www.ti.com/lit/ds/symlink/tps54308.pdf
 $ENDCMP
 #
 #End Doc Library
