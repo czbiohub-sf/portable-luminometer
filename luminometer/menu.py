@@ -113,30 +113,24 @@ class Menu():
         This returns "OK" or "ERR", which is then displayed in the "Status" option
         on the main menu screen.
         """
-        all_good = True
 
         siPMRef = adc_vals[2]
         siPMBias = adc_vals[3]
         v_34 = adc_vals[4]
+        errs = "ERR - "
 
-        if not (V_34_MIN <= v_34 <= V_34_MAX):
-            all_good = False
-        if not (SIPMREF_MIN <= siPMRef <= SIPMREF_MAX):
-            all_good = False
-        if not (SIPMBIAS_MIN <= siPMBias <= SIPMBIAS_MAX):
-            all_good = False
         if battery_status == "LO":
             return "BATT LOW"
         if crc_errs > 0:
-            return "CRC ERR"
+            errs += "C"
+        if not (V_34_MIN <= v_34 <= V_34_MAX):
+            errs += "V"
+        if not (SIPMREF_MIN <= siPMRef <= SIPMREF_MAX):
+            errs += "R"
+        if not (SIPMBIAS_MIN <= siPMBias <= SIPMBIAS_MAX):
+            errs += "B"
 
-        if all_good:
-            return "OK"
-        else:
-            #TODO Change to "ERR" once we have the actual parameters
-            return "OK"
-            # return "ERR"
-
+        return errs
     def screenSwitcher(self, **kwargs):
 
         if not self._lock.locked():
