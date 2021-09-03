@@ -16,7 +16,7 @@ from luminometer_constants import *
 # Set up logging directory and logger
 LOG_OUTPUT_DIR = "/home/pi/luminometer-logs/"
 if not os.path.exists(LOG_OUTPUT_DIR):
-	os.mkdir(LOG_OUTPUT_DIR)
+    os.mkdir(LOG_OUTPUT_DIR)
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 log_location = os.path.join(LOG_OUTPUT_DIR, "menu.log")
@@ -85,6 +85,13 @@ class Menu():
 
         logger.info("Successfully instantiated Menu.")
 
+    def convertADCVals(self, adc_vals):
+        adc_vals[2] = (adc_vals[2]+0.6)*2       # SiPM ref
+        adc_vals[3] = (adc_vals[3]+0.6)*2*28    # SiPM bias check
+        adc_vals[4] = (adc_vals[4]+0.6)*2*28    # 34 V supply
+
+        return adc_vals
+
     def set_selected_calibration(self, calibration):
         """
         Changes the currently set calibration. statusBar() uses this
@@ -114,6 +121,8 @@ class Menu():
         on the main menu screen.
         """
 
+        all_ok = True
+        adc_vals = self.convertADCVals(adc_vals)
         siPMRef = adc_vals[2]
         siPMBias = adc_vals[3]
         v_34 = adc_vals[4]
@@ -123,12 +132,19 @@ class Menu():
             return "BATT LOW"
         if crc_errs > 0:
             errs += "C"
+            all_ok = False
         if not (V_34_MIN <= v_34 <= V_34_MAX):
             errs += "V"
+            all_ok = False
         if not (SIPMREF_MIN <= siPMRef <= SIPMREF_MAX):
             errs += "R"
+            all_ok = False
         if not (SIPMBIAS_MIN <= siPMBias <= SIPMBIAS_MAX):
             errs += "B"
+            all_ok = False
+
+        if all_ok:
+            errs = "OK"
 
         return errs
     def screenSwitcher(self, **kwargs):
@@ -395,10 +411,8 @@ class Menu():
 
         # Convert adc-vals according to 
         # https://docs.google.com/spreadsheets/d/1XpI4IkymO6xYV3iuJ1ECH5WIgAFEHEqbSMnkVcQrlJA/edit#gid=1958620632
-
-        adc_vals[2] = (adc_vals[2]+0.6)*2       # SiPM ref
-        adc_vals[3] = (adc_vals[3]+0.6)*2*28    # SiPM bias check
-        adc_vals[4] = (adc_vals[4]+0.6)*2*28    # 34 V supply
+        
+        adc_vals = self.convertADCVals(adc_vals)
 
         if len(adc_vals) < 5:
             print("Error: Too few ADC values")
@@ -421,27 +435,33 @@ class Menu():
         diag_val_keys = ["batt", "34V", "pbias", "num_CRC_errs", "hbridge_err"]
         adc_val_keys = ["SensorA", "SensorB", "SiPMRef", "SiPMBias", "34V"]
 
-        # TODO change the constants to something we get from luminometer_constants (or some JSON file etc.)
-        # Check if 34V and PBias are in range
-        P_BIAS_LOW = 29
-        P_BIAS_HIGH = 32
+        
+        # Check if SIPMRef, 34V and PBias are in range
+        sipm_ref = adc_vals[2]
+        if sipm_ref < SIPMREF_MIN:
+            diag_vals["sipmref"] = "LO"
+        elif sipm_ref > SIPMREF_MAX:
+            diag_vals["sipmref"] = "HI"
+        else:
+            diag_vals["sipmref"] = "OK"
+
         pbias = adc_vals[3]
-        if pbias < P_BIAS_LOW:
+        if pbias < SIPMBIAS_MIN:
             diag_vals["pbias"] = "LO"
-        elif pbias > P_BIAS_HIGH:
+        elif pbias > SIPMBIAS_MAX:
             diag_vals["pbias"] = "HI"
         else:
             diag_vals["pbias"] = "OK"
 
-        v34_LOW = 30
-        v34_HIGH = 36
         v34 = adc_vals[4]
-        if v34 < v34_LOW:
+        if v34 < V_34_MIN:
             diag_vals["34V"] = "LO"
-        elif v34 > v34_HIGH:
+        elif v34 > V_34_MAX:
             diag_vals["34V"] = "HI"
         else:
             diag_vals["34V"] = "OK"
+
+        
 
         space = " "
         space_x, _ = self.hanken_small_font.getsize(space)

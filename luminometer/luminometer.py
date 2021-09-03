@@ -260,6 +260,7 @@ class Luminometer():
 		self.diag_vals = {
 			"batt": "OK",
 			"34V": "OK",
+			"sipmref": "OK",
 			"pbias": "OK",
 			"num_CRC_errs": 0,
 			"hbridge_err": "OK",
@@ -412,8 +413,9 @@ class Luminometer():
 		try:
 			self.adc_vals = self.averageNMeasurements()
 			self.diag_vals["batt"] = self.batt_status
-			self.diag_vals["34V"] = self.adc_vals[4]
+			self.diag_vals["sipmref"] = self.adc_vals[2]
 			self.diag_vals["pbias"] = self.adc_vals[3]
+			self.diag_vals["34V"] = self.adc_vals[4]
 			self.diag_vals["num_CRC_errs"] = self._crcErrs
 			self.diag_vals["hbridge_err"] = self.shutter.hbridge_err
 		except:
