@@ -1,6 +1,6 @@
 # Sampling rate of the ADC (488 kHz CLKIN, OSR = 4096, global chop mode. See ADS131m08 datasheet 8.4.2.2)
 SAMPLE_TIME_S = 0.050
-SKIP_SAMPLES = 3
+SKIP_SAMPLES = 0
 BUZZ_S = 0.02
 DEF_DARK_TIME = 1800
 SENSITIVITY_NORM_TIME = 30
