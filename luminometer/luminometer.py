@@ -453,7 +453,7 @@ class Luminometer():
 					if self.screen_settled:
 						if next_state in [MenuStates.STATUS_MENU, \
 						MenuStates.MAIN_MENU, \
-						MEASUREMENT_MENU]:
+						MenuStates.MEASUREMENT_MENU]:
 							self._updateDiagVals()
 
 						if not (next_state == MenuStates.MEASUREMENT_IN_PROGRESS):
