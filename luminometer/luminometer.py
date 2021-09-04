@@ -304,6 +304,8 @@ class Luminometer():
 		self._measureLock = threading.Lock()
 
 		self._resetBuffers()
+
+		time.sleep(.25)
 		self.set_state(MenuStates.MAIN_MENU)
 
 		logger.info("Successfully instantiated Luminometer.")
