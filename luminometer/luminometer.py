@@ -451,7 +451,9 @@ class Luminometer():
 
 				try:
 					if self.screen_settled:
-						if next_state == MenuStates.STATUS_MENU:
+						if next_state in [MenuStates.STATUS_MENU, \
+						MenuStates.MAIN_MENU, \
+						MEASUREMENT_MENU]:
 							self._updateDiagVals()
 
 						if not (next_state == MenuStates.MEASUREMENT_IN_PROGRESS):
@@ -934,7 +936,7 @@ class Luminometer():
 					((self._sc) < MIN_PERIODS and self._haltMeasurement == False)
 			return result
 
-	def averageNMeasurements(self, N: int = 20) -> List[float]:
+	def averageNMeasurements(self, N: int = 10) -> List[float]:
 		'''
 		Average N sequential measurements from the sensors without using the shutters.
 		This method uses the _cb_adc_data_ready() callback that always runs while the
