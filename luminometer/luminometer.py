@@ -577,7 +577,7 @@ class Luminometer():
 
 		if self.state == MenuStates.MAIN_MENU and duration == TRANSITION_DURATION:
 			nextState = MenuStates.STATUS_MENU
-			self.buzzer.buzz()
+			# self.buzzer.buzz()
 			# Set up special button combo memory
 			self.button_combo = []
 
