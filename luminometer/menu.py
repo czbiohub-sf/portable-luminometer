@@ -249,7 +249,7 @@ class Menu():
         option1_sub = ""
         option2 = "> Timed exposure"
         option2_sub1 = "Tap: 5 samples"
-        option2_sub2 = "Hold to increase: 15->30->50->300"
+        option2_sub2 = "Hold to increase: 15->30->150->300"
         option3 = "> Back to main"
 
         option1y = self.hanken_medium_font.getsize(option1)[1] + self._status_bar_offset
