@@ -453,16 +453,17 @@ class Luminometer():
 
 				try:
 					if self.screen_settled:
-						if next_state in [MenuStates.STATUS_MENU, \
-						MenuStates.MAIN_MENU, \
-						MenuStates.MEASUREMENT_MENU]:
-							self._updateDiagVals()
-
 						if not (next_state == MenuStates.MEASUREMENT_IN_PROGRESS):
 							# Only buzz on taps, not holds (to avoid confusion on how long it was being held for)
 							if self.button_held_duration == 0:
 								self.buzzer.buzz()
 								self.button_held_duration = 0
+
+						if next_state in [MenuStates.STATUS_MENU, \
+						MenuStates.MAIN_MENU, \
+						MenuStates.MEASUREMENT_MENU]:
+							self._updateDiagVals()
+
 						logger.info(f"Transitioning: {self.state} --> {next_state}")
 					
 						self._display_q.put(display_kwargs)
