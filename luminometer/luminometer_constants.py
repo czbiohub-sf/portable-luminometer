@@ -8,7 +8,7 @@ MAX_EXPOSURE = 3000
 MIN_SNR = 7
 MIN_PERIODS = 7
 DEF_AUTO_MAX_DURATION = 10000
-
+BYTES_PER_MB = 1024*1024
 
 # Thermal calibration file location
 STANDARD_CAL_PATH = "/home/pi/Documents/ulc-tube-reader/luminometer/temp_coeffs.json"

@@ -41,16 +41,23 @@ logger.setLevel(logging.DEBUG)
 log_location = os.path.join(LOG_OUTPUT_DIR, "luminometer.log")
 
 # Set up logging to a file
-file_handler = handlers.RotatingFileHandler(log_location, maxBytes=5*1024*1024, backupCount=3)
+file_size_in_mb = 5
+file_handler = handlers.RotatingFileHandler(log_location, maxBytes=file_size_in_mb*BYTES_PER_MB, backupCount=3)
 formatter = logging.Formatter("%(asctime)s:%(name)s:%(levelname)s: %(message)s", "%Y-%m-%d-%H:%M:%S")
 file_handler.setFormatter(formatter)
 logger.addHandler(file_handler)
 
+"""
+	Disabled logging to the console for production.
+	This was done as a convenience during development.
+	Logs can still be viewed in real-time when the program is running by 
+	running "tail -f LOGFILE.log"
+"""
 # Set up logging to the console
-stream_handler = logging.StreamHandler()
-stream_handler.setLevel(logging.DEBUG)
-stream_handler.setFormatter(formatter)
-logger.addHandler(stream_handler)
+# stream_handler = logging.StreamHandler()
+# stream_handler.setLevel(logging.DEBUG)
+# stream_handler.setFormatter(formatter)
+# logger.addHandler(stream_handler)
 
 # # Continuously write the raw data
 # now = datetime.now()
@@ -75,7 +82,7 @@ class MeasurementType(enum.Enum):
 class HBridgeFault(Exception):
 	pass
 
-def better_sleep(sleep_time: float):
+def better_sleep(sleep_time_in_secs: float):
 	"""
 	A utility function for a more accurate sleep than using time.sleep().
 	time.time() typically has microsecond accuracy, as compared to time.sleep() which
@@ -84,11 +91,11 @@ def better_sleep(sleep_time: float):
 	time.sleep(), this is a blocking delay.
 
 	Arguments:
-		- sleep_time: float
-			How long to delay
+		- sleep_time_in_secs: float
+			How long to delay (in seconds)
 	"""
 	start = time.time()
-	while time.time() - start < sleep_time:
+	while time.time() - start < sleep_time_in_secs:
 		pass
 
 class LumiBuzzer():
@@ -269,7 +276,6 @@ class Luminometer():
 		# Read RLU conversions and temperature calibrations
 		self._readCalibrationFiles()
 
-		# TODO, Get battery status dynamically
 		self.batt_status = "OK"
 		self.calA = " - NONE"
 		logger.info("Checking to see if custom calibration file exists.")
