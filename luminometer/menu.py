@@ -126,21 +126,21 @@ class Menu():
         siPMRef = adc_vals[2]
         siPMBias = adc_vals[3]
         v_34 = adc_vals[4]
-        errs = "ERR - "
+        errs = "ERR: "
 
         if battery_status == "LO":
             return "BATT LOW"
         if crc_errs > 0:
-            errs += "C"
+            errs += "/C"
             all_ok = False
         if not (V_34_MIN <= v_34 <= V_34_MAX):
-            errs += "V"
+            errs += "/V"
             all_ok = False
         if not (SIPMREF_MIN <= siPMRef <= SIPMREF_MAX):
-            errs += "R"
+            errs += "/R"
             all_ok = False
         if not (SIPMBIAS_MIN <= siPMBias <= SIPMBIAS_MAX):
-            errs += "B"
+            errs += "/B"
             all_ok = False
 
         if all_ok:
