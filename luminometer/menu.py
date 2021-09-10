@@ -151,7 +151,7 @@ class Menu():
                         logger.info("Switched to MeasurementInProgress screen.")
 
                     elif state == MenuStates.SHOW_FINAL_MEASUREMENT:
-                        self.showMeasurement(kwargs["_measurementIsDone"], kwargs["resultA"], kwargs["semA"], 
+                        self.showFinalMeasurement(kwargs["_measurementIsDone"], kwargs["resultA"], kwargs["semA"], 
                                                 kwargs["resultB"], kwargs["semB"], kwargs["target_time"], kwargs["time_elapsed"])
                         logger.info("Switched to ShowFinalMeasurement screen.")
 
@@ -349,7 +349,7 @@ class Menu():
         self.inky_display.set_image(img.rotate(self.rotation_deg))
         self.inky_display.show()
 
-    def showMeasurement(self, final: bool=False, sensorA: float=0.0, sensorA_sem: float=0.0,
+    def showFinalMeasurement(self, final: bool=False, sensorA: float=0.0, sensorA_sem: float=0.0,
                             sensorB: float=0.0, sensorB_sem: float=0.0, target_s: int=0, time_elapsed: int=0):
 
 
@@ -365,7 +365,10 @@ class Menu():
         draw = ImageDraw.Draw(img)
         self.statusBar(draw)
 
-        line1 = "Final:" + ('Yes' if final == True else 'No') 
+        if self.errs == "OK":
+            line1 = "Final:" + ('Yes' if final == True else 'No') 
+        else:
+            line1 = "MEASUREMENT ERROR."
         line2 = f"A: {sensorA:.2f}+/-{sensorA_sem:.2f}"
         line3 = f"B: {sensorB:.2f}+/-{sensorB_sem:.2f}"
         line4 = f"Samples: {int(time_elapsed):n}/{target_s}"
