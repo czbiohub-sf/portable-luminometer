@@ -110,6 +110,7 @@ HOLD_TO_CALIBRATE_TIME = 5
 
 BATT_OK = "OK"
 BATT_LOW = "LO"
+CRC_ERR_LIMIT = 10
 
 # ADC min/max diagnostic values 
 SIPMREF_MIN = 1.62

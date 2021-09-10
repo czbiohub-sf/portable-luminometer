@@ -72,6 +72,7 @@ class Menu():
         self._status_bar_offset = 15
         self.selected_calibration = calibration
         self.battery_status = battery_status
+        self.crc_errs = 0
         self.screen_type = screen_type
         self._lock = threading.Lock()
 
@@ -92,35 +93,7 @@ class Menu():
 
         return adc_vals
 
-    def set_selected_calibration(self, calibration):
-        """
-        Changes the currently set calibration. statusBar() uses this
-        parameter.
-        """
-        logger.info(f"Setting calibration: {calibration}.")
-        self.selected_calibration = calibration
-
-    def set_battery_status(self, battery_status):
-        """
-        Changes the currently set battery status. statusBar() uses this
-        parameter.
-        """
-        logger.info(f"Changing battery status: {battery_status}")
-        self.battery_status = battery_status
-
-    def statusCheckAll(self, adc_vals, battery_status, crc_errs):
-        """TODO
-        Takes in a set of five adc values which correspond to: 
-        - Sensor A
-        - Sensor B
-        - SiPM Ref
-        - SiPM Bias
-        - 34V
-        and checks that those values fall within an expected range.
-        This returns "OK" or "ERR", which is then displayed in the "Status" option
-        on the main menu screen.
-        """
-
+    def statusCheckAll(self, adc_vals):
         all_ok = True
         adc_vals = self.convertADCVals(adc_vals)
         siPMRef = adc_vals[2]
@@ -128,9 +101,9 @@ class Menu():
         v_34 = adc_vals[4]
         errs = "ERR: "
 
-        if battery_status == "LO":
+        if self.battery_status == BATT_LOW:
             return "BATT LOW"
-        if crc_errs > 0:
+        if not self.crcOK(self.crc_errs):
             errs += "/C"
             all_ok = False
         if not (V_34_MIN <= v_34 <= V_34_MAX):
@@ -147,7 +120,13 @@ class Menu():
             errs = "OK"
 
         return errs
+    
     def screenSwitcher(self, **kwargs):
+
+        # Update status bar variables
+        self.battery_status = kwargs["battery_status"]
+        self.set_selected_calibration = kwargs["selected_calibration"]
+        self.crc_errs = kwargs["crcErrs"]
 
         if not self._lock.locked():
             with self._lock:
@@ -156,9 +135,7 @@ class Menu():
                 try:
                     # Display screens 
                     if state == MenuStates.MAIN_MENU:
-                        self.set_battery_status(kwargs["battery_status"])
-                        self.set_selected_calibration(kwargs["selected_calibration"])
-                        self.mainMenu(kwargs["adc_vals"], kwargs["battery_status"], kwargs["crcErrs"])
+                        self.mainMenu(kwargs["adc_vals"])
                         logger.info("Switched to MainMenu screen.")
 
                     elif state == MenuStates.MEASUREMENT_MENU:
@@ -209,21 +186,27 @@ class Menu():
                 except Exception as e:
                     logger.exception("Error encountered while switching screens.")
 
+    def crcOK(crc_errs: int):
+        if crc_errs > CRC_ERR_LIMIT:
+            return False
+        else:
+            return True
+    
     def statusBar(self, draw):
-        status = f"Cal: {self.selected_calibration} / Batt: {self.battery_status}"
+        status = f"Cal: {self.selected_calibration} / CRC: {self.crcOK(self.crc_errs)} / Batt: {self.battery_status}"
         statusx, _ = self.hanken_small_font.getsize(status)
         x_pos = self.inky_display.resolution[0] - statusx
         draw.text((x_pos, 0), status, self.inky_display.BLACK, font=self.hanken_small_font)
 
-    def mainMenu(self, adc_vals, battery_status, crc_errs):
+    def mainMenu(self, adc_vals):
 
         img = Image.new("P", self.inky_display.resolution)
         draw = ImageDraw.Draw(img)
-        status = self.statusCheckAll(adc_vals, battery_status, crc_errs)
+        status = self.statusCheckAll(adc_vals)
         self.statusBar(draw)
 
         option1 = "> Measurement"
-        option2 = "> Status - " + status #TODO Change to update '- OK' dynamically
+        option2 = "> Status - " + status
         option3 = "> Choose calibration"
         subtext = "   > Hold bottom button for 5s on any screen"
         subtext2 = "       to go to power off confirmation screen."
@@ -593,29 +576,3 @@ class Menu():
 
         self.inky_display.set_image(img.rotate(self.rotation_deg))
         self.inky_display.show()
-
-if __name__ == "__main__":
-    menu = Menu("STD", "OK")
-
-    while True:
-        userInput = input("Enter menu option: ")
-        if userInput == str(0):
-            menu.mainMenu([0, 1, 2, 3, 4])
-        elif userInput == str(1):
-            menu.measurementMenu()
-        elif userInput == str(2):
-            menu.showMeasurement(True, 1.1, 0.01, 0.9, 0.01, 30, 15)
-        elif userInput == str(3):
-            menu.statusMenu([1.2, 3.1, 2.2, 3.87, 4.99])
-        elif userInput == str(4):
-            menu.calibrationMenu("")
-        elif userInput == str(5):
-            menu.measurementInProgress(1.1, 0.01, 0.9, 0.01, 30, 15)
-        elif userInput == str(6):
-            menu.calibrationInProgress()
-        elif userInput == str(7):
-            menu.powerOff()
-        elif userInput == str(8):
-            menu.confirmCalibrationOverwrite()
-        else:
-            exit()
