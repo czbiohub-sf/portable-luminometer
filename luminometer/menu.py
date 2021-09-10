@@ -28,11 +28,11 @@ formatter = logging.Formatter("%(asctime)s:%(name)s:%(levelname)s: %(message)s",
 file_handler.setFormatter(formatter)
 logger.addHandler(file_handler)
 
-# Set up logging to the console
-stream_handler = logging.StreamHandler()
-stream_handler.setLevel(logging.DEBUG)
-stream_handler.setFormatter(formatter)
-logger.addHandler(stream_handler)
+# # Set up logging to the console
+# stream_handler = logging.StreamHandler()
+# stream_handler.setLevel(logging.DEBUG)
+# stream_handler.setFormatter(formatter)
+# logger.addHandler(stream_handler)
 
 """
 An enum which lists the possible MenuStates. enum.auto() is used to 
