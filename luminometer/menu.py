@@ -186,7 +186,7 @@ class Menu():
                 except Exception as e:
                     logger.exception("Error encountered while switching screens.")
 
-    def crcOK(crc_errs: int):
+    def crcOK(self, crc_errs: int):
         if crc_errs > CRC_ERR_LIMIT:
             return False
         else:
