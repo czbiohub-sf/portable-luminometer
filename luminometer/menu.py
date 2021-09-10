@@ -72,7 +72,7 @@ class Menu():
         self._status_bar_offset = 15
         self.selected_calibration = calibration
         self.battery_status = battery_status
-        self.crc_errs = 0
+        self.crc_errs_normed = 0
         self.screen_type = screen_type
         self._lock = threading.Lock()
 
@@ -103,7 +103,7 @@ class Menu():
 
         if self.battery_status == BATT_LOW:
             return "BATT LOW"
-        if not self.crcOK(self.crc_errs):
+        if not self.crcOK(self.crc_errs_normed):
             errs += "/C"
             all_ok = False
         if not (V_34_MIN <= v_34 <= V_34_MAX):
@@ -126,7 +126,7 @@ class Menu():
         # Update status bar variables
         self.battery_status = kwargs["battery_status"]
         self.set_selected_calibration = kwargs["selected_calibration"]
-        self.crc_errs = kwargs["crcErrs"]
+        self.crc_errs_normed = kwargs["crcErrs_normed"]
 
         if not self._lock.locked():
             with self._lock:
@@ -186,14 +186,14 @@ class Menu():
                 except Exception as e:
                     logger.exception("Error encountered while switching screens.")
 
-    def crcOK(self, crc_errs: int):
-        if crc_errs > CRC_ERR_LIMIT:
+    def crcOK(self, crc_errs_normed: int):
+        if crc_errs_normed > CRC_ERR_LIMIT_PERCENT:
             return False
         else:
             return True
     
     def statusBar(self, draw):
-        data_ok = "OK" if self.crcOK(self.crc_errs) else "ERR"
+        data_ok = "OK" if self.crcOK(self.crc_errs_normed) else "ERR"
         status = f"Cal: {self.selected_calibration} / Data: {data_ok} / Batt: {self.battery_status}"
         statusx, _ = self.hanken_small_font.getsize(status)
         x_pos = self.inky_display.resolution[0] - statusx
