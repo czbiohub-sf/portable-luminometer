@@ -193,7 +193,8 @@ class Menu():
             return True
     
     def statusBar(self, draw):
-        status = f"Cal: {self.selected_calibration} / CRC: {self.crcOK(self.crc_errs)} / Batt: {self.battery_status}"
+        data_ok = "OK" if self.crcOK(self.crc_errs) else "ERR"
+        status = f"Cal: {self.selected_calibration} / Data: {data_ok} / Batt: {self.battery_status}"
         statusx, _ = self.hanken_small_font.getsize(status)
         x_pos = self.inky_display.resolution[0] - statusx
         draw.text((x_pos, 0), status, self.inky_display.BLACK, font=self.hanken_small_font)
