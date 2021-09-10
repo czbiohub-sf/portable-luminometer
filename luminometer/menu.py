@@ -72,9 +72,9 @@ class Menu():
         self._status_bar_offset = 15
         self.selected_calibration = calibration
         self.battery_status = battery_status
-        self.crc_errs_normed = 0
         self.screen_type = screen_type
         self._lock = threading.Lock()
+        self.errs = "OK"
 
         # Load the fonts
         logger.info("Setting up fonts.")
@@ -93,7 +93,7 @@ class Menu():
 
         return adc_vals
 
-    def statusCheckAll(self, adc_vals):
+    def statusCheckAll(self, adc_vals, crc_errs_normed):
         all_ok = True
         adc_vals = self.convertADCVals(adc_vals)
         siPMRef = adc_vals[2]
@@ -102,8 +102,9 @@ class Menu():
         errs = "ERR: "
 
         if self.battery_status == BATT_LOW:
-            return "BATT LOW"
-        if not self.crcOK(self.crc_errs_normed):
+            self.errs = "BATT LOW"
+            all_ok = False
+        if not self.crcOK(crc_errs_normed):
             errs += "/C"
             all_ok = False
         if not (V_34_MIN <= v_34 <= V_34_MAX):
@@ -119,6 +120,8 @@ class Menu():
         if all_ok:
             errs = "OK"
 
+        self.errs = errs
+
         return errs
     
     def screenSwitcher(self, **kwargs):
@@ -128,9 +131,9 @@ class Menu():
                 state = kwargs["state"]
                 if state != MenuStates.POWER_OFF:
                     # Update status bar variables
+                    self.statusCheckAll(kwargs["adc_vals"], kwargs["crcErrs_normed"])
                     self.battery_status = kwargs["battery_status"]
-                    self.set_selected_calibration = kwargs["selected_calibration"]
-                    self.crc_errs_normed = kwargs["crcErrs_normed"]
+                    self.selected_calibration = kwargs["selected_calibration"]
 
                 try:
                     # Display screens 
@@ -193,8 +196,7 @@ class Menu():
             return True
     
     def statusBar(self, draw):
-        data_ok = "OK" if self.crcOK(self.crc_errs_normed) else "ERR"
-        status = f"Cal: {self.selected_calibration} / Data: {data_ok} / Batt: {self.battery_status}"
+        status = f"Cal: {self.selected_calibration} / Status: {self.errs}"
         statusx, _ = self.hanken_small_font.getsize(status)
         x_pos = self.inky_display.resolution[0] - statusx
         draw.text((x_pos, 0), status, self.inky_display.BLACK, font=self.hanken_small_font)
@@ -203,7 +205,7 @@ class Menu():
 
         img = Image.new("P", self.inky_display.resolution)
         draw = ImageDraw.Draw(img)
-        status = self.statusCheckAll(adc_vals)
+        status = self.errs
         self.statusBar(draw)
 
         option1 = "> Measurement"
