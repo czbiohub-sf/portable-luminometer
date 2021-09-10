@@ -126,10 +126,11 @@ class Menu():
         if not self._lock.locked():
             with self._lock:
                 state = kwargs["state"]
-                # Update status bar variables
-                self.battery_status = kwargs["battery_status"]
-                self.set_selected_calibration = kwargs["selected_calibration"]
-                self.crc_errs_normed = kwargs["crcErrs_normed"]
+                if state != MenuStates.POWER_OFF:
+                    # Update status bar variables
+                    self.battery_status = kwargs["battery_status"]
+                    self.set_selected_calibration = kwargs["selected_calibration"]
+                    self.crc_errs_normed = kwargs["crcErrs_normed"]
 
                 try:
                     # Display screens 
