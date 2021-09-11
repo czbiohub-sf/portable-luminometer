@@ -93,16 +93,16 @@ class Menu():
 
         return adc_vals
 
-    def statusCheckAll(self, adc_vals, crc_errs_normed):
+    def statusCheckAll(self, crc_errs_normed):
         all_ok = True
-        adc_vals = self.convertADCVals(adc_vals)
+        adc_vals = self.adc_vals
         siPMRef = adc_vals[2]
         siPMBias = adc_vals[3]
         v_34 = adc_vals[4]
         errs = "ERR: "
 
         if self.battery_status == BATT_LOW:
-            self.errs = "BATT LOW"
+            errs += "BATT LOW/"
             all_ok = False
         if not self.crcOK(crc_errs_normed):
             errs += "/C"
@@ -119,8 +119,11 @@ class Menu():
 
         if all_ok:
             errs = "OK"
+        else:
+            errs = errs.replace("/", "", 1)
 
         self.errs = errs
+        logger.info(f"{self.errs}")
 
         return errs
     
@@ -131,14 +134,15 @@ class Menu():
                 state = kwargs["state"]
                 if state != MenuStates.POWER_OFF:
                     # Update status bar variables
-                    self.statusCheckAll(kwargs["adc_vals"], kwargs["crcErrs_normed"])
+                    self.adc_vals = self.convertADCVals(kwargs["adc_vals"])
+                    self.statusCheckAll(kwargs["crcErrs_normed"])
                     self.battery_status = kwargs["battery_status"]
                     self.selected_calibration = kwargs["selected_calibration"]
 
                 try:
                     # Display screens 
                     if state == MenuStates.MAIN_MENU:
-                        self.mainMenu(kwargs["adc_vals"])
+                        self.mainMenu()
                         logger.info("Switched to MainMenu screen.")
 
                     elif state == MenuStates.MEASUREMENT_MENU:
@@ -156,7 +160,7 @@ class Menu():
                         logger.info("Switched to ShowFinalMeasurement screen.")
 
                     elif state == MenuStates.STATUS_MENU:
-                        self.statusMenu(kwargs["diag_vals"], kwargs["adc_vals"])
+                        self.statusMenu(kwargs["diag_vals"], self.adc_vals)
                         logger.info("Switched to Status screen.")
 
                     elif state == MenuStates.CALIBRATION_MENU:
@@ -189,6 +193,14 @@ class Menu():
                 except Exception as e:
                     logger.exception("Error encountered while switching screens.")
 
+    def lowOrHigh(self, var, lower, upper):
+        if var < lower:
+            return "LO"
+        elif var > upper:
+            return "HI"
+        else:
+            return "OK"
+
     def crcOK(self, crc_errs_normed: int):
         if crc_errs_normed > CRC_ERR_LIMIT_PERCENT:
             return False
@@ -201,7 +213,7 @@ class Menu():
         x_pos = self.inky_display.resolution[0] - statusx
         draw.text((x_pos, 0), status, self.inky_display.BLACK, font=self.hanken_small_font)
 
-    def mainMenu(self, adc_vals):
+    def mainMenu(self):
 
         img = Image.new("P", self.inky_display.resolution)
         draw = ImageDraw.Draw(img)
@@ -401,7 +413,7 @@ class Menu():
         # Convert adc-vals according to 
         # https://docs.google.com/spreadsheets/d/1XpI4IkymO6xYV3iuJ1ECH5WIgAFEHEqbSMnkVcQrlJA/edit#gid=1958620632
         
-        adc_vals = self.convertADCVals(adc_vals)
+        adc_vals = self.adc_vals
 
         if len(adc_vals) < 5:
             print("Error: Too few ADC values")
@@ -427,30 +439,11 @@ class Menu():
         
         # Check if SIPMRef, 34V and PBias are in range
         sipm_ref = adc_vals[2]
-        if sipm_ref < SIPMREF_MIN:
-            diag_vals["sipmref"] = "LO"
-        elif sipm_ref > SIPMREF_MAX:
-            diag_vals["sipmref"] = "HI"
-        else:
-            diag_vals["sipmref"] = "OK"
-
         pbias = adc_vals[3]
-        if pbias < SIPMBIAS_MIN:
-            diag_vals["pbias"] = "LO"
-        elif pbias > SIPMBIAS_MAX:
-            diag_vals["pbias"] = "HI"
-        else:
-            diag_vals["pbias"] = "OK"
-
         v34 = adc_vals[4]
-        if v34 < V_34_MIN:
-            diag_vals["34V"] = "LO"
-        elif v34 > V_34_MAX:
-            diag_vals["34V"] = "HI"
-        else:
-            diag_vals["34V"] = "OK"
-
-        
+        diag_vals["sipmref"] = self.lowOrHigh(sipm_ref, SIPMREF_MIN, SIPMREF_MAX)
+        diag_vals["pbias"] = self.lowOrHigh(pbias, SIPMBIAS_MIN, SIPMBIAS_MAX)
+        diag_vals["34V"] = self.lowOrHigh(v34, V_34_MIN, V_34_MAX)
 
         space = " "
         space_x, _ = self.hanken_small_font.getsize(space)
