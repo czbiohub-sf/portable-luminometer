@@ -447,7 +447,7 @@ class Luminometer():
 					"adc_vals": self.adc_vals,
 					"rlu_per_v": [self.rlu_per_v_a, self.rlu_per_v_b],
 					"rlu_time": SENSITIVITY_NORM_TIME,
-					"crcErrs_normed": self._crcErrs / self.nSamples
+					"crcErrs_normed": self._crcErrs / self.nRawSamples
 				}
 		return display_kwargs
 
