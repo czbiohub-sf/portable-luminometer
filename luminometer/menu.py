@@ -28,11 +28,11 @@ formatter = logging.Formatter("%(asctime)s:%(name)s:%(levelname)s: %(message)s",
 file_handler.setFormatter(formatter)
 logger.addHandler(file_handler)
 
-# Set up logging to the console
-stream_handler = logging.StreamHandler()
-stream_handler.setLevel(logging.DEBUG)
-stream_handler.setFormatter(formatter)
-logger.addHandler(stream_handler)
+# # Set up logging to the console
+# stream_handler = logging.StreamHandler()
+# stream_handler.setLevel(logging.DEBUG)
+# stream_handler.setFormatter(formatter)
+# logger.addHandler(stream_handler)
 
 """
 An enum which lists the possible MenuStates. enum.auto() is used to 
@@ -74,6 +74,7 @@ class Menu():
         self.battery_status = battery_status
         self.screen_type = screen_type
         self._lock = threading.Lock()
+        self.errs = "OK"
 
         # Load the fonts
         logger.info("Setting up fonts.")
@@ -92,45 +93,18 @@ class Menu():
 
         return adc_vals
 
-    def set_selected_calibration(self, calibration):
-        """
-        Changes the currently set calibration. statusBar() uses this
-        parameter.
-        """
-        logger.info(f"Setting calibration: {calibration}.")
-        self.selected_calibration = calibration
-
-    def set_battery_status(self, battery_status):
-        """
-        Changes the currently set battery status. statusBar() uses this
-        parameter.
-        """
-        logger.info(f"Changing battery status: {battery_status}")
-        self.battery_status = battery_status
-
-    def statusCheckAll(self, adc_vals, battery_status, crc_errs):
-        """TODO
-        Takes in a set of five adc values which correspond to: 
-        - Sensor A
-        - Sensor B
-        - SiPM Ref
-        - SiPM Bias
-        - 34V
-        and checks that those values fall within an expected range.
-        This returns "OK" or "ERR", which is then displayed in the "Status" option
-        on the main menu screen.
-        """
-
+    def statusCheckAll(self, crc_errs_normed):
         all_ok = True
-        adc_vals = self.convertADCVals(adc_vals)
+        adc_vals = self.adc_vals
         siPMRef = adc_vals[2]
         siPMBias = adc_vals[3]
         v_34 = adc_vals[4]
         errs = "ERR: "
 
-        if battery_status == "LO":
-            return "BATT LOW"
-        if crc_errs > 0:
+        if self.battery_status == BATT_LOW:
+            errs += "BATT LOW/"
+            all_ok = False
+        if not self.crcOK(crc_errs_normed):
             errs += "/C"
             all_ok = False
         if not (V_34_MIN <= v_34 <= V_34_MAX):
@@ -145,20 +119,30 @@ class Menu():
 
         if all_ok:
             errs = "OK"
+        else:
+            errs = errs.replace("/", "", 1)
+
+        self.errs = errs
+        logger.info(f"{self.errs}")
 
         return errs
+    
     def screenSwitcher(self, **kwargs):
 
         if not self._lock.locked():
             with self._lock:
                 state = kwargs["state"]
+                if state != MenuStates.POWER_OFF:
+                    # Update status bar variables
+                    self.adc_vals = self.convertADCVals(kwargs["adc_vals"])
+                    self.statusCheckAll(kwargs["crcErrs_normed"])
+                    self.battery_status = kwargs["battery_status"]
+                    self.selected_calibration = kwargs["selected_calibration"]
 
                 try:
                     # Display screens 
                     if state == MenuStates.MAIN_MENU:
-                        self.set_battery_status(kwargs["battery_status"])
-                        self.set_selected_calibration(kwargs["selected_calibration"])
-                        self.mainMenu(kwargs["adc_vals"], kwargs["battery_status"], kwargs["crcErrs"])
+                        self.mainMenu()
                         logger.info("Switched to MainMenu screen.")
 
                     elif state == MenuStates.MEASUREMENT_MENU:
@@ -171,12 +155,12 @@ class Menu():
                         logger.info("Switched to MeasurementInProgress screen.")
 
                     elif state == MenuStates.SHOW_FINAL_MEASUREMENT:
-                        self.showMeasurement(kwargs["_measurementIsDone"], kwargs["resultA"], kwargs["semA"], 
+                        self.showFinalMeasurement(kwargs["_measurementIsDone"], kwargs["resultA"], kwargs["semA"], 
                                                 kwargs["resultB"], kwargs["semB"], kwargs["target_time"], kwargs["time_elapsed"])
                         logger.info("Switched to ShowFinalMeasurement screen.")
 
                     elif state == MenuStates.STATUS_MENU:
-                        self.statusMenu(kwargs["diag_vals"], kwargs["adc_vals"])
+                        self.statusMenu(kwargs["diag_vals"], self.adc_vals)
                         logger.info("Switched to Status screen.")
 
                     elif state == MenuStates.CALIBRATION_MENU:
@@ -209,21 +193,35 @@ class Menu():
                 except Exception as e:
                     logger.exception("Error encountered while switching screens.")
 
+    def lowOrHigh(self, var, lower, upper):
+        if var < lower:
+            return "LO"
+        elif var > upper:
+            return "HI"
+        else:
+            return "OK"
+
+    def crcOK(self, crc_errs_normed: int):
+        if crc_errs_normed > CRC_ERR_LIMIT_PERCENT:
+            return False
+        else:
+            return True
+    
     def statusBar(self, draw):
-        status = f"Cal: {self.selected_calibration} / Batt: {self.battery_status}"
+        status = f"Cal: {self.selected_calibration} / Status: {self.errs}"
         statusx, _ = self.hanken_small_font.getsize(status)
         x_pos = self.inky_display.resolution[0] - statusx
         draw.text((x_pos, 0), status, self.inky_display.BLACK, font=self.hanken_small_font)
 
-    def mainMenu(self, adc_vals, battery_status, crc_errs):
+    def mainMenu(self):
 
         img = Image.new("P", self.inky_display.resolution)
         draw = ImageDraw.Draw(img)
-        status = self.statusCheckAll(adc_vals, battery_status, crc_errs)
+        status = self.errs
         self.statusBar(draw)
 
         option1 = "> Measurement"
-        option2 = "> Status - " + status #TODO Change to update '- OK' dynamically
+        option2 = "> Status - " + status
         option3 = "> Choose calibration"
         subtext = "   > Hold bottom button for 5s on any screen"
         subtext2 = "       to go to power off confirmation screen."
@@ -363,7 +361,7 @@ class Menu():
         self.inky_display.set_image(img.rotate(self.rotation_deg))
         self.inky_display.show()
 
-    def showMeasurement(self, final: bool=False, sensorA: float=0.0, sensorA_sem: float=0.0,
+    def showFinalMeasurement(self, final: bool=False, sensorA: float=0.0, sensorA_sem: float=0.0,
                             sensorB: float=0.0, sensorB_sem: float=0.0, target_s: int=0, time_elapsed: int=0):
 
 
@@ -379,7 +377,10 @@ class Menu():
         draw = ImageDraw.Draw(img)
         self.statusBar(draw)
 
-        line1 = "Final:" + ('Yes' if final == True else 'No') 
+        if self.errs == "OK":
+            line1 = "Final:" + ('Yes' if final == True else 'No') 
+        else:
+            line1 = "MEASUREMENT ERROR."
         line2 = f"A: {sensorA:.2f}+/-{sensorA_sem:.2f}"
         line3 = f"B: {sensorB:.2f}+/-{sensorB_sem:.2f}"
         line4 = f"Samples: {int(time_elapsed):n}/{target_s}"
@@ -412,7 +413,7 @@ class Menu():
         # Convert adc-vals according to 
         # https://docs.google.com/spreadsheets/d/1XpI4IkymO6xYV3iuJ1ECH5WIgAFEHEqbSMnkVcQrlJA/edit#gid=1958620632
         
-        adc_vals = self.convertADCVals(adc_vals)
+        adc_vals = self.adc_vals
 
         if len(adc_vals) < 5:
             print("Error: Too few ADC values")
@@ -438,30 +439,11 @@ class Menu():
         
         # Check if SIPMRef, 34V and PBias are in range
         sipm_ref = adc_vals[2]
-        if sipm_ref < SIPMREF_MIN:
-            diag_vals["sipmref"] = "LO"
-        elif sipm_ref > SIPMREF_MAX:
-            diag_vals["sipmref"] = "HI"
-        else:
-            diag_vals["sipmref"] = "OK"
-
         pbias = adc_vals[3]
-        if pbias < SIPMBIAS_MIN:
-            diag_vals["pbias"] = "LO"
-        elif pbias > SIPMBIAS_MAX:
-            diag_vals["pbias"] = "HI"
-        else:
-            diag_vals["pbias"] = "OK"
-
         v34 = adc_vals[4]
-        if v34 < V_34_MIN:
-            diag_vals["34V"] = "LO"
-        elif v34 > V_34_MAX:
-            diag_vals["34V"] = "HI"
-        else:
-            diag_vals["34V"] = "OK"
-
-        
+        diag_vals["sipmref"] = self.lowOrHigh(sipm_ref, SIPMREF_MIN, SIPMREF_MAX)
+        diag_vals["pbias"] = self.lowOrHigh(pbias, SIPMBIAS_MIN, SIPMBIAS_MAX)
+        diag_vals["34V"] = self.lowOrHigh(v34, V_34_MIN, V_34_MAX)
 
         space = " "
         space_x, _ = self.hanken_small_font.getsize(space)
@@ -593,29 +575,3 @@ class Menu():
 
         self.inky_display.set_image(img.rotate(self.rotation_deg))
         self.inky_display.show()
-
-if __name__ == "__main__":
-    menu = Menu("STD", "OK")
-
-    while True:
-        userInput = input("Enter menu option: ")
-        if userInput == str(0):
-            menu.mainMenu([0, 1, 2, 3, 4])
-        elif userInput == str(1):
-            menu.measurementMenu()
-        elif userInput == str(2):
-            menu.showMeasurement(True, 1.1, 0.01, 0.9, 0.01, 30, 15)
-        elif userInput == str(3):
-            menu.statusMenu([1.2, 3.1, 2.2, 3.87, 4.99])
-        elif userInput == str(4):
-            menu.calibrationMenu("")
-        elif userInput == str(5):
-            menu.measurementInProgress(1.1, 0.01, 0.9, 0.01, 30, 15)
-        elif userInput == str(6):
-            menu.calibrationInProgress()
-        elif userInput == str(7):
-            menu.powerOff()
-        elif userInput == str(8):
-            menu.confirmCalibrationOverwrite()
-        else:
-            exit()

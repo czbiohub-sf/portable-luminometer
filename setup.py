@@ -11,7 +11,8 @@ setuptools.setup(
         'Pillow',
         'inky',
         'numpy',
-        'pigpio'
+        'pigpio',
+        'RPi.GPIO'
     ],
     classifiers=[
         "CZ Biohub :: Bioengineering",

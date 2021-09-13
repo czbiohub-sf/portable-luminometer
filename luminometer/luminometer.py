@@ -447,7 +447,7 @@ class Luminometer():
 					"adc_vals": self.adc_vals,
 					"rlu_per_v": [self.rlu_per_v_a, self.rlu_per_v_b],
 					"rlu_time": SENSITIVITY_NORM_TIME,
-					"crcErrs": self._crcErrs
+					"crcErrs_normed": self._crcErrs / self.nRawSamples
 				}
 		return display_kwargs
 
@@ -826,7 +826,7 @@ class Luminometer():
 				except queue.Full:
 					pass
 
-				self._resetBuffers(measure_time)
+				self._resetBuffers(measure_time, new_measurement=True)
 
 				t0 = time.perf_counter()
 
@@ -1052,7 +1052,7 @@ class Luminometer():
 		except queue.Full:
 			logger.error('Display queue full. Could not display result')
 
-	def _resetBuffers(self, measure_time: int = 10):
+	def _resetBuffers(self, measure_time: int = 10, new_measurement: bool = False):
 
 			self.dataA = [0.0]
 			self.dataB = [0.0]
@@ -1093,6 +1093,9 @@ class Luminometer():
 
 			# Counters
 			self._rsc = self._sc = 0
+
+			if new_measurement:
+				self._crcErrs = 0
 
 	def writeToFile(self):
 		now = datetime.now()
