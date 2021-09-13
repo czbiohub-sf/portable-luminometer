@@ -93,6 +93,14 @@ class Menu():
 
         return adc_vals
 
+    def set_selected_calibration(self, calibration):
+        """
+        Changes the currently set calibration. statusBar() uses this
+        parameter.
+        """
+        logger.info(f"Setting calibration: {calibration}.")
+        self.selected_calibration = calibration
+        
     def statusCheckAll(self, crc_errs_normed):
         all_ok = True
         adc_vals = self.adc_vals
