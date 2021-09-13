@@ -405,8 +405,8 @@ class Luminometer():
 				logger.info("Sucessfully loaded RLU_PER_V from rlu.json.")
 		except:
 			# In case of an error, fallback on this default for rlu_per_v
-			self.rlu_per_v_a = 50000
-			self.rlu_per_v_b = 50000
+			self.rlu_per_v_a = DEFAULT_RLU
+			self.rlu_per_v_b = DEFAULT_RLU
 			logger.exception(f"Errored while reading rlu_per_v from rlu.json.\nResorting to: ({self.rlu_per_v_a:}, {self.rlu_per_v_b:})")
 
 	def checkAndSetBatteryStatus(self):
