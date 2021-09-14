@@ -46,7 +46,7 @@
 dtparam=i2c_arm=off
 #dtparam=i2s=on
 dtparam=spi=on
-dtoverlay=spi0-2cs,cs1_pin=4
+#dtoverlay=spi0-2cs,cs1_pin=4
 
 
 # Uncomment this to enable infrared communication.
