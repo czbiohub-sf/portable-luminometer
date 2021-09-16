@@ -1251,7 +1251,10 @@ class Luminometer():
 					t0 = time.perf_counter()
 					if t0 - prev_time > 300:
 						prev_time = t0
-						ts_logger.info("Stayin' alive.")
+						if self.batt_status == BATT_LOW:
+							ts_logger.info("Stayin' alive but feeling tired.")
+						else:
+							ts_logger.info("Stayin' alive.")
 
 					# Check for status of the futures which are currently working
 					done, not_done = concurrent.futures.wait(future_result, timeout=0.005, \
