@@ -48,7 +48,7 @@ file_handler.setFormatter(formatter)
 logger.addHandler(file_handler)
 
 # Timestamp logger 
-ts_logger = logging.getLogger(__name__)
+ts_logger = logging.getLogger("BatteryLifeTest")
 ts_logger.setLevel(logging.DEBUG)
 ts_log_location = os.path.join(LOG_OUTPUT_DIR, "staying-alive.log")
 ts_file_handler = handlers.RotatingFileHandler(ts_log_location, maxBytes=10*BYTES_PER_MB, backupCount=5)
@@ -326,7 +326,7 @@ class Luminometer():
 		logger.info("Successfully instantiated Luminometer.")
 		ts_logger.info("Starting forever measurement.")
 		self.measurementMode = "Forever"
-		self._measure_q.put_nowait((1e7, MeasurementType.MEASUREMENT))
+		self._measure_q.put_nowait((1000000, MeasurementType.MEASUREMENT))
 
 	def _initADC(self):
 		# Start up sensor chip
