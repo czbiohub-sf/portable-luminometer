@@ -47,6 +47,15 @@ formatter = logging.Formatter("%(asctime)s:%(name)s:%(levelname)s: %(message)s",
 file_handler.setFormatter(formatter)
 logger.addHandler(file_handler)
 
+# Timestamp logger 
+ts_logger = logging.getLogger(__name__)
+ts_logger.setLevel(logging.DEBUG)
+ts_log_location = os.path.join(LOG_OUTPUT_DIR, "staying-alive.log")
+ts_file_handler = handlers.RotatingFileHandler(ts_log_location, maxBytes=10*BYTES_PER_MB, backupCount=5)
+ts_formatter = logging.Formatter("%(asctime)s:%(name)s:%(levelname)s: %(message)s", "%Y-%m-%d-%H:%M:%S")
+ts_file_handler.setFormatter(ts_formatter)
+ts_logger.addHandler(ts_file_handler)
+
 """
 	Disabled logging to the console for production.
 	This was done as a convenience during development.
@@ -315,6 +324,9 @@ class Luminometer():
 		self.set_state(MenuStates.MAIN_MENU)
 
 		logger.info("Successfully instantiated Luminometer.")
+		ts_logger.info("Starting forever measurement.")
+		self.measurementMode = "Forever"
+		self._measure_q.put_nowait((1e7, MeasurementType.MEASUREMENT))
 
 	def _initADC(self):
 		# Start up sensor chip
@@ -1219,7 +1231,7 @@ class Luminometer():
 		return gatedIn - tempCoeffs[1]*(darkMeanIn - tempCoeffs[0])
 
 	def run(self):
-
+		prev_time = time.perf_counter() - 300
 		self.shutter.rest()
 
 		try:
@@ -1237,6 +1249,9 @@ class Luminometer():
 				while self._powerOn:
 
 					t0 = time.perf_counter()
+					if t0 - prev_time > 300:
+						prev_time = t0
+						ts_logger.info("Stayin' alive.")
 
 					# Check for status of the futures which are currently working
 					done, not_done = concurrent.futures.wait(future_result, timeout=0.005, \
