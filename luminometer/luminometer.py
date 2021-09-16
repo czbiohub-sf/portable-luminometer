@@ -324,9 +324,7 @@ class Luminometer():
 		self.set_state(MenuStates.MAIN_MENU)
 
 		logger.info("Successfully instantiated Luminometer.")
-		ts_logger.info("Starting forever measurement.")
-		self.measurementMode = "Forever"
-		self._measure_q.put_nowait((1000000, MeasurementType.MEASUREMENT))
+		ts_logger.info("Starting idle endurance test.")
 
 	def _initADC(self):
 		# Start up sensor chip
@@ -1252,9 +1250,9 @@ class Luminometer():
 					if t0 - prev_time > 300:
 						prev_time = t0
 						if self.batt_status == BATT_LOW:
-							ts_logger.info("Stayin' alive but feeling tired.")
+							ts_logger.info("Stayin' (idly) alive but feeling tired.")
 						else:
-							ts_logger.info("Stayin' alive.")
+							ts_logger.info("Stayin' (idly) alive.")
 
 					# Check for status of the futures which are currently working
 					done, not_done = concurrent.futures.wait(future_result, timeout=0.005, \
