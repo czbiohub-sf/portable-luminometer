@@ -56,6 +56,12 @@ ts_formatter = logging.Formatter("%(asctime)s:%(name)s:%(levelname)s: %(message)
 ts_file_handler.setFormatter(ts_formatter)
 ts_logger.addHandler(ts_file_handler)
 
+# Create file for continuously logging the raw data
+raw_data_filename = "raw-data-" + datetime.now().strftime("%Y-%m-%d-%H-%M-%S") + ".csv"
+raw_data_dir = os.path.join(LOG_OUTPUT_DIR, raw_data_filename)
+raw_data_file = open(raw_data_dir, "w")
+raw_csv_writer = csv.writer(raw_data_file)
+
 """
 	Disabled logging to the console for production.
 	This was done as a convenience during development.
@@ -872,6 +878,7 @@ class Luminometer():
 
 							self._updateDisplayResult()
 
+
 							sampleCount += 1
 
 					# Final: gate traces. If calibration, do the fit and write the file
@@ -1010,6 +1017,15 @@ class Luminometer():
 			if self._measuring and (self._rsc < self.nRawSamples) and not self._haltMeasurement:
 				self.rawdataA[self._rsc] = d[0]
 				self.rawdataB[self._rsc] = d[1]
+
+				# Write the raw data
+				try:
+					logger.info("Writing to raw data file.")
+					if self._rsc % 4 == 0:
+						raw_csv_writer.writerow((d[0], d[1]))
+						raw_data_file.flush()
+				except Exception as e:
+					logger.exception(e)
 
 				# Close shutters
 				if self._rsc % (2*self.shutter_samples) == 0:
