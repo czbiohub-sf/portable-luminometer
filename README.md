@@ -1,11 +1,18 @@
-# Ultra-sensitive, portable, low-cost luminometer
+# High-sensitivity Portable SiPM Luminometer
 
 ## Introduction
-This repository contains the design details for a handheld, ultra-low cost luminescence reader developed by the BioEngineering team at Chan Zuckerberg Biohub (CZB). This module is being developed in response to the need for such a device that can be used in low-resource settings for a split-luciferase sars-cov-2 antibody test. This assay was developed in the lab of Jim Wells at UCSF, and in collaboration with Cristina Tato at CZB.
+This repository contains the electronics design and control software for a portable, low-cost luminescence reader developed by the BioEngineering team at Chan Zuckerberg Biohub (CZB). This instrument is being developed in response to the need for a device to read out a split-luciferase luminescence assay for a sars-cov-2 antibody test compatible with remote, low-resource settings. The assay itself was developed by Susanna Elledge et al. in Jim Wells' lab at UCSF, in collaboration with Cristina Tato at CZB:
 
-The device accepts 1-2 PCR tubes and reads the level of luminescence from them using a sensor that is read out by a 24-bit analog-to-digital converter. The device includes a shutter system that repeatedly blocks and unblocks the signal from reaching the sensor, thereby continuously performing dark measurements in order to stabilize the baseline of the measurement against drift. Results are displayed on a low-power, e-ink screen.
+https://www-nature-com.ucsf.idm.oclc.org/articles/s41587-021-00878-8
 
-![](https://github.com/czbiohub/ulc-tube-reader/blob/fully-threaded/SiPM%20Demo.gif)
+The split-luciferase assay emits 
+The need for portability was identified by Cristina Tato (CZB), who is leading an effort to map coronavirus immunity across remote regions in Bangladesh, in collaboration with Senjuti Saha.
+
+Our device accepts 1-2 PCR tubes, and reports on luminescence levels using a sensor that is read out by a 24-bit analog-to-digital converter. The device includes a shutter system that repeatedly blocks and unblocks the signal from reaching the sensor, thereby continuously performing dark measurements in order to stabilize the baseline of the measurement against drift. Results are displayed on a low-power, e-ink screen.
+
+## Full user guide here: 
+https://tinyurl.com/3p8p7axm
+
 
 ## Installation and Use
 ### Option 1: Clone the SD Card
@@ -82,13 +89,6 @@ sudo systemctl enable pigpiod
 14. Power down the RPi: ```sudo poweroff```
 15. Attach the Inky pHat to the GPIO header, then securely plug the RPi into the socket header on the luminometer board.
 16. Power on the device and make measurements.
-
-## Module contents
-
-### Luminometer
-* __Luminometer__ - 
-* __LumiScreen__ - 
-* __LumiBuzzer__ - 
 
 ### ADC Driver
 `gpclk_config/` - contains the `dt-blob.dts` file required to run the ADC. See the README for instructions on setting up the Raspberry Pi.
