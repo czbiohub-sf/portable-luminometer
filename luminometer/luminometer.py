@@ -246,7 +246,6 @@ class Luminometer():
 		self.semA = float('inf')
 		self.resultB = 0
 		self.semB = float('inf')
-		self.cb_buffer_size = 100
 		self._crcErrs = 0
 		self._accumBufferA = []
 		self._accumBufferB = []
@@ -1236,8 +1235,6 @@ class Luminometer():
 				# Main realtime loop:
 				while self._powerOn:
 
-					t0 = time.perf_counter()
-
 					# Check for status of the futures which are currently working
 					done, not_done = concurrent.futures.wait(future_result, timeout=0.005, \
 						return_when=concurrent.futures.FIRST_COMPLETED)
@@ -1251,8 +1248,6 @@ class Luminometer():
 
 						future_result[executor.submit(self.measure, *measureType)] = f"Exposure = {measureType[0]}, Dark = {measureType[1]}"
 
-					tmeas = time.perf_counter()
-
 					# Shutter queue has size 1 and will not add additional items to the queue
 					while not self._shutter_q.empty():
 
@@ -1264,8 +1259,6 @@ class Luminometer():
 
 						# Submit shutter actions
 						future_result[executor.submit(self.shutter.actuate, action)] = "Shutter: " + action
-
-					tshut = time.perf_counter()
 
 					# Display queue has size 1 and will not add additional items to the queue
 					# If there is an incoming message, start a new future
@@ -1295,13 +1288,6 @@ class Luminometer():
 
 						# Remove the now completed future
 						del future_result[future]
-
-					tend = time.perf_counter()
-
-					# print(f'run(): measure: {tmeas - t0} s')
-					# print(f'run(): shutter: {tshut - t0} s')
-					# print(f'run(): display: {tdisp - t0} s')
-					# print(f'run(): all: {tend - t0} s')
 
 
 		except KeyboardInterrupt:
