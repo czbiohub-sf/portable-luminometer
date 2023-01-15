@@ -5,13 +5,17 @@ This repository contains the electronics design and control software for a porta
 
 https://www-nature-com.ucsf.idm.oclc.org/articles/s41587-021-00878-8
 
-The split-luciferase assay emits 
-The need for portability was identified by Cristina Tato (CZB), who is leading an effort to map coronavirus immunity across remote regions in Bangladesh, in collaboration with Senjuti Saha.
+As is common in well-funded labs, the split-luciferase assay was developed on a high-sensitivity benchtop luminometer. Unfortunately, there is an orders-of-magnitude performance gap between these devices and available handheld luminometers, commercial or DIY. The need for portability was identified by Cristina Tato (CZB), who is leading an effort to map coronavirus immunity across remote regions in Bangladesh, in collaboration with Senjuti Saha at CHRF, Dhaka.
 
 Our device accepts 1-2 PCR tubes, and reports on luminescence levels using a sensor that is read out by a 24-bit analog-to-digital converter. The device includes a shutter system that repeatedly blocks and unblocks the signal from reaching the sensor, thereby continuously performing dark measurements in order to stabilize the baseline of the measurement against drift. Results are displayed on a low-power, e-ink screen.
 
+The software was written to run on the Raspberry Zero W in the device, which is connected to custom PCBs that perform the measurements. 
+
 ## Full user guide here: 
 https://tinyurl.com/3p8p7axm
+
+## Mechanical model here:
+https://cad.onshape.com/documents/681017372753852c73b577a8/w/f1f724f31d32967117942551/e/8bf7604225c699873e8675c3
 
 
 ## Installation and Use
