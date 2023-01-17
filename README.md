@@ -16,6 +16,36 @@ https://tinyurl.com/3p8p7axm
 ## Mechanical model here:
 https://cad.onshape.com/documents/681017372753852c73b577a8/w/f1f724f31d32967117942551/e/8bf7604225c699873e8675c3
 
+## Organization
+The structure of this repo is illustrated below. Note: the 'Electronics' and 'Early calculations' directories were truncated for brevity.
+```
+├── CHANGES.md
+├── Early calculations
+├── Electronics design
+├── LICENSE
+├── README.md
+├── RPi Config
+│	└── config.txt
+├── gpclk_config
+│	├── README.md
+│	└── dt-blob.dts
+├── luminometer
+│	├── __init__.py
+│	├── adc_constants.py
+│	├── adc_phat_example.py
+│	├── adc_reader.py
+│	├── ads131m08_reader.py
+│	├── crc.py
+│	├── luminometer.py
+│	├── luminometer_constants.py
+│	├── lumiscreen.py
+│	├── menu.py
+│	├── no_sensor_validation.py
+│	├── pwm_test.py
+│	├── screen_test.py
+│	└── temp_coeffs.json
+└── setup.py
+```
 
 ## Installation and Use
 ### Option 1: Clone the SD Card
