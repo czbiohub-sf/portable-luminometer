@@ -17,7 +17,7 @@ https://tinyurl.com/3p8p7axm
 https://cad.onshape.com/documents/681017372753852c73b577a8/w/f1f724f31d32967117942551/e/8bf7604225c699873e8675c3
 
 ## Organization
-The structure of this repo is illustrated below. Note: the 'Electronics' and 'Early calculations' directories were truncated for brevity.
+The structure of this repo is illustrated below. Note: the 'Electronics design' and 'Early calculations' directories were truncated for brevity.
 ```
 ├── CHANGES.md
 ├── Early calculations
