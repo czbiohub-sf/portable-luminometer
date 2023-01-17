@@ -141,4 +141,4 @@ sudo systemctl enable pigpiod
 4. Update module (__pip install . --upgrade__)
 
 ## Note regarding licenses:
-Two different licenses are used in this repo. The BSD 3-Clause License is applied to the entire repo except for the hardware design files contained in the `Electronics` directory, which are separately licensed by the `CERN Open Hardware Licence Version 2 - Weakly Reciprocal`, contained in that directory.
+Two different licenses are used in this repo. The BSD 3-Clause License is applied to the entire repo except for the hardware design files contained in the `Electronics design` directory, which are separately licensed by the `CERN Open Hardware Licence Version 2 - Weakly Reciprocal`, contained in that directory.
